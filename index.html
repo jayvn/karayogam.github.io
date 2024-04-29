@@ -1,6 +1,47 @@
-<head> </head>
-<body> </body>
-
-<p>
-pareekshanaadisthaanathil
-</p>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Karayogam</title>
+        <style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    margin: 40px;
+    text-align: center;
+}
+                #secretMessage {
+                    display: none;
+                    font-size: 20px;
+                    color: #f0f0f0;
+                    margin-top: 20px;
+                }
+                a {
+                    text-decoration: none;
+                    color: #0077cc;
+                }
+                a:hover {
+                    color: #00a3ff;
+                }
+                .logo {
+                    max-width: 150px;
+                    margin-bottom: 20px;
+                }
+        </style>
+    </head>
+    <body>
+        <img src="images/logo.png" alt="Karayogam Logo" class="logo">
+        <h1>Karayogam</h1>
+        <p><a href="#" onclick="revealMessage()">What is Karayogam?</a></p>
+        <p id="secretMessage">If you have to ask, you don't need to know.</p>
+        <script>
+            function revealMessage() {
+                document.getElementById('secretMessage').style.display 
+                    = 'block';
+                return false; // Prevent default link behavior
+            }
+        </script>
+    </body>
+</html>
