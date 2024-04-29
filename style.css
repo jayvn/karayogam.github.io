@@ -1,0 +1,29 @@
+style.css:
+body {
+    font-family: 'Bebas Neue', sans-serif;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    margin: 40px;
+    text-align: center;
+}
+
+#secretMessage {
+    display: none;
+    font-size: 20px;
+    color: #f0f0f0;
+    margin-top: 20px;
+}
+
+a {
+    text-decoration: none;
+    color: #0077cc;
+}
+
+a:hover {
+    color: #00a3ff;
+}
+
+.logo {
+    max-width: 150px;
+    margin-bottom: 20px;
+}
