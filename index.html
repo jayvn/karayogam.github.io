@@ -4,44 +4,16 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Karayogam</title>
-        <style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #1a1a1a;
-    color: #f0f0f0;
-    margin: 40px;
-    text-align: center;
-}
-                #secretMessage {
-                    display: none;
-                    font-size: 20px;
-                    color: #f0f0f0;
-                    margin-top: 20px;
-                }
-                a {
-                    text-decoration: none;
-                    color: #0077cc;
-                }
-                a:hover {
-                    color: #00a3ff;
-                }
-                .logo {
-                    max-width: 150px;
-                    margin-bottom: 20px;
-                }
-        </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <img src="images/logo.png" alt="Karayogam Logo" class="logo">
+        <img src="logo.png" alt="Karayogam Logo" class="logo">
         <h1>Karayogam</h1>
         <p><a href="#" onclick="revealMessage()">What is Karayogam?</a></p>
         <p id="secretMessage">If you have to ask, you don't need to know.</p>
-        <script>
-            function revealMessage() {
-                document.getElementById('secretMessage').style.display 
-                    = 'block';
-                return false; // Prevent default link behavior
-            }
-        </script>
+        <script src="script.js"></script>
     </body>
 </html>
