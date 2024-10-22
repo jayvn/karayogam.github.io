@@ -37,3 +37,30 @@ a:hover {
 body.fade-out {
     animation: fadeOut 1s ease-in-out forwards;
 }
+
+.event {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+.event:hover {
+    transform: scale(1.05);
+}
+
+.event h2 {
+    font-size: 28px;
+    color: #c68c5c;
+    margin-bottom: 10px;
+}
+
+.event p {
+    font-size: 20px;
+    color: #f0f0f0;
+    margin: 5px 0;
+}
