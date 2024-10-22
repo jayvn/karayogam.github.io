@@ -1,5 +1,6 @@
 body {
-    font-family: 'Tangerine', cursive; /* This sets Tangerine as the primary font, with a cursive fallback */
+    /* font-family: 'Tangerine', cursive; This sets Tangerine as the primary font, with a cursive fallback */
+    font-family: "Playwrite GB S", cursive;
     background-color: #121212;
     color: #f0f0f0;
     margin: 40px;
@@ -37,3 +38,10 @@ a:hover {
 body.fade-out {
     animation: fadeOut 1s ease-in-out forwards;
 }
+
+.playwrite-gb-s-what {
+    font-family: "Playwrite GB S", cursive;
+    font-optical-sizing: auto;
+    font-weight: <weight>;
+    font-style: normal;
+  }
