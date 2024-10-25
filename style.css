@@ -12,7 +12,6 @@ body {
     font-size: 20px;
     color: #f0f0f0;
     margin-top: 20px;
-    font-size: 30px;
 }
 
 a {
@@ -54,13 +53,31 @@ body.fade-out {
 }
 
 .event h2 {
-    font-size: 28px;
     color: #c68c5c;
     margin-bottom: 10px;
 }
 
 .event p {
-    font-size: 20px;
     color: #f0f0f0;
     margin: 5px 0;
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 600px) {
+    body {
+        font-size: 16px;
+        margin: 10px;
+    }
+
+    .logo {
+        max-width: 80px;
+    }
+
+    a {
+        font-size: 20px;
+    }
+
+    #secretMessage {
+        font-size: 14px;
+    }
 }
