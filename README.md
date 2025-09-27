@@ -33,6 +33,12 @@ Since this is a static site with no build process:
 ## Making Changes
 
 - Edit HTML, CSS, or JS files directly
-- Test by opening `index.html` in a browser
+- Test by opening `index.html` in a browser or using local server
 - Changes are deployed automatically via GitHub Pages when pushed to master branch
 - The site uses absolute paths (`/style.css`, `/images/`) for GitHub Pages compatibility
+
+## Local Development
+
+- **Start local server**: `python3 -m http.server 8000`
+- **View site**: Navigate to `http://localhost:8000`
+- **Stop server**: Use Ctrl+C or kill the background process
