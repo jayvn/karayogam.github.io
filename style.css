@@ -81,3 +81,10 @@ body.fade-out {
         font-size: 14px;
     }
 }
+
+footer {
+    margin-top: 40px;
+    font-size: 10px;
+    color: #888;
+    text-align: right;
+}
