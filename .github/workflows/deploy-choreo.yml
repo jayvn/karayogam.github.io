@@ -34,18 +34,28 @@ jobs:
         working-directory: ./choreo
         run: npm run build
 
-      - name: Copy dist to root choreo folder
+      - name: Prepare deployment directory
         run: |
-          rm -rf choreo_temp
-          cp -r choreo/dist choreo_temp
-          rm -rf choreo/*
-          cp -r choreo_temp/* choreo/
-          rm -rf choreo_temp
+          # Create a deployment directory with the site structure
+          mkdir -p deploy
+
+          # Copy main site files
+          cp -r images deploy/ || true
+          cp index.html style.css script.js CNAME deploy/ || true
+          cp -r events deploy/ || true
+
+          # Copy built choreo app (not source)
+          mkdir -p deploy/choreo
+          cp -r choreo/dist/* deploy/choreo/
+
+          echo "✅ Deployment directory prepared"
+          ls -la deploy/
+          ls -la deploy/choreo/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: './deploy'
 
   deploy:
     environment:
