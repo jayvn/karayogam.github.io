@@ -9,6 +9,7 @@ Keep it simple and stupid (KISS)
 - **File Structure**:
   - `index.html` - Main landing page with interactive reveal feature
   - `events/index.html` - Events listing page
+  - `choreo/` - ChoreoMarker React app for choreography marking (see [choreo/README.md](choreo/README.md))
   - `style.css` - Global styles with mobile responsiveness
   - `script.js` - Simple JavaScript for interactive elements
   - `images/` - Logo and favicon assets
