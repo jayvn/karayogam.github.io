@@ -1,45 +1,88 @@
 ## Project Overview
 
-This is a static website for Karayogam, a cultural and social group based in Munich. The site is a simple, minimal HTML/CSS/JavaScript website with no build process or package manager dependencies.
-Keep it simple and stupid (KISS)
+Karayogam website for a cultural and social group in Munich. The project has two parts:
+1. **Main site** - Static HTML/CSS/JS (KISS principle)
+2. **ChoreoMarker** - React PWA for choreography marking
 
 ## Architecture
 
-- **Static HTML Site**: Pure HTML, CSS, and vanilla JavaScript
-- **File Structure**:
-  - `index.html` - Main landing page with interactive reveal feature
-  - `events/index.html` - Events listing page
-  - `choreo/` - ChoreoMarker React app for choreography marking (see [choreo/README.md](choreo/README.md))
-  - `style.css` - Global styles with mobile responsiveness
-  - `script.js` - Simple JavaScript for interactive elements
-  - `images/` - Logo and favicon assets
-  - `CNAME` - GitHub Pages domain configuration (karayogam.de)
+### Main Site (Static)
+- Pure HTML, CSS, vanilla JavaScript
+- No build process or dependencies
+- Files served directly from repository
 
-## Development
+### ChoreoMarker App (`/choreo/`)
+- React 18 PWA for choreography marking
+- See [choreo/README.md](choreo/README.md) for details
 
-Since this is a static site with no build process:
+### File Structure
+```
+├── index.html              # Landing page
+├── events/index.html       # Events listing
+├── style.css, script.js    # Styles and interactions
+├── images/                 # Assets
+├── CNAME                   # Domain config (karayogam.de)
+└── choreo/                 # React app (see choreo/README.md)
+```
 
-- **No package.json or build commands** - Files are served directly
-- **No testing framework** - Manual testing in browser
-- **No linting setup** - Code follows basic web standards
-- **Deployment**: Hosted on GitHub Pages with custom domain
+## Development Workflow
+
+### Main Site
+Edit HTML/CSS/JS directly:
+```bash
+python3 -m http.server 8000  # Local testing
+# Push to master → auto-deploys
+```
+
+### ChoreoMarker App
+See [choreo/README.md](choreo/README.md) for full details.
+
+**Quick start:**
+```bash
+cd choreo
+npm install && npm run dev
+```
+
+**Deployment:** Fully automated via GitHub Actions - just push to master.
 
 ## Key Features
 
-- **Interactive reveal**: Click "What is Karayogam?" to show hidden message
-- **Mobile responsive**: Optimized for mobile devices with media queries
-- **Dark theme**: Custom dark color scheme with hover effects
-- **Bilingual text**: Malayalam and Tamil scripts alongside English
+**Main Site:**
+- Interactive reveal ("What is Karayogam?")
+- Mobile responsive
+- Dark theme
+- Bilingual text (Malayalam, Tamil, English)
 
-## Making Changes
+**ChoreoMarker:**
+- Choreography marking tool for dance rehearsals
+- PWA with offline support and data persistence
+- See [choreo/README.md](choreo/README.md) for full feature list
 
-- Edit HTML, CSS, or JS files directly
-- Test by opening `index.html` in a browser or using local server
-- Changes are deployed automatically via GitHub Pages when pushed to master branch
-- The site uses absolute paths (`/style.css`, `/images/`) for GitHub Pages compatibility
+## Deployment
+
+**Automated via GitHub Actions** (`.github/workflows/deploy-choreo.yml`):
+- Triggers on push to master
+- Builds choreo app in CI
+- Deploys entire site to GitHub Pages
+- Main site files copied as-is
+- Choreo app built and deployed from `dist/`
+
+**Manual intervention NOT needed** - Just push your changes.
 
 ## Local Development
 
-- **Start local server**: `python3 -m http.server 8000`
-- **View site**: Navigate to `http://localhost:8000`
-- **Stop server**: Use Ctrl+C or kill the background process
+**Main Site:**
+```bash
+python3 -m http.server 8000
+# or use any static file server
+```
+
+**ChoreoMarker:**
+```bash
+cd choreo
+bun run dev  # or npm run dev
+```
+
+**View:**
+- Main site: `http://localhost:8000`
+- Choreo app: `http://localhost:5173/choreo/`
