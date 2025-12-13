@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
+// Use global React and Lucide from CDN
+const { useState, useRef, useEffect, useCallback } = React;
+const {
   Play,
   Pause,
   RotateCcw,
@@ -15,7 +16,7 @@ import {
   Check,
   Download,
   FileJson
-} from 'lucide-react';
+} = LucideReact;
 
 const formatTime = (seconds) => {
   if (!seconds && seconds !== 0) return "00:00";
