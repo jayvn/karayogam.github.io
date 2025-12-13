@@ -137,12 +137,14 @@ function App() {
   const [editingDancer, setEditingDancer] = useState(null);
   const [editingBookmarkId, setEditingBookmarkId] = useState(null);
   const [tempBookmarkName, setTempBookmarkName] = useState("");
+  const [showDancers, setShowDancers] = useState(false);
 
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
   const jsonInputRef = useRef(null);
   const bookmarksRef = useRef(null);
   const stageRef = useRef(null);
+  const hasDraggedRef = useRef(false);
 
   useEffect(() => {
     return () => { if (audioSrc) URL.revokeObjectURL(audioSrc); };
@@ -309,11 +311,13 @@ function App() {
           audioRef.current.pause();
           setIsPlaying(false);
       }
+      hasDraggedRef.current = false;
       setDraggedDancerId(id);
   };
 
   const handleDragMove = useCallback((e) => {
       if (!draggedDancerId || !stageRef.current) return;
+      hasDraggedRef.current = true;
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const rect = stageRef.current.getBoundingClientRect();
@@ -481,7 +485,7 @@ function App() {
                             key={dancer.id}
                             onMouseDown={(e) => handleDragStart(e, dancer.id)}
                             onTouchStart={(e) => handleDragStart(e, dancer.id)}
-                            onClick={() => !draggedDancerId && setEditingDancer(dancer)}
+                            onDoubleClick={() => setEditingDancer(dancer)}
                             className="absolute w-12 h-12 -ml-6 -mt-6 rounded-full flex items-center justify-center font-bold text-sm shadow-xl z-10 touch-none select-none transition-transform hover:scale-110"
                             style={{
                                 left: `${pos.x}%`,
@@ -505,6 +509,11 @@ function App() {
                 </button>
             </div>
         </div>
+
+        {/* Footnote */}
+        {dancers.length > 0 && (
+            <p className="text-xs text-gray-500 text-center mt-2">Double-click dancer to rename</p>
+        )}
 
         {/* Player */}
         <div className="bg-gray-900 rounded-2xl p-4 md:p-6 border border-gray-800 shadow-xl">
@@ -554,6 +563,53 @@ function App() {
                 </div>
             )}
         </div>
+
+        {/* Dancers List */}
+        {dancers.length > 0 && (
+            <div className="space-y-3">
+                <div
+                    className="flex items-center justify-between px-2 cursor-pointer hover:bg-gray-800/30 rounded-lg p-2 transition-colors"
+                    onClick={() => setShowDancers(!showDancers)}
+                >
+                    <h2 className="font-semibold text-gray-300">Dancers ({dancers.length})</h2>
+                    <span className="text-gray-400">{showDancers ? '▼' : '▶'}</span>
+                </div>
+                {showDancers && (
+                    <div className="space-y-2">
+                        {dancers.map(dancer => (
+                            <div
+                                key={dancer.id}
+                                className="flex items-center justify-between p-3 rounded-lg bg-gray-800 border border-gray-700"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs"
+                                        style={{ backgroundColor: dancer.color }}
+                                    >
+                                        {getInitials(dancer.name)}
+                                    </div>
+                                    <span className="text-gray-100">{dancer.name}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setEditingDancer(dancer)}
+                                        className="p-2 text-gray-400 hover:text-white"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => deleteDancer(dancer.id)}
+                                        className="p-2 text-gray-400 hover:text-red-400"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        )}
 
         {/* Timeline */}
         {bookmarks.length > 0 && (
