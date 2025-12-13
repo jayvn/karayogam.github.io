@@ -6,6 +6,71 @@ const Icon = ({ children, size = 16, ...props }) => (
   </span>
 );
 
+// IndexedDB helper for audio storage
+const DB_NAME = 'ChoreoMarkerDB';
+const DB_VERSION = 1;
+const AUDIO_STORE = 'audioFiles';
+
+const openDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(AUDIO_STORE)) {
+        db.createObjectStore(AUDIO_STORE);
+      }
+    };
+  });
+};
+
+const saveAudioToDB = async (blob, fileName) => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(AUDIO_STORE, 'readwrite');
+    const store = tx.objectStore(AUDIO_STORE);
+    store.put({ blob, fileName, timestamp: Date.now() }, 'currentAudio');
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.error('Error saving audio to IndexedDB:', err);
+  }
+};
+
+const loadAudioFromDB = async () => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(AUDIO_STORE, 'readonly');
+    const store = tx.objectStore(AUDIO_STORE);
+    const request = store.get('currentAudio');
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error('Error loading audio from IndexedDB:', err);
+    return null;
+  }
+};
+
+const deleteAudioFromDB = async () => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(AUDIO_STORE, 'readwrite');
+    const store = tx.objectStore(AUDIO_STORE);
+    store.delete('currentAudio');
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.error('Error deleting audio from IndexedDB:', err);
+  }
+};
+
 const formatTime = (seconds) => {
   if (!seconds && seconds !== 0) return "00:00";
   const h = Math.floor(seconds / 3600);
@@ -134,6 +199,70 @@ function App() {
   const bookmarksRef = useRef(null);
   const stageRef = useRef(null);
   const hasDraggedRef = useRef(false);
+  const audioFileRef = useRef(null);
+  const isLoadingRef = useRef(false);
+
+  // Load saved data on mount
+  useEffect(() => {
+    const loadSavedData = async () => {
+      isLoadingRef.current = true;
+
+      // Load from localStorage
+      try {
+        const savedDancers = localStorage.getItem('choreo_dancers');
+        const savedBookmarks = localStorage.getItem('choreo_bookmarks');
+        const savedPositions = localStorage.getItem('choreo_positions');
+        const savedFileName = localStorage.getItem('choreo_fileName');
+
+        if (savedDancers) setDancers(JSON.parse(savedDancers));
+        if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
+        if (savedPositions) setCurrentPositions(JSON.parse(savedPositions));
+        if (savedFileName) setFileName(savedFileName);
+      } catch (err) {
+        console.error('Error loading from localStorage:', err);
+      }
+
+      // Load audio from IndexedDB
+      try {
+        const audioData = await loadAudioFromDB();
+        if (audioData && audioData.blob) {
+          const url = URL.createObjectURL(audioData.blob);
+          setAudioSrc(url);
+          audioFileRef.current = audioData.blob;
+        }
+      } catch (err) {
+        console.error('Error loading audio:', err);
+      }
+
+      isLoadingRef.current = false;
+    };
+
+    loadSavedData();
+  }, []);
+
+  // Auto-save dancers to localStorage
+  useEffect(() => {
+    if (isLoadingRef.current) return;
+    localStorage.setItem('choreo_dancers', JSON.stringify(dancers));
+  }, [dancers]);
+
+  // Auto-save bookmarks to localStorage
+  useEffect(() => {
+    if (isLoadingRef.current) return;
+    localStorage.setItem('choreo_bookmarks', JSON.stringify(bookmarks));
+  }, [bookmarks]);
+
+  // Auto-save positions to localStorage
+  useEffect(() => {
+    if (isLoadingRef.current) return;
+    localStorage.setItem('choreo_positions', JSON.stringify(currentPositions));
+  }, [currentPositions]);
+
+  // Auto-save fileName to localStorage
+  useEffect(() => {
+    if (isLoadingRef.current) return;
+    localStorage.setItem('choreo_fileName', fileName);
+  }, [fileName]);
 
   useEffect(() => {
     return () => { if (audioSrc) URL.revokeObjectURL(audioSrc); };
@@ -339,7 +468,7 @@ function App() {
       };
   }, [draggedDancerId, handleDragMove, handleDragEnd]);
 
-  // EXPORT / IMPORT
+  // EXPORT / IMPORT / CLEAR
   const exportData = () => {
       const data = {
           version: 1,
@@ -374,6 +503,34 @@ function App() {
       };
       reader.readAsText(file);
       e.target.value = null; // reset input
+  };
+
+  const clearAllStorage = async () => {
+      if (!confirm('Clear all saved data including audio file? This cannot be undone.')) return;
+
+      // Clear localStorage
+      localStorage.removeItem('choreo_dancers');
+      localStorage.removeItem('choreo_bookmarks');
+      localStorage.removeItem('choreo_positions');
+      localStorage.removeItem('choreo_fileName');
+
+      // Clear IndexedDB
+      await deleteAudioFromDB();
+
+      // Reset state
+      setDancers([]);
+      setBookmarks([]);
+      setCurrentPositions({});
+      setFileName("");
+      if (audioSrc) {
+          URL.revokeObjectURL(audioSrc);
+          setAudioSrc(null);
+      }
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+
+      alert('All data cleared!');
   };
 
   return (
@@ -421,7 +578,7 @@ function App() {
             </div>
 
             <div className="flex gap-2">
-                <input type="file" ref={fileInputRef} onChange={(e) => {
+                <input type="file" ref={fileInputRef} onChange={async (e) => {
                     const file = e.target.files[0];
                     if (file) {
                         const url = URL.createObjectURL(file);
@@ -430,6 +587,10 @@ function App() {
                         setBookmarks([]);
                         setIsPlaying(false);
                         setCurrentTime(0);
+
+                        // Save audio to IndexedDB
+                        audioFileRef.current = file;
+                        await saveAudioToDB(file, file.name);
                     }
                 }} accept="audio/*" className="hidden" />
 
@@ -445,6 +606,10 @@ function App() {
 
                 <Button onClick={exportData} variant="secondary" className="!py-2 text-sm">
                     <Icon size={16}>⬇️</Icon> Export
+                </Button>
+
+                <Button onClick={clearAllStorage} variant="danger" className="!py-2 text-sm">
+                    <Icon size={16}>🗑️</Icon> Clear Storage
                 </Button>
             </div>
         </div>
@@ -673,6 +838,11 @@ function App() {
             </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="mt-12 pb-6 text-center text-xs text-gray-600">
+        <p>vibe coded with gemini and claude by <a href="https://github.com/jayvn" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-400 transition-colors">github.com/jayvn</a></p>
+      </footer>
     </div>
   );
 }
