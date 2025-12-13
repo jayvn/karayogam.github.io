@@ -1,6 +1,5 @@
-// Use global React and Lucide from CDN
-const { useState, useRef, useEffect, useCallback } = React;
-const {
+import { useState, useRef, useEffect, useCallback } from 'react';
+import {
   Play,
   Pause,
   RotateCcw,
@@ -16,7 +15,7 @@ const {
   Check,
   Download,
   FileJson
-} = LucideReact;
+} from 'lucide-react';
 
 const formatTime = (seconds) => {
   if (!seconds && seconds !== 0) return "00:00";
@@ -550,7 +549,7 @@ function App() {
                     </div>
 
                     <Button onClick={addManualBookmark} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 text-lg font-bold">
-                        <Type size={20} /> Mark Note
+                        <Type /> Mark
                     </Button>
                 </div>
             )}
@@ -633,5 +632,4 @@ function App() {
   );
 }
 
-// Render the app
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+export default App;
