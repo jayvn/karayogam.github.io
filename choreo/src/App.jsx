@@ -1,21 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  RotateCw,
-  Plus,
-  Trash2,
-  Upload,
-  Music,
-  Move,
-  X,
-  Type,
-  Edit2,
-  Check,
-  Download,
-  FileJson
-} from 'lucide-react';
+
+const Icon = ({ children, size = 16, ...props }) => (
+  <span style={{ fontSize: `${size}px`, lineHeight: 1, display: 'inline-flex', alignItems: 'center' }} {...props}>
+    {children}
+  </span>
+);
 
 const formatTime = (seconds) => {
   if (!seconds && seconds !== 0) return "00:00";
@@ -427,7 +416,7 @@ function App() {
             <div className="flex items-center gap-4">
                 <a href="/" className="text-gray-400 hover:text-white transition-colors text-sm">← Home</a>
                 <h1 className="text-xl font-bold flex items-center gap-2 text-indigo-400">
-                    <Music size={24}/> ChoreoMarker
+                    <Icon size={24}>🎵</Icon> ChoreoMarker
                 </h1>
             </div>
 
@@ -447,15 +436,15 @@ function App() {
                 <input type="file" ref={jsonInputRef} onChange={importData} accept=".json" className="hidden" />
 
                 <Button onClick={() => fileInputRef.current?.click()} variant="secondary" className="!py-2 text-sm">
-                    <Upload size={16}/> {audioSrc ? 'Change Audio' : 'Upload Audio'}
+                    <Icon size={16}>⬆️</Icon> {audioSrc ? 'Change Audio' : 'Upload Audio'}
                 </Button>
 
                 <Button onClick={() => jsonInputRef.current?.click()} variant="secondary" className="!py-2 text-sm">
-                    <FileJson size={16}/> Import
+                    <Icon size={16}>📄</Icon> Import
                 </Button>
 
                 <Button onClick={exportData} variant="secondary" className="!py-2 text-sm">
-                    <Download size={16}/> Export
+                    <Icon size={16}>⬇️</Icon> Export
                 </Button>
             </div>
         </div>
@@ -505,7 +494,7 @@ function App() {
 
             <div className="absolute top-4 right-4">
                 <button onClick={addDancer} className="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 rounded-full text-white flex items-center justify-center shadow-lg active:scale-95">
-                    <Plus size={20} />
+                    <Icon size={20}>➕</Icon>
                 </button>
             </div>
         </div>
@@ -519,7 +508,7 @@ function App() {
         <div className="bg-gray-900 rounded-2xl p-4 md:p-6 border border-gray-800 shadow-xl">
             {!audioSrc ? (
                 <div onClick={() => fileInputRef.current?.click()} className="h-24 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-800">
-                    <span className="flex items-center gap-2"><Upload size={20}/> Load Audio</span>
+                    <span className="flex items-center gap-2"><Icon size={20}>⬆️</Icon> Load Audio</span>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -548,17 +537,17 @@ function App() {
                     <div className="flex items-center justify-between gap-4">
                         <div className="font-mono text-xs text-gray-400 w-12">{formatTime(currentTime)}</div>
                         <div className="flex items-center gap-6">
-                            <button onClick={() => { if(audioRef.current) audioRef.current.currentTime -= 5; }} className="p-2 text-gray-400 hover:text-white"><RotateCcw size={20}/></button>
+                            <button onClick={() => { if(audioRef.current) audioRef.current.currentTime -= 5; }} className="p-2 text-gray-400 hover:text-white"><Icon size={20}>⏪</Icon></button>
                             <button onClick={togglePlay} className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                                {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
+                                {isPlaying ? <Icon size={28}>⏸️</Icon> : <Icon size={28}>▶️</Icon>}
                             </button>
-                            <button onClick={() => { if(audioRef.current) audioRef.current.currentTime += 5; }} className="p-2 text-gray-400 hover:text-white"><RotateCw size={20}/></button>
+                            <button onClick={() => { if(audioRef.current) audioRef.current.currentTime += 5; }} className="p-2 text-gray-400 hover:text-white"><Icon size={20}>⏩</Icon></button>
                         </div>
                         <div className="font-mono text-xs text-gray-400 w-12 text-right">{formatTime(duration)}</div>
                     </div>
 
                     <Button onClick={addManualBookmark} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 text-lg font-bold">
-                        <Type /> Mark
+                        <Icon size={20}>📝</Icon> Mark
                     </Button>
                 </div>
             )}
@@ -595,13 +584,13 @@ function App() {
                                         onClick={() => setEditingDancer(dancer)}
                                         className="p-2 text-gray-400 hover:text-white"
                                     >
-                                        <Edit2 size={16} />
+                                        <Icon size={16}>✏️</Icon>
                                     </button>
                                     <button
                                         onClick={() => deleteDancer(dancer.id)}
                                         className="p-2 text-gray-400 hover:text-red-400"
                                     >
-                                        <Trash2 size={16} />
+                                        <Icon size={16}>🗑️</Icon>
                                     </button>
                                 </div>
                             </div>
@@ -640,7 +629,7 @@ function App() {
                                     <div className="font-mono text-xs text-gray-500 w-10">{formatTime(bookmark.time)}</div>
                                     <div className="flex flex-col flex-1">
                                         <div className="flex items-center gap-2">
-                                            {isMov ? <Move size={14} className="text-emerald-500 flex-shrink-0"/> : <Type size={14} className="text-orange-500 flex-shrink-0"/>}
+                                            {isMov ? <Icon size={14} className="text-emerald-500 flex-shrink-0">🚶</Icon> : <Icon size={14} className="text-orange-500 flex-shrink-0">📝</Icon>}
 
                                             {isEditing ? (
                                                 <div className="flex items-center gap-2 w-full max-w-[200px]" onClick={e => e.stopPropagation()}>
@@ -651,7 +640,7 @@ function App() {
                                                         autoFocus
                                                         onKeyDown={(e) => e.key === 'Enter' && saveBookmarkName(e, bookmark.id)}
                                                     />
-                                                    <button onClick={(e) => saveBookmarkName(e, bookmark.id)} className="text-green-400"><Check size={16}/></button>
+                                                    <button onClick={(e) => saveBookmarkName(e, bookmark.id)} className="text-green-400"><Icon size={16}>✅</Icon></button>
                                                 </div>
                                             ) : (
                                                 <span className={`${isMov ? 'text-emerald-400' : 'text-orange-400'} font-medium truncate`}>
@@ -667,14 +656,14 @@ function App() {
                                             onClick={(e) => startEditingBookmark(e, bookmark)}
                                             className="p-2 text-gray-600 hover:text-white"
                                         >
-                                            <Edit2 size={16} />
+                                            <Icon size={16}>✏️</Icon>
                                         </button>
                                     )}
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setBookmarks(prev => prev.filter(b => b.id !== bookmark.id)); }}
                                         className="p-2 text-gray-600 hover:text-red-400"
                                     >
-                                        <Trash2 size={16} />
+                                        <Icon size={16}>🗑️</Icon>
                                     </button>
                                 </div>
                             </div>
