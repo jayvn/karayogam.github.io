@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/choreo/',
   build: {
-    outDir: '.',
+    outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: false
   }
