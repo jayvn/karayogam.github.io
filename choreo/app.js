@@ -912,6 +912,8 @@ const renderTimeline = () => {
     const isCurrent = Math.abs(state.currentTime - bookmark.time) < 0.5;
     const isMov = bookmark.type === 'movement';
     const isEditing = state.editingBookmarkId === bookmark.id;
+    const isStart = bookmark.time === 0;
+    const isEnd = state.duration && Math.abs(bookmark.time - state.duration) < 0.1;
 
     return `
       <div
@@ -919,7 +921,7 @@ const renderTimeline = () => {
         data-bookmark-id="${bookmark.id}"
       >
         <div class="flex items-center gap-3 flex-1">
-          <div class="font-mono text-xs text-gray-500 w-10">${formatTime(bookmark.time)}</div>
+          <div class="font-mono text-xs ${isStart ? 'text-blue-400 font-bold' : isEnd ? 'text-purple-400 font-bold' : 'text-gray-500'} w-10">${formatTime(bookmark.time)}</div>
           <div class="flex flex-col flex-1">
             <div class="flex items-center gap-2">
               <span style="font-size: 14px" class="${isMov ? 'text-emerald-500' : 'text-orange-500'} flex-shrink-0">${isMov ? '🚶' : '📝'}</span>
@@ -936,7 +938,7 @@ const renderTimeline = () => {
                 </div>
               ` : `
                 <span class="${isMov ? 'text-emerald-400' : 'text-orange-400'} font-medium truncate">
-                  ${bookmark.name}
+                  ${isStart ? '<span class="text-blue-400 font-bold">START</span> • ' : ''}${isEnd ? '<span class="text-purple-400 font-bold">END</span> • ' : ''}${bookmark.name}
                 </span>
               `}
             </div>
