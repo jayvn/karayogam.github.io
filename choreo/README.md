@@ -15,64 +15,62 @@ ChoreoMarker is a choreography marking tool for dance rehearsals, designed to he
 
 ## Architecture
 
-Built with modern web technologies:
-- **React 18** - UI framework
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Styling (CDN in dev, bundled in production)
+Built with vanilla web technologies:
+- **Vanilla JavaScript** - No frameworks, just pure JS
+- **Tailwind CSS** - Styling via CDN
 - **IndexedDB + localStorage** - Client-side data persistence
 - **PWA** - Service worker for offline support
+- **Canvas API** - Waveform visualization
 
 ## Local Development
 
 ### Prerequisites
-- Node.js v18+ or Bun
-- npm or bun
+- Any local web server (Python, PHP, Node.js http-server, etc.)
 
 ### Setup and Run
 
 ```bash
 cd choreo
-npm install      # or: bun install
-npm run dev      # or: bun run dev
+
+# Using Python 3
+python3 -m http.server 8000
+
+# Or using Node.js http-server
+npx http-server -p 8000
 ```
 
-Visit `http://localhost:5173/choreo/`
+Visit `http://localhost:8000/`
 
 ## Deployment
 
-**Fully automated via GitHub Actions** - No manual build or deployment needed.
+**Fully automated via GitHub Actions** - No build step needed!
 
 ### How It Works
 
-1. Edit source files in `choreo/src/`
+1. Edit source files in `choreo/`
 2. Push to master branch
 3. GitHub Actions automatically:
-   - Installs dependencies
-   - Builds the app (`npm run build`)
-   - Deploys built files to GitHub Pages
-   - Preserves source files for development
+   - Copies source files to deployment directory
+   - Deploys to GitHub Pages
 
 ### What NOT to Do
 
-❌ Do NOT manually run `npm run build` and copy files
-❌ Do NOT copy `dist/*` to `choreo/` root
-❌ Do NOT commit built files from `dist/`
+❌ Do NOT add build tools or dependencies
+❌ Do NOT create a build step
+❌ Files are deployed as-is from the repository
 
-The `index.html` in `choreo/` is the **dev template** - keep it in the repo. GitHub Actions generates the production version during deployment.
+The app is production-ready directly from source - no compilation needed!
 
 ## File Structure
 
 ```
 choreo/
-├── src/
-│   ├── App.jsx          # Main React component with all features
-│   └── main.jsx         # React entry point
-├── public/              # Static assets
-├── dist/                # Built files (git-ignored, CI-generated)
-├── index.html           # Dev template (kept in repo)
-├── package.json         # Dependencies and scripts
-├── vite.config.js       # Vite config (base: '/choreo/')
-└── README.md            # This file
+├── app.js            # Vanilla JavaScript application code
+├── index.html        # Main HTML file (production-ready)
+├── manifest.json     # PWA manifest
+├── sw.js             # Service worker for offline support
+├── .gitignore        # Git ignore rules
+└── README.md         # This file
 ```
 
 ## Storage & Persistence
@@ -94,22 +92,30 @@ Use the "Clear Storage" button in the app to wipe all saved data.
 
 ## Configuration
 
-- **Base Path**: `/choreo/` in `vite.config.js` for GitHub Pages routing
-- **Build Output**: `dist/` directory (git-ignored)
+- **Base Path**: `/choreo/` for GitHub Pages routing
 - **PWA Manifest**: `manifest.json` for installability
-- **Service Worker**: `sw.js` for offline support
+- **Service Worker**: `sw.js` for offline support (cache-first strategy)
 
 ## Troubleshooting
 
 **Dev server won't start:**
-- Ensure you're using the dev template `index.html` (references `src/main.jsx`)
-- Run `npm install` to ensure dependencies are installed
+- Use any static file server (Python, http-server, etc.)
+- Ensure you're serving from the choreo directory
 
 **Data not persisting:**
 - Check browser console for storage errors
 - Ensure you're not in private/incognito mode
 - Storage works in all modern browsers with IndexedDB support
 
-**Build errors in GitHub Actions:**
-- Verify `choreo/index.html` is the dev template, not production build
-- Check the Actions tab for detailed error logs
+**PWA not installing:**
+- Verify service worker is registered (check console)
+- PWA requires HTTPS (works on localhost and GitHub Pages)
+- Check manifest.json is accessible
+
+## Development Notes
+
+This app uses vanilla JavaScript with no build process:
+- Direct script loading via `<script src="/choreo/app.js"></script>`
+- Tailwind CSS loaded from CDN
+- All modern browser APIs (Canvas, IndexedDB, Service Workers)
+- Progressive enhancement for offline functionality

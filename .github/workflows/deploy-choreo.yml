@@ -19,21 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: choreo/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./choreo
-        run: npm ci
-
-      - name: Build
-        working-directory: ./choreo
-        run: npm run build
-
       - name: Prepare deployment directory
         run: |
           # Create a deployment directory with the site structure
@@ -44,9 +29,12 @@ jobs:
           cp index.html style.css script.js CNAME deploy/ || true
           cp -r events deploy/ || true
 
-          # Copy built choreo app (not source)
+          # Copy choreo app (vanilla JS - no build needed)
           mkdir -p deploy/choreo
-          cp -r choreo/dist/* deploy/choreo/
+          cp choreo/index.html deploy/choreo/
+          cp choreo/app.js deploy/choreo/
+          cp choreo/sw.js deploy/choreo/
+          cp choreo/manifest.json deploy/choreo/ || true
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/

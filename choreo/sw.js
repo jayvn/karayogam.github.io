@@ -1,17 +1,14 @@
 // Service Worker for ChoreoMarker PWA
-const CACHE_NAME = 'choreomarker-v1';
+const CACHE_NAME = 'choreomarker-v3';
 const urlsToCache = [
   '/choreo/',
   '/choreo/index.html',
-  '/choreo/app.jsx',
+  '/choreo/app.js',
   '/images/logo.png',
   '/images/favicon.ico',
   '/images/choreo-icon-192.png',
   '/images/choreo-icon-512.png',
-  'https://cdn.tailwindcss.com',
-  'https://unpkg.com/react@18/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
-  'https://unpkg.com/@babel/standalone/babel.min.js'
+  'https://cdn.tailwindcss.com'
 ];
 
 // Install event - cache resources

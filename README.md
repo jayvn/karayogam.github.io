@@ -17,7 +17,7 @@ Static HTML/CSS/JS website with information about Karayogam.
 - Bilingual content (Malayalam, Tamil, English)
 
 ### ChoreoMarker (`/choreo/`)
-React PWA for marking choreography during dance rehearsals.
+Vanilla JavaScript PWA for marking choreography during dance rehearsals.
 
 📖 **Full documentation:** [choreo/README.md](choreo/README.md)
 
@@ -35,7 +35,10 @@ python3 -m http.server 8000
 ### ChoreoMarker
 ```bash
 cd choreo
-npm install && npm run dev
+python3 -m http.server 8000
+
+# Edit app.js directly
+# Push to master → auto-deploys
 ```
 
 See [choreo/README.md](choreo/README.md) for details.
@@ -44,7 +47,7 @@ See [choreo/README.md](choreo/README.md) for details.
 
 Automated via GitHub Actions - just push to master:
 - Main site files → deployed as-is
-- Choreo app → built and deployed automatically
+- Choreo app → deployed as-is (no build step)
 
 ## File Structure
 
