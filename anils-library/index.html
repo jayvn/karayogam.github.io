@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plasma Physics Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .canvas-container { position: relative; width: 100%; height: 400px; background: #0f172a; border-radius: 8px; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans p-4 md:p-8">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 space-y-6">
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-4">Input Parameters</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Electron Density $n_e$ (m⁻³)</label>
+                        <input type="number" id="ne" value="1e18" step="any" class="w-full p-2 border rounded mt-1 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Electron Temp $T_e$ (eV)</label>
+                        <input type="number" id="te" value="10" step="any" class="w-full p-2 border rounded mt-1 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Magnetic Field $B$ (Tesla)</label>
+                        <input type="number" id="b" value="0.5" step="any" class="w-full p-2 border rounded mt-1 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Gas Pressure (Pa)</label>
+                        <input type="number" id="pressure" value="1" step="any" class="w-full p-2 border rounded mt-1 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Gas Species</label>
+                        <select id="species" class="w-full p-2 border rounded mt-1 bg-white">
+                            <option value="H" data-mass="1" data-sigma="1e-19">Hydrogen</option>
+                            <option value="He" data-mass="4" data-sigma="0.5e-19">Helium</option>
+                            <option value="Ar" data-mass="40" data-sigma="5e-19" selected>Argon</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-4">Results</h2>
+                <div id="results" class="space-y-2 font-mono text-sm"></div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-bold">Scale Visualization</h2>
+                    <span class="text-xs text-slate-500">Scale: Debye (White) | e-Larmor (Blue) | i-Larmor (Red)</span>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="viz"></canvas>
+                </div>
+            </div>
+            <div class="bg-slate-800 text-slate-300 p-4 rounded-xl text-xs overflow-x-auto">
+                <p class="mb-2 font-bold text-slate-100">Physical Constants & Formulas:</p>
+                $v_{te} = \sqrt{k_B T_e / m_e}$ | $\lambda_{mfp} = 1 / (n_g \sigma)$ | $\nu_{en} = v_{te} / \lambda_{mfp}$ | $n_g = P / (k_B T_g)$ (assumed $T_g = 300K$)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('viz');
+        const ctx = canvas.getContext('2d');
+        const inputs = ['ne', 'te', 'b', 'pressure', 'species'];
+
+        const ME = 9.10938e-31;
+        const MP = 1.67262e-27;
+        const QE = 1.60218e-19;
+        const EPS0 = 8.85419e-12;
+        const KB = 1.38065e-23;
+
+        let state = {};
+
+        function update() {
+            const ne = parseFloat(document.getElementById('ne').value);
+            const te_ev = parseFloat(document.getElementById('te').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const press = parseFloat(document.getElementById('pressure').value);
+            const sel = document.getElementById('species');
+            const mi_amu = parseFloat(sel.options[sel.selectedIndex].dataset.mass);
+            const sigma = parseFloat(sel.options[sel.selectedIndex].dataset.sigma);
+            
+            const te_k = te_ev * 11604.5;
+            const mi = mi_amu * MP;
+            const ng = press / (KB * 300); // Neutral density at Room Temp
+
+            const debye = Math.sqrt((EPS0 * KB * te_k) / (ne * QE * QE));
+            const wpe = Math.sqrt((ne * QE * QE) / (ME * EPS0));
+            const vte = Math.sqrt((KB * te_k) / ME);
+            const vti = Math.sqrt((KB * te_k) / mi);
+            const rLe = (ME * vte) / (QE * Math.abs(b) || 1e-9);
+            const rLi = (mi * vti) / (QE * Math.abs(b) || 1e-9);
+            const mfp = 1 / (ng * sigma);
+            const nu_en = vte / mfp;
+            const nd = (4/3) * Math.PI * Math.pow(debye, 3) * ne;
+
+            state = { debye, wpe, vte, vti, rLe, rLi, mfp, nu_en, nd };
+
+            const resDiv = document.getElementById('results');
+            resDiv.innerHTML = `
+                <div class="font-bold text-slate-500 text-[10px] uppercase mb-1">Characteristic Scales</div>
+                <div class="flex justify-between border-b pb-1"><span>Debye Length:</span> <span>${debye.toExponential(2)} m</span></div>
+                <div class="flex justify-between border-b pb-1"><span>e-Larmor Rad:</span> <span>${rLe.toExponential(2)} m</span></div>
+                <div class="flex justify-between border-b pb-1"><span>i-Larmor Rad:</span> <span>${rLi.toExponential(2)} m</span></div>
+                
+                <div class="font-bold text-slate-500 text-[10px] uppercase mt-4 mb-1">Collisionality</div>
+                <div class="flex justify-between border-b pb-1 text-blue-600"><span>Mean Free Path:</span> <span>${mfp.toExponential(2)} m</span></div>
+                <div class="flex justify-between border-b pb-1 text-blue-600"><span>Coll. Freq (e-n):</span> <span>${nu_en.toExponential(2)} Hz</span></div>
+                
+                <div class="font-bold text-slate-500 text-[10px] uppercase mt-4 mb-1">Frequencies & Params</div>
+                <div class="flex justify-between border-b pb-1"><span>Plasma Freq (e):</span> <span>${(wpe / (2 * Math.PI)).toExponential(2)} Hz</span></div>
+                <div class="flex justify-between border-b pb-1"><span>Plasma Param Λ:</span> <span>${nd.toExponential(2)}</span></div>
+            `;
+        }
+
+        let time = 0;
+        function draw() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            const baseScale = Math.min(canvas.width, canvas.height) * 0.35;
+            
+            const maxVal = Math.max(state.debye, state.rLe, state.rLi);
+            const scale = baseScale / maxVal;
+
+            // Debye
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, state.debye * scale, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'white';
+            ctx.fillText(`λD`, center.x, center.y - (state.debye * scale) - 5);
+
+            // MFP representation (visualized as a box boundary if it fits)
+            if (state.mfp * scale < canvas.width) {
+               ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+               ctx.setLineDash([2, 2]);
+               ctx.strokeRect(center.x - (state.mfp * scale)/2, center.y - (state.mfp * scale)/2, state.mfp * scale, state.mfp * scale);
+               ctx.fillText(`MFP`, center.x - (state.mfp * scale)/2, center.y - (state.mfp * scale)/2 - 5);
+            }
+
+            drawOrbit(center, state.rLe * scale, '#60a5fa', 'e-', time * 8);
+            drawOrbit(center, state.rLi * scale, '#f87171', 'i+', time * 2);
+
+            time += 0.02;
+            requestAnimationFrame(draw);
+        }
+
+        function drawOrbit(center, radius, color, label, t) {
+            ctx.setLineDash([]);
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            const px = center.x + Math.cos(t) * radius;
+            const py = center.y + Math.sin(t) * radius;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(px, py, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = '10px monospace';
+            ctx.fillText(label, px + 5, py + 5);
+        }
+
+        inputs.forEach(id => document.getElementById(id).addEventListener('input', update));
+        window.addEventListener('resize', update);
+        update();
+        draw();
+    </script>
+</body>
+</html>
