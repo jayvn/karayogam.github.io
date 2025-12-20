@@ -1,11 +1,8 @@
-name: Deploy ChoreoMarker
+name: Deploy Site
 
 on:
   push:
     branches: ['master']
-    paths:
-      - 'choreo/**'
-      - '.github/workflows/deploy-choreo.yml'
 
 permissions:
   contents: read
@@ -29,16 +26,14 @@ jobs:
           cp index.html style.css script.js CNAME deploy/ || true
           cp -r events deploy/ || true
 
-          # Copy choreo app (vanilla JS - no build needed)
-          mkdir -p deploy/choreo
-          cp choreo/index.html deploy/choreo/
-          cp choreo/app.js deploy/choreo/
-          cp choreo/sw.js deploy/choreo/
-          cp choreo/manifest.json deploy/choreo/ || true
+          # Copy choreo app
+          cp -r choreo deploy/ || true
+
+          # Copy anils-library app
+          cp -r anils-library deploy/ || true
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/
-          ls -la deploy/choreo/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
