@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="description" content="Simple offline shopping list app">
+    <title>Shopping List</title>
+
+    <!-- PWA Manifest (inline) -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU2hvcHBpbmcgTGlzdCIsInNob3J0X25hbWUiOiJTaG9wcGluZyIsInN0YXJ0X3VybCI6Ii9zaG9wcGluZy8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjRmNGY5IiwidGhlbWVfY29sb3IiOiIjNENBRjUwIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCclM0UlM0NyZWN0IGZpbGw9JyUyMzRDQUY1MCcgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnLyUzRSUzQ3RleHQgeD0nNTAnIHk9JzcwJyBmb250LXNpemU9JzcwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyUzRSVGMCU5RiU5QiU5MiUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsInNpemVzIjoiYW55IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+
+    <!-- PWA Icons (inline fallback) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%234CAF50' width='100' height='100'/%3E%3Ctext x='50' y='70' font-size='70' text-anchor='middle'%3E🛒%3C/text%3E%3C/svg%3E">
+
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 0 10px; background: #f4f4f9; }
+        .input-group { display: flex; gap: 5px; margin-bottom: 20px; }
+        select, input, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        #itemInput { flex-grow: 2; }
+        #unitInput { width: 60px; flex-grow: 1; }
+        button { cursor: pointer; background: #e0e0e0; border: 1px solid #bbb; }
+        .category-section { margin-bottom: 15px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .category-header { font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .item { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #eee; }
+        .item:last-child { border-bottom: none; }
+        .item-text { cursor: pointer; flex-grow: 1; }
+        .done { text-decoration: line-through; color: #888; }
+        .delete-btn { color: #ff4444; border: none; background: none; font-size: 1.2em; padding: 0 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>🛒 Shopping List</h2>
+
+    <div class="input-group">
+        <select id="catInput">
+            <option value="🍎 Produce">🍎 Produce</option>
+            <option value="🥛 Dairy">🥛 Dairy</option>
+            <option value="🥩 Meat">🥩 Meat</option>
+            <option value="🍞 Bakery">🍞 Bakery</option>
+            <option value="🏠 Home">🏠 Home</option>
+            <option value="📦 Other">📦 Other</option>
+        </select>
+        <input type="text" id="itemInput" placeholder="Item...">
+        <input type="text" id="unitInput" placeholder="Qty">
+        <button onclick="addItem()">➕</button>
+    </div>
+
+    <div id="listContainer"></div>
+
+    <script>
+        // ============================================
+        // PWA SERVICE WORKER REGISTRATION
+        // ============================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.log('❌ SW registration failed:', err));
+            });
+        }
+
+        // ============================================
+        // APP LOGIC
+        // ============================================
+        let items = JSON.parse(localStorage.getItem('shoppingList') || '[]');
+
+        function saveToStorage() {
+            localStorage.setItem('shoppingList', JSON.stringify(items));
+        }
+
+        function addItem() {
+            const nameInput = document.getElementById('itemInput');
+            const unitInput = document.getElementById('unitInput');
+            const cat = document.getElementById('catInput').value;
+            
+            if (!nameInput.value.trim()) return;
+
+            items.push({
+                id: Date.now(),
+                name: nameInput.value,
+                unit: unitInput.value,
+                category: cat,
+                done: false
+            });
+
+            nameInput.value = '';
+            unitInput.value = '';
+            saveToStorage();
+            render();
+        }
+
+        function toggleItem(id) {
+            items = items.map(item => item.id === id ? { ...item, done: !item.done } : item);
+            saveToStorage();
+            render();
+        }
+
+        function deleteItem(id) {
+            items = items.filter(item => item.id !== id);
+            saveToStorage();
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('listContainer');
+            container.innerHTML = '';
+
+            const grouped = items.reduce((acc, item) => {
+                if (!acc[item.category]) acc[item.category] = [];
+                acc[item.category].push(item);
+                return acc;
+            }, {});
+
+            Object.keys(grouped).forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                
+                let html = `<div class="category-header"><span>${cat}</span> <span>${grouped[cat].length}</span></div>`;
+                
+                grouped[cat].forEach(item => {
+                    html += `
+                        <div class="item">
+                            <span class="item-text ${item.done ? 'done' : ''}" onclick="toggleItem(${item.id})">
+                                ${item.done ? '✅' : '⚪'} ${item.name} 
+                                ${item.unit ? `<small style="opacity:0.7">(${item.unit})</small>` : ''}
+                            </span>
+                            <button class="delete-btn" onclick="deleteItem(${item.id})">🗑️</button>
+                        </div>
+                    `;
+                });
+                
+                section.innerHTML = html;
+                container.appendChild(section);
+            });
+        }
+
+        // Load saved items on startup
+        render();
+    </script>
+</body>
+</html>

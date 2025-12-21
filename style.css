@@ -88,3 +88,83 @@ footer {
     color: #888;
     text-align: right;
 }
+
+/* App Gallery Styles */
+.app-gallery {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.app-card {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.app-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.app-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.app-card h3 {
+    color: #f0f0f0;
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+.app-card p {
+    color: #b0b0b0;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 15px 0;
+}
+
+.app-link {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #0077cc;
+    color: #fff !important;
+    border-radius: 6px;
+    font-size: 18px;
+    transition: background-color 0.2s;
+}
+
+.app-link:hover {
+    background-color: #00a3ff;
+}
+
+/* Mobile adjustments for app gallery */
+@media (max-width: 600px) {
+    .app-card {
+        padding: 20px;
+    }
+
+    .app-icon {
+        font-size: 36px;
+    }
+
+    .app-card h3 {
+        font-size: 20px;
+    }
+
+    .app-card p {
+        font-size: 14px;
+    }
+
+    .app-link {
+        font-size: 16px;
+        padding: 8px 16px;
+    }
+}
