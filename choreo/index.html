@@ -16,6 +16,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Shared Navigation -->
+    <link rel="stylesheet" href="/shared/nav.css">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -47,7 +50,6 @@
             <!-- Header -->
             <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="/" class="text-gray-400 hover:text-white transition-colors text-sm">← Home</a>
                     <h1 class="text-xl font-bold flex items-center gap-2 text-indigo-400">
                         <span style="font-size: 24px; line-height: 1; display: inline-flex; align-items: center">🎵</span> ChoreoMarker
                     </h1>
@@ -121,5 +123,8 @@
 
     <!-- Vanilla JavaScript -->
     <script src="/choreo/app.js"></script>
+
+    <!-- Shared Navigation (auto-hides when installed as PWA) -->
+    <script src="/shared/nav.js"></script>
 </body>
 </html>
