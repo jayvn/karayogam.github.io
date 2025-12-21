@@ -4,30 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karayogam</title>
+    <title>Karayogam - Munich Cultural Group</title>
+    <meta name="description" content="Cultural and social group based in Munich">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+GB+S:ital,wght@0,100..400;1,100..400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/shared/nav.css">
     <link rel="icon" type="image/png" href="/images/favicon.png">
 </head>
 
 <body>
-    <img src="images/logo.png" alt="Karayogam Logo" class="logo">
-    <h1>Karayogam</h1>
-    <h6>കരയോഗം ⚫ கரயோகம்</h6>
-    <div>
-        <p><a href="#" onclick="revealMessage()">What is Karayogam?</a></p>
-        <p id="secretMessage">An unaffiliated cultural and social group based in Munich</p>
-    </div>
-    <script src="script.js"></script>
-    <div style="margin-top: 20px;">
-        <a href="/events">Events</a>
+    <!-- Navigation will be injected here by nav.js -->
+
+    <div class="main-content">
+        <img src="images/logo.png" alt="Karayogam Logo" class="logo">
+        <h1>Karayogam</h1>
+        <h6>കരയോഗം ⚫ கரയോகம்</h6>
+        <div>
+            <p><a href="#" onclick="revealMessage()">What is Karayogam?</a></p>
+            <p id="secretMessage">An unaffiliated cultural and social group based in Munich</p>
+        </div>
     </div>
 
     <!-- App Gallery Section -->
-    <div class="app-gallery">
+    <div class="app-gallery" id="apps">
         <h2 style="font-size: 28px; margin: 40px 0 30px; color: #c68c5c;">📱 Our Apps</h2>
 
         <div class="app-card">
@@ -50,7 +52,17 @@
             <p>Simple offline shopping list organized by categories with persistent storage</p>
             <a href="/shopping/" class="app-link">Open App →</a>
         </div>
+
+        <div class="app-card">
+            <div class="app-icon">🎨</div>
+            <h3>3D Colorizer</h3>
+            <p>Interactive 3D software painter - rotate and paint 3D shapes in real-time</p>
+            <a href="/3d_colorizer/" class="app-link">Open App →</a>
+        </div>
     </div>
+
+    <script src="/shared/nav.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

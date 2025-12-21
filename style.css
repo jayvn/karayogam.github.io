@@ -2,9 +2,13 @@ body {
     font-family: "Playwrite GB S", cursive;
     background-color: #121212;
     color: #f0f0f0;
-    margin: 40px;
+    margin: 0;
     font-size: 35px;
     text-align: center;
+}
+
+.main-content {
+    padding: 40px 20px;
 }
 
 #secretMessage {
