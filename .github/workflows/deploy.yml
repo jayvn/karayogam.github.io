@@ -25,12 +25,14 @@ jobs:
           cp -r images deploy/ || true
           cp index.html style.css script.js CNAME deploy/ || true
           cp -r events deploy/ || true
+          cp -r shared deploy/ || true
+          cp -r _templates deploy/ || true
 
-          # Copy choreo app
+          # Copy all apps
           cp -r choreo deploy/ || true
-
-          # Copy anils-library app
           cp -r anils-library deploy/ || true
+          cp -r shopping deploy/ || true
+          cp -r 3d_colorizer deploy/ || true
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/
