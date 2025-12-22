@@ -29,12 +29,88 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
     </style>
+
+    <!-- Firebase Configuration -->
+    <!-- Get your config from: https://console.firebase.google.com/ -->
+    <!-- Project Settings > General > Your apps > SDK setup and configuration -->
+    <script>
+        // REPLACE WITH YOUR FIREBASE CONFIG
+        // To get this config:
+        // 1. Go to https://console.firebase.google.com/
+        // 2. Create a new project or select existing
+        // 3. Go to Project Settings > General
+        // 4. Scroll to "Your apps" and add a web app
+        // 5. Copy the firebaseConfig object here
+        window.__firebase_config = JSON.stringify({
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        });
+
+        // Optional: Custom authentication token (leave undefined for anonymous auth)
+        // window.__initial_auth_token = undefined;
+
+        // Optional: Custom app ID (defaults to 'secret-santa-v1')
+        // window.__app_id = 'secret-santa-v1';
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Check if Firebase config exists and is valid
+        if (typeof __firebase_config === 'undefined') {
+            document.body.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+                    <div style="background: rgba(220, 38, 38, 0.2); border: 2px solid #dc2626; border-radius: 16px; padding: 32px; max-width: 500px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <h1 style="color: #fca5a5; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Firebase Not Configured</h1>
+                        <p style="color: #fff; margin-bottom: 16px; line-height: 1.6;">
+                            This Secret Santa app requires Firebase configuration to enable real-time synchronization.
+                        </p>
+                        <div style="background: rgba(0, 0, 0, 0.3); padding: 16px; border-radius: 8px; text-align: left; font-size: 14px; color: #cbd5e1; margin-bottom: 16px;">
+                            <strong style="color: #fbbf24;">Setup Instructions:</strong><br><br>
+                            1. Go to <a href="https://console.firebase.google.com/" target="_blank" style="color: #60a5fa; text-decoration: underline;">Firebase Console</a><br>
+                            2. Create a new project<br>
+                            3. Enable Firestore Database<br>
+                            4. Add a web app to your project<br>
+                            5. Copy the config and paste it in index.html (line 44-50)<br>
+                            6. Update Firestore rules to allow read/write
+                        </div>
+                        <p style="color: #94a3b8; font-size: 12px;">
+                            Edit <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">/secret-santa/index.html</code> to add your Firebase config
+                        </p>
+                    </div>
+                </div>
+            `;
+            throw new Error('Firebase configuration missing. Please add your Firebase config to the script.');
+        }
+
         const firebaseConfig = JSON.parse(__firebase_config);
+
+        // Validate that it's not the placeholder config
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            document.body.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+                    <div style="background: rgba(245, 158, 11, 0.2); border: 2px solid #f59e0b; border-radius: 16px; padding: 32px; max-width: 500px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔧</div>
+                        <h1 style="color: #fde68a; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Configuration Required</h1>
+                        <p style="color: #fff; margin-bottom: 16px;">
+                            Please replace the placeholder Firebase config with your actual Firebase project credentials.
+                        </p>
+                        <p style="color: #cbd5e1; font-size: 14px;">
+                            Edit <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">/secret-santa/index.html</code> (lines 44-50)
+                        </p>
+                    </div>
+                </div>
+            `;
+            throw new Error('Please replace placeholder Firebase config with your actual credentials.');
+        }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
