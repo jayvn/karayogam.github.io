@@ -71,6 +71,10 @@
             const name = input.value.trim();
             if (!name) return;
             const n = name.toLowerCase();
+            if (state.members.some(m => m.toLowerCase() === n)) {
+                showEgg("This name is already added! 👀");
+                return;
+            }
             if (['lakshmi', 'lamsi'].includes(n)) showEgg(`Hi ${name}, Jayde 2 EUR eppo kodukkum?`);
             if (['ayana', 'akhil antony', 'akhil', 'eva', 'evangela'].includes(n)) showEgg(`Hi ${name}, Nammal eppo Gajapokkiri kaanum gooys ?`);
             if (state.members.length === 0) state.creator = user.uid;
