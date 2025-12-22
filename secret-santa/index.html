@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Santa 🎄</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Secret Santa gift exchange organizer - Moosach Edition">
+    <meta name="theme-color" content="#1a365d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Secret Santa">
+
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/santa-icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/santa-icon-512.png">
+    <link rel="apple-touch-icon" href="/images/santa-icon-192.png">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/secret-santa/manifest.json">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: radial-gradient(circle at 50% 50%, #1a365d 0%, #0a192f 100%); overflow-x: hidden; }
+        .snow-flake { position: fixed; top: -10px; color: white; user-select: none; z-index: 0; pointer-events: none; animation: fall linear infinite; }
+        @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
+        .easter-egg { animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'secret-santa-v1';
+
+        let state = { members: [], pairs: [], isReady: false, creator: null };
+        let user = null;
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', 'globalState');
+
+        const sync = (newData) => { if (user) setDoc(docRef, newData); };
+
+        const showEgg = (msg) => {
+            const egg = document.createElement('div');
+            egg.className = 'fixed top-4 right-4 bg-yellow-400 text-black font-bold p-4 rounded-xl shadow-2xl z-50 easter-egg border-4 border-black';
+            egg.innerHTML = `✨ ${msg}`;
+            document.body.appendChild(egg);
+            setTimeout(() => egg.remove(), 5000);
+        };
+
+        const setIdentity = (name) => localStorage.setItem('santa_identity', name);
+        const getIdentity = () => localStorage.getItem('santa_identity');
+
+        const getMyEntries = () => JSON.parse(localStorage.getItem('my_santa_entries') || '[]');
+        const trackEntry = (name) => {
+            const entries = getMyEntries();
+            entries.push(name);
+            localStorage.setItem('my_santa_entries', JSON.stringify(entries));
+            setIdentity(name);
+        };
+
+        const checkPin = () => {
+            const val = document.getElementById('pinIn').value;
+            if (val === "2255") return true;
+            showEgg("Wrong PIN! 🚫");
+            return false;
+        };
+
+        window.addMember = () => {
+            const input = document.getElementById('nameIn');
+            const name = input.value.trim();
+            if (!name) return;
+            const n = name.toLowerCase();
+            if (['lakshmi', 'lamsi'].includes(n)) showEgg(`Hi ${name}, Jayde 2 EUR eppo kodukkum?`);
+            if (['ayana', 'akhil antony', 'akhil', 'eva', 'evangela'].includes(n)) showEgg(`Hi ${name}, Nammal eppo Gajapokkiri kaanum gooys ?`);
+            if (state.members.length === 0) state.creator = user.uid;
+            state.members.push(name);
+            state.pairs = [];
+            state.isReady = false;
+            trackEntry(name);
+            input.value = '';
+            sync(state);
+        };
+
+        window.removeMember = (idx) => {
+            const name = state.members[idx];
+            if (!getMyEntries().includes(name) && state.creator !== user.uid) {
+                showEgg("You can't remove someone you didn't add! 🚫");
+                return;
+            }
+            state.members.splice(idx, 1);
+            state.pairs = [];
+            state.isReady = false;
+            sync(state);
+        };
+
+        window.setReady = () => {
+            if (!checkPin()) return;
+            state.isReady = true;
+            sync(state);
+        };
+
+        window.draw = () => {
+            if (state.members.length < 2) return;
+            if (!checkPin()) return;
+            let pool = [...state.members];
+            let givers = [...state.members];
+            let attempt = 0;
+            while (attempt++ < 100) {
+                let shuffled = [...pool].sort(() => Math.random() - 0.5);
+                if (givers.every((m, i) => m !== shuffled[i])) {
+                    state.pairs = givers.map((m, i) => ({ from: m, to: shuffled[i] }));
+                    sync(state);
+                    return;
+                }
+            }
+        };
+
+        window.clearAll = () => {
+            if (state.creator && state.creator !== user.uid) {
+                showEgg("Only session creator can reset! 🚫");
+                return;
+            }
+            if (!checkPin()) return;
+            state = { members: [], pairs: [], isReady: false, creator: null };
+            localStorage.removeItem('my_santa_entries');
+            localStorage.removeItem('santa_identity');
+            sync(state);
+        };
+
+        window.revealMyMatch = () => {
+            const inputName = document.getElementById('lookupIn').value.trim();
+            const name = inputName || getIdentity();
+            if (!name) return showEgg("Enter your name first! 🔍");
+
+            setIdentity(name);
+            const pair = state.pairs.find(p => p.from.toLowerCase() === name.toLowerCase());
+            const display = document.getElementById('myMatchDisplay');
+            if (pair) {
+                display.innerHTML = `
+                    <div class="bg-green-600/30 p-4 rounded-xl border border-green-500 animate-bounce">
+                        <p class="text-xs uppercase opacity-70">You are Santa for:</p>
+                        <p class="text-2xl font-black text-green-400">🎁 ${pair.to}</p>
+                    </div>`;
+                render();
+            } else {
+                showEgg("Name not found in list! 🔍");
+            }
+        };
+
+        const render = () => {
+            const myNames = getMyEntries();
+            const identity = getIdentity();
+
+            document.getElementById('userGreeting').innerHTML = identity ? `Hi ${identity}! ⛄` : "";
+
+            document.getElementById('list').innerHTML = state.members.map((m, i) => `
+                <div class="flex justify-between items-center bg-white/10 text-white p-3 mb-2 rounded-lg backdrop-blur-sm border border-white/20">
+                    <span class="font-medium">⛄ ${m}</span>
+                    ${(!state.isReady && (myNames.includes(m) || state.creator === user.uid)) ? `<button onclick="removeMember(${i})">❌</button>` : ''}
+                </div>`).join('');
+
+            document.getElementById('inputArea').style.display = state.isReady ? 'none' : 'flex';
+            document.getElementById('pinArea').style.display = (state.members.length >= 2 && state.pairs.length === 0) ? 'block' : 'none';
+            document.getElementById('readyBtn').style.display = (!state.isReady && state.members.length >= 2) ? 'block' : 'none';
+            document.getElementById('drawBtn').style.display = (state.isReady && state.pairs.length === 0) ? 'block' : 'none';
+            document.getElementById('revealArea').style.display = state.pairs.length > 0 ? 'block' : 'none';
+
+            if (identity && !document.getElementById('lookupIn').value) {
+                document.getElementById('lookupIn').value = identity;
+            }
+        };
+
+        window.onload = async () => {
+            // Create snowflakes
+            for(let i=0; i<30; i++) {
+                const f = document.createElement('div');
+                f.className = 'snow-flake'; f.innerHTML = '❄';
+                f.style.left = Math.random() * 100 + 'vw';
+                f.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                document.body.appendChild(f);
+            }
+
+            // Firebase auth
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+            else await signInAnonymously(auth);
+            onAuthStateChanged(auth, (u) => {
+                user = u;
+                if (user) onSnapshot(docRef, (snap) => { if (snap.exists()) { state = snap.data(); render(); } });
+            });
+
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/secret-santa/sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            }
+        };
+    </script>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center">
+    <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-md rounded-3xl shadow-2xl border-2 border-red-600/50 p-8 z-10">
+        <div id="userGreeting" class="text-center text-green-400 font-bold text-sm mb-2 h-4"></div>
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black text-white mb-1 drop-shadow-lg">SECRET SANTA</h1>
+            <p class="text-red-500 font-bold uppercase tracking-widest text-xs">Moosach Edition 🦌</p>
+        </div>
+
+        <div id="inputArea" class="flex gap-2 mb-6">
+            <input id="nameIn" type="text" placeholder="Add name" class="flex-1 bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white outline-none">
+            <button onclick="addMember()" class="bg-red-600 text-white px-6 rounded-xl font-black shadow-lg">ADD</button>
+        </div>
+
+        <div id="list" class="mb-8 max-h-40 overflow-y-auto pr-2"></div>
+
+        <div id="pinArea" class="mb-6 space-y-2" style="display:none">
+            <input id="pinIn" type="password" placeholder="PIN for Admin actions" class="w-full bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white text-center outline-none focus:border-blue-500">
+        </div>
+
+        <div class="space-y-3">
+            <button id="readyBtn" onclick="setReady()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg" style="display:none">ALL MEMBERS ADDED ✅</button>
+            <button id="drawBtn" onclick="draw()" class="w-full bg-green-700 text-white py-4 rounded-2xl font-black text-xl shadow-lg" style="display:none">MATCH SANTA 🎲</button>
+            <button onclick="clearAll()" class="w-full text-[10px] text-white/20 uppercase tracking-[0.2em] pt-4">Destroy Data 💀</button>
+        </div>
+
+        <div id="revealArea" class="mt-8 pt-8 border-t border-white/10 text-center space-y-4" style="display:none">
+            <h2 class="text-yellow-400 font-bold uppercase tracking-widest text-sm italic">Reveal Your Match</h2>
+            <div class="flex flex-col gap-2">
+                <input id="lookupIn" type="text" placeholder="Enter your name exactly" class="w-full bg-white/10 border-2 border-white/20 p-3 rounded-xl text-white outline-none focus:border-yellow-400 text-center">
+                <button onclick="revealMyMatch()" class="bg-yellow-500 text-black font-black py-3 rounded-xl hover:bg-yellow-400">REVEAL 🎁</button>
+            </div>
+            <div id="myMatchDisplay" class="text-white mt-4"></div>
+        </div>
+    </div>
+    <footer class="mt-8 text-white/50 text-xs text-center font-medium max-w-xs">Made by Jay , pakshe Jay ee paripadikkilla (monster)</footer>
+</body>
+</html>
