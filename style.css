@@ -1,174 +1,225 @@
-body {
-    font-family: "Playwrite GB S", cursive;
-    background-color: #121212;
-    color: #f0f0f0;
+/* Modern Browser App Gallery Styles */
+
+* {
     margin: 0;
-    font-size: 35px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    color: #f0f0f0;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Hero Section */
+.hero {
     text-align: center;
+    padding: 80px 20px 40px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.main-content {
-    padding: 40px 20px;
+.hero-title {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 0%, #b0b0b0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-#secretMessage {
-    display: none;
-    font-size: 20px;
-    color: #f0f0f0;
-    margin-top: 20px;
-}
-
-a {
-    text-decoration: none;
-    color: #0077cc;
-    font-size: 30px;
-}
-
-a:hover {
-    color: #00a3ff;
-}
-
-.logo {
-    max-width: 150px;
-    margin-bottom: 20px;
-}
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-body.fade-out {
-    animation: fadeOut 1s ease-in-out forwards;
-}
-
-.event {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 600px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s;
-}
-
-.event:hover {
-    transform: scale(1.05);
-}
-
-.event h2 {
-    color: #c68c5c;
-    margin-bottom: 10px;
-}
-
-.event p {
-    color: #f0f0f0;
-    margin: 5px 0;
-}
-
-/* Media Queries for Mobile Devices */
-@media (max-width: 600px) {
-    body {
-        font-size: 16px;
-        margin: 10px;
-    }
-
-    .logo {
-        max-width: 80px;
-    }
-
-    a {
-        font-size: 20px;
-    }
-
-    #secretMessage {
-        font-size: 14px;
-    }
-}
-
-footer {
-    margin-top: 40px;
-    font-size: 10px;
+.hero-subtitle {
+    font-size: 18px;
     color: #888;
-    text-align: right;
+    font-weight: 400;
 }
 
-/* App Gallery Styles */
+/* App Gallery */
 .app-gallery {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+}
+
+.app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
 }
 
 .app-card {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 30px;
-    margin: 20px auto;
-    max-width: 500px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: rgba(30, 30, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
 }
 
 .app-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    transform: translateY(-8px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 .app-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
+    font-size: 56px;
+    margin-bottom: 16px;
+    display: block;
 }
 
 .app-card h3 {
-    color: #f0f0f0;
+    color: #fff;
     font-size: 24px;
-    margin: 10px 0;
+    font-weight: 600;
+    margin-bottom: 12px;
 }
 
 .app-card p {
-    color: #b0b0b0;
-    font-size: 16px;
+    color: #999;
+    font-size: 15px;
     line-height: 1.6;
-    margin: 15px 0;
+    margin-bottom: 24px;
+    min-height: 50px;
 }
 
 .app-link {
     display: inline-block;
-    margin-top: 15px;
-    padding: 10px 20px;
-    background-color: #0077cc;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #0077cc 0%, #0099ff 100%);
     color: #fff !important;
-    border-radius: 6px;
-    font-size: 18px;
-    transition: background-color 0.2s;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.3s;
+    border: none;
 }
 
 .app-link:hover {
-    background-color: #00a3ff;
+    background: linear-gradient(135deg, #0099ff 0%, #00bbff 100%);
+    transform: translateX(4px);
 }
 
-/* Mobile adjustments for app gallery */
-@media (max-width: 600px) {
-    .app-card {
-        padding: 20px;
+/* Footer */
+.site-footer {
+    background: rgba(10, 10, 10, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 40px 20px;
+    margin-top: 60px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-logo {
+    width: 48px;
+    height: 48px;
+    opacity: 0.6;
+    margin-bottom: 12px;
+}
+
+.footer-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.footer-subtext {
+    font-size: 12px;
+    color: #555;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .hero {
+        padding: 60px 20px 30px;
     }
 
-    .app-icon {
+    .hero-title {
         font-size: 36px;
     }
 
+    .hero-subtitle {
+        font-size: 16px;
+    }
+
+    .app-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .app-card {
+        padding: 24px;
+    }
+
+    .app-icon {
+        font-size: 48px;
+    }
+
     .app-card h3 {
-        font-size: 20px;
+        font-size: 22px;
     }
 
     .app-card p {
         font-size: 14px;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 28px;
     }
 
-    .app-link {
-        font-size: 16px;
-        padding: 8px 16px;
+    .hero-subtitle {
+        font-size: 14px;
     }
+
+    .app-card {
+        padding: 20px;
+    }
+}
+
+/* Legacy styles for events page */
+.main-content {
+    padding: 40px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.event {
+    background-color: rgba(30, 30, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px auto;
+    max-width: 600px;
+    backdrop-filter: blur(10px);
+}
+
+.event h2 {
+    color: #c68c5c;
+    margin-bottom: 12px;
+    font-size: 24px;
+}
+
+.event p {
+    color: #ccc;
+    margin: 8px 0;
+    font-size: 15px;
+}
+
+footer {
+    margin-top: 40px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
 }
