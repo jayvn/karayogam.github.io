@@ -43,6 +43,7 @@
         let state = { members: [], pairs: [], isReady: false, creator: null };
         let user = null;
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', 'globalState');
+        const santaEmoji = "🎅🏽";
 
         const sync = (newData) => { if (user) setDoc(docRef, newData); };
 
@@ -56,19 +57,12 @@
 
         const setIdentity = (name) => localStorage.setItem('santa_identity', name);
         const getIdentity = () => localStorage.getItem('santa_identity');
-
         const getMyEntries = () => JSON.parse(localStorage.getItem('my_santa_entries') || '[]');
-        const trackEntry = (name) => {
-            const entries = getMyEntries();
-            entries.push(name);
-            localStorage.setItem('my_santa_entries', JSON.stringify(entries));
-            setIdentity(name);
-        };
 
-        const checkPin = () => {
-            const val = document.getElementById('pinIn').value;
-            if (val === "2255") return true;
-            showEgg("Wrong PIN! 🚫");
+        const validateAdmin = () => {
+            const pin = document.getElementById('adminPin').value;
+            if (pin === "2255") return true;
+            showEgg("Invalid PIN! 🛑");
             return false;
         };
 
@@ -80,10 +74,16 @@
             if (['lakshmi', 'lamsi'].includes(n)) showEgg(`Hi ${name}, Jayde 2 EUR eppo kodukkum?`);
             if (['ayana', 'akhil antony', 'akhil', 'eva', 'evangela'].includes(n)) showEgg(`Hi ${name}, Nammal eppo Gajapokkiri kaanum gooys ?`);
             if (state.members.length === 0) state.creator = user.uid;
+
             state.members.push(name);
             state.pairs = [];
             state.isReady = false;
-            trackEntry(name);
+
+            const entries = getMyEntries();
+            entries.push(name);
+            localStorage.setItem('my_santa_entries', JSON.stringify(entries));
+            if (!getIdentity()) setIdentity(name);
+
             input.value = '';
             sync(state);
         };
@@ -101,17 +101,16 @@
         };
 
         window.setReady = () => {
-            if (!checkPin()) return;
+            if (!validateAdmin()) return;
             state.isReady = true;
+            state.pairs = [];
             sync(state);
         };
 
         window.draw = () => {
-            if (state.members.length < 2) return;
-            if (!checkPin()) return;
-            let pool = [...state.members];
-            let givers = [...state.members];
-            let attempt = 0;
+            if (state.members.length < 2) return showEgg("Need at least 2 people!");
+            if (!validateAdmin()) return;
+            let pool = [...state.members], givers = [...state.members], attempt = 0;
             while (attempt++ < 100) {
                 let shuffled = [...pool].sort(() => Math.random() - 0.5);
                 if (givers.every((m, i) => m !== shuffled[i])) {
@@ -123,11 +122,7 @@
         };
 
         window.clearAll = () => {
-            if (state.creator && state.creator !== user.uid) {
-                showEgg("Only session creator can reset! 🚫");
-                return;
-            }
-            if (!checkPin()) return;
+            if (!validateAdmin()) return;
             state = { members: [], pairs: [], isReady: false, creator: null };
             localStorage.removeItem('my_santa_entries');
             localStorage.removeItem('santa_identity');
@@ -135,50 +130,49 @@
         };
 
         window.revealMyMatch = () => {
-            const inputName = document.getElementById('lookupIn').value.trim();
-            const name = inputName || getIdentity();
-            if (!name) return showEgg("Enter your name first! 🔍");
+            let name = getIdentity();
+            if (!name) {
+                const input = document.getElementById('lookupIn');
+                if (input && input.value.trim()) {
+                    name = input.value.trim();
+                    setIdentity(name);
+                } else return showEgg("Enter your name to claim it! 🔍");
+            }
 
-            setIdentity(name);
             const pair = state.pairs.find(p => p.from.toLowerCase() === name.toLowerCase());
             const display = document.getElementById('myMatchDisplay');
             if (pair) {
-                display.innerHTML = `
-                    <div class="bg-green-600/30 p-4 rounded-xl border border-green-500 animate-bounce">
-                        <p class="text-xs uppercase opacity-70">You are Santa for:</p>
-                        <p class="text-2xl font-black text-green-400">🎁 ${pair.to}</p>
-                    </div>`;
+                display.innerHTML = `<div class="bg-green-600/30 p-4 rounded-xl border border-green-500 animate-bounce"><p class="text-xs uppercase opacity-70">You are Santa for:</p><p class="text-2xl font-black text-green-400">🎁 ${pair.to}</p></div>`;
                 render();
-            } else {
-                showEgg("Name not found in list! 🔍");
-            }
+            } else showEgg("Name not found in this draw! 🔍");
         };
 
         const render = () => {
             const myNames = getMyEntries();
             const identity = getIdentity();
-
-            document.getElementById('userGreeting').innerHTML = identity ? `Hi ${identity}! ⛄` : "";
-
+            document.getElementById('userGreeting').innerHTML = identity ? `Hi ${identity}! ${santaEmoji}` : "";
             document.getElementById('list').innerHTML = state.members.map((m, i) => `
                 <div class="flex justify-between items-center bg-white/10 text-white p-3 mb-2 rounded-lg backdrop-blur-sm border border-white/20">
-                    <span class="font-medium">⛄ ${m}</span>
+                    <span class="font-medium text-sm">${santaEmoji} ${m}</span>
                     ${(!state.isReady && (myNames.includes(m) || state.creator === user.uid)) ? `<button onclick="removeMember(${i})">❌</button>` : ''}
                 </div>`).join('');
 
             document.getElementById('inputArea').style.display = state.isReady ? 'none' : 'flex';
-            document.getElementById('pinArea').style.display = (state.members.length >= 2 && state.pairs.length === 0) ? 'block' : 'none';
-            document.getElementById('readyBtn').style.display = (!state.isReady && state.members.length >= 2) ? 'block' : 'none';
-            document.getElementById('drawBtn').style.display = (state.isReady && state.pairs.length === 0) ? 'block' : 'none';
             document.getElementById('revealArea').style.display = state.pairs.length > 0 ? 'block' : 'none';
+            document.getElementById('adminReadyBtn').style.display = (!state.isReady && state.members.length >= 2) ? 'block' : 'none';
+            document.getElementById('adminDrawBtn').style.display = (state.isReady && state.pairs.length === 0) ? 'block' : 'none';
 
-            if (identity && !document.getElementById('lookupIn').value) {
-                document.getElementById('lookupIn').value = identity;
+            const revealControls = document.getElementById('revealControls');
+            if (identity) {
+                revealControls.innerHTML = `<button onclick="revealMyMatch()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl hover:bg-yellow-400">REVEAL MY MATCH 🎁</button>`;
+            } else {
+                revealControls.innerHTML = `
+                    <input id="lookupIn" type="text" placeholder="Claim your name to reveal" class="w-full bg-white/10 border-2 border-white/20 p-3 rounded-xl text-white outline-none focus:border-yellow-400 text-center mb-2">
+                    <button onclick="revealMyMatch()" class="w-full bg-yellow-500 text-black font-black py-3 rounded-xl">CLAIM & REVEAL 🎁</button>`;
             }
         };
 
         window.onload = async () => {
-            // Create snowflakes
             for(let i=0; i<30; i++) {
                 const f = document.createElement('div');
                 f.className = 'snow-flake'; f.innerHTML = '❄';
@@ -186,8 +180,6 @@
                 f.style.animationDuration = (Math.random() * 3 + 2) + 's';
                 document.body.appendChild(f);
             }
-
-            // Firebase auth
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
             else await signInAnonymously(auth);
             onAuthStateChanged(auth, (u) => {
@@ -207,35 +199,42 @@
 <body class="min-h-screen p-4 flex flex-col items-center">
     <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-md rounded-3xl shadow-2xl border-2 border-red-600/50 p-8 z-10">
         <div id="userGreeting" class="text-center text-green-400 font-bold text-sm mb-2 h-4"></div>
-        <div class="text-center mb-8">
+        <div class="text-center mb-6">
+            <div class="flex justify-center mb-2 text-6xl">🎅🏽</div>
             <h1 class="text-4xl font-black text-white mb-1 drop-shadow-lg">SECRET SANTA</h1>
             <p class="text-red-500 font-bold uppercase tracking-widest text-xs">Moosach Edition 🦌</p>
         </div>
 
+        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
+            <p class="text-white/70 text-[11px] leading-relaxed text-center">
+                <span class="text-yellow-400 font-bold">INSTRUCTIONS:</span><br>
+                Add everyone's name below. Once the group is complete, the Admin must enter the PIN in the Control Panel to lock the list and Match the Santas.
+            </p>
+        </div>
+
         <div id="inputArea" class="flex gap-2 mb-6">
-            <input id="nameIn" type="text" placeholder="Add name" class="flex-1 bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white outline-none">
-            <button onclick="addMember()" class="bg-red-600 text-white px-6 rounded-xl font-black shadow-lg">ADD</button>
+            <input id="nameIn" type="text" placeholder="Add your name" class="flex-1 bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white outline-none focus:border-red-500">
+            <button onclick="addMember()" class="bg-red-600 text-white px-6 rounded-xl font-black shadow-lg hover:bg-red-500 transition-colors">ADD</button>
         </div>
 
-        <div id="list" class="mb-8 max-h-40 overflow-y-auto pr-2"></div>
+        <div id="list" class="mb-8 max-h-40 overflow-y-auto pr-2 custom-scrollbar"></div>
 
-        <div id="pinArea" class="mb-6 space-y-2" style="display:none">
-            <input id="pinIn" type="password" placeholder="PIN for Admin actions" class="w-full bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white text-center outline-none focus:border-blue-500">
-        </div>
-
-        <div class="space-y-3">
-            <button id="readyBtn" onclick="setReady()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg" style="display:none">ALL MEMBERS ADDED ✅</button>
-            <button id="drawBtn" onclick="draw()" class="w-full bg-green-700 text-white py-4 rounded-2xl font-black text-xl shadow-lg" style="display:none">MATCH SANTA 🎲</button>
-            <button onclick="clearAll()" class="w-full text-[10px] text-white/20 uppercase tracking-[0.2em] pt-4">Destroy Data 💀</button>
-        </div>
-
-        <div id="revealArea" class="mt-8 pt-8 border-t border-white/10 text-center space-y-4" style="display:none">
-            <h2 class="text-yellow-400 font-bold uppercase tracking-widest text-sm italic">Reveal Your Match</h2>
-            <div class="flex flex-col gap-2">
-                <input id="lookupIn" type="text" placeholder="Enter your name exactly" class="w-full bg-white/10 border-2 border-white/20 p-3 rounded-xl text-white outline-none focus:border-yellow-400 text-center">
-                <button onclick="revealMyMatch()" class="bg-yellow-500 text-black font-black py-3 rounded-xl hover:bg-yellow-400">REVEAL 🎁</button>
-            </div>
+        <div id="revealArea" class="mt-4 pt-6 border-t border-white/10 text-center space-y-4" style="display:none">
+            <h2 class="text-yellow-400 font-bold uppercase tracking-widest text-sm italic">Secret Pairing Ready</h2>
+            <div id="revealControls"></div>
             <div id="myMatchDisplay" class="text-white mt-4"></div>
+        </div>
+
+        <div class="mt-12 pt-6 border-t border-white/5 space-y-4">
+            <p class="text-[10px] text-white/20 text-center uppercase tracking-widest">Admin Control Panel</p>
+            <input id="adminPin" type="password" placeholder="Access PIN" class="w-full bg-black/40 border border-white/10 p-2 rounded-lg text-white text-center text-sm outline-none focus:border-blue-900">
+
+            <div class="grid grid-cols-2 gap-2">
+                <button id="adminReadyBtn" onclick="setReady()" class="bg-blue-600/80 hover:bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Lock List 🔒</button>
+                <button id="adminDrawBtn" onclick="draw()" class="bg-green-700/80 hover:bg-green-700 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Match Santa 🎲</button>
+            </div>
+
+            <button onclick="clearAll()" class="w-full bg-red-950/20 text-red-500/30 hover:text-red-500/60 py-2 rounded-lg text-[9px] uppercase tracking-[0.2em] transition-colors border border-red-900/10">Destroy Session Data 💀</button>
         </div>
     </div>
     <footer class="mt-8 text-white/50 text-xs text-center font-medium max-w-xs">Made by Jay , pakshe Jay ee paripadikkilla (monster)</footer>
