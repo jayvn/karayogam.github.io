@@ -18,7 +18,8 @@
             { name: 'ChoreoMarker', path: '/choreo/', icon: '💃' },
             { name: "Anil's Library", path: '/anils-library/', icon: '⚛️' },
             { name: 'Shopping List', path: '/shopping/', icon: '🛒' },
-            { name: '3D Colorizer', path: '/3d_colorizer/', icon: '🎨' }
+            { name: '3D Colorizer', path: '/3d_colorizer/', icon: '🎨' },
+            { name: 'Secret Santa', path: '/secret-santa/', icon: '🎅🏽' }
         ],
         moreLinks: [
             { name: 'Events', path: '/events', icon: '📅' }

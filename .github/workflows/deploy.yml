@@ -33,6 +33,7 @@ jobs:
           cp -r anils-library deploy/ || true
           cp -r shopping deploy/ || true
           cp -r 3d_colorizer deploy/ || true
+          cp -r secret-santa deploy/ || true
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/
