@@ -4,12 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karayogam - Munich Cultural Group</title>
-    <meta name="description" content="Cultural and social group based in Munich">
+    <title>Browser App Gallery</title>
+    <meta name="description" content="Modern browser-based application gallery">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+GB+S:ital,wght@0,100..400;1,100..400&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/shared/nav.css">
     <link rel="icon" type="image/png" href="/images/favicon.png">
@@ -18,51 +17,55 @@
 <body>
     <!-- Navigation will be injected here by nav.js -->
 
-    <div class="main-content">
-        <img src="images/logo.png" alt="Karayogam Logo" class="logo">
-        <h1>Karayogam</h1>
-        <h6>കരയോഗം ⚫ கரയോகம்</h6>
-        <div>
-            <p><a href="#" onclick="revealMessage()">What is Karayogam?</a></p>
-            <p id="secretMessage">An unaffiliated cultural and social group based in Munich</p>
-        </div>
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1 class="hero-title">Browser App Gallery</h1>
+        <p class="hero-subtitle">Modern web applications that work offline. No installation required.</p>
     </div>
 
     <!-- App Gallery Section -->
     <div class="app-gallery" id="apps">
-        <h2 style="font-size: 28px; margin: 40px 0 30px; color: #c68c5c;">📱 Our Apps</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <div class="app-icon">⚛️</div>
+                <h3>Anil's Library</h3>
+                <p>Plasma Physics Calculator with real-time visualizations for lab work and research</p>
+                <a href="/anils-library/" class="app-link">Launch App</a>
+            </div>
 
-        <div class="app-card">
-            <div class="app-icon">⚛️</div>
-            <h3>Anil's Library</h3>
-            <p>Plasma Physics Calculator with real-time visualizations for lab work and research</p>
-            <a href="/anils-library/" class="app-link">Open App →</a>
-        </div>
+            <div class="app-card">
+                <div class="app-icon">💃</div>
+                <h3>ChoreoMarker</h3>
+                <p>Mark and track dance choreography during rehearsals with offline support</p>
+                <a href="/choreo/" class="app-link">Launch App</a>
+            </div>
 
-        <div class="app-card">
-            <div class="app-icon">💃</div>
-            <h3>ChoreoMarker</h3>
-            <p>Mark and track dance choreography during rehearsals with offline support</p>
-            <a href="/choreo/" class="app-link">Open App →</a>
-        </div>
+            <div class="app-card">
+                <div class="app-icon">🛒</div>
+                <h3>Shopping List</h3>
+                <p>Simple offline shopping list organized by categories with persistent storage</p>
+                <a href="/shopping/" class="app-link">Launch App</a>
+            </div>
 
-        <div class="app-card">
-            <div class="app-icon">🛒</div>
-            <h3>Shopping List</h3>
-            <p>Simple offline shopping list organized by categories with persistent storage</p>
-            <a href="/shopping/" class="app-link">Open App →</a>
-        </div>
-
-        <div class="app-card">
-            <div class="app-icon">🎨</div>
-            <h3>3D Colorizer</h3>
-            <p>Interactive 3D software painter - rotate and paint 3D shapes in real-time</p>
-            <a href="/3d_colorizer/" class="app-link">Open App →</a>
+            <div class="app-card">
+                <div class="app-icon">🎨</div>
+                <h3>3D Colorizer</h3>
+                <p>Interactive 3D software painter - rotate and paint 3D shapes in real-time</p>
+                <a href="/3d_colorizer/" class="app-link">Launch App</a>
+            </div>
         </div>
     </div>
 
+    <!-- Footer with cultural info -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <img src="images/logo.png" alt="Logo" class="footer-logo">
+            <p class="footer-text">Karayogam (കരയോഗം ⚫ கரയோகம்)</p>
+            <p class="footer-subtext">Cultural group based in Munich</p>
+        </div>
+    </footer>
+
     <script src="/shared/nav.js"></script>
-    <script src="script.js"></script>
 </body>
 
 </html>

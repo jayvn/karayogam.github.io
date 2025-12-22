@@ -1,4 +1,4 @@
-// Karayogam Navigation Component
+// Browser App Gallery Navigation Component
 // Usage: Include this script in any page to add the navigation bar
 
 (function() {
@@ -6,14 +6,12 @@
 
     const nav = {
         brand: {
-            name: 'Karayogam',
-            subtitle: 'കരയോഗം ⚫ கரயோகம்',
+            name: 'App Gallery',
+            subtitle: '',
             logo: '/images/logo.png',
             home: '/'
         },
         links: [
-            { name: 'Home', path: '/', icon: '🏠' },
-            { name: 'Events', path: '/events', icon: '📅' },
             { name: 'Apps', path: '/#apps', icon: '📱' }
         ],
         apps: [
@@ -21,6 +19,9 @@
             { name: "Anil's Library", path: '/anils-library/', icon: '⚛️' },
             { name: 'Shopping List', path: '/shopping/', icon: '🛒' },
             { name: '3D Colorizer', path: '/3d_colorizer/', icon: '🎨' }
+        ],
+        moreLinks: [
+            { name: 'Events', path: '/events', icon: '📅' }
         ]
     };
 
@@ -34,7 +35,7 @@
                         <img src="${nav.brand.logo}" alt="Logo" class="nav-logo">
                         <div class="nav-brand-text">
                             <span class="nav-brand-name">${nav.brand.name}</span>
-                            <span class="nav-brand-subtitle">${nav.brand.subtitle}</span>
+                            ${nav.brand.subtitle ? `<span class="nav-brand-subtitle">${nav.brand.subtitle}</span>` : ''}
                         </div>
                     </a>
 
@@ -55,8 +56,8 @@
 
                             <div class="nav-dropdown">
                                 <button class="nav-link nav-dropdown-toggle">
-                                    <span class="nav-icon">📱</span>
-                                    Apps
+                                    <span class="nav-icon">⚡</span>
+                                    Quick Launch
                                     <span class="dropdown-arrow">▼</span>
                                 </button>
                                 <div class="nav-dropdown-menu">
@@ -64,6 +65,22 @@
                                         <a href="${app.path}" class="nav-dropdown-item">
                                             <span class="nav-icon">${app.icon}</span>
                                             ${app.name}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="nav-dropdown">
+                                <button class="nav-link nav-dropdown-toggle">
+                                    <span class="nav-icon">⋮</span>
+                                    More
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="nav-dropdown-menu">
+                                    ${nav.moreLinks.map(link => `
+                                        <a href="${link.path}" class="nav-dropdown-item">
+                                            <span class="nav-icon">${link.icon}</span>
+                                            ${link.name}
                                         </a>
                                     `).join('')}
                                 </div>
@@ -110,26 +127,33 @@
             });
         }
 
-        // Dropdown toggle
-        const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
-        const dropdown = document.querySelector('.nav-dropdown');
+        // Dropdown toggles
+        const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+        const dropdowns = document.querySelectorAll('.nav-dropdown');
 
-        if (dropdownToggle && dropdown) {
-            dropdownToggle.addEventListener('click', (e) => {
+        dropdownToggles.forEach((toggle, index) => {
+            toggle.addEventListener('click', (e) => {
                 e.preventDefault();
+                const dropdown = dropdowns[index];
+
+                // Close other dropdowns
+                dropdowns.forEach((d, i) => {
+                    if (i !== index) d.classList.remove('active');
+                });
+
                 dropdown.classList.toggle('active');
             });
+        });
 
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target)) {
-                    dropdown.classList.remove('active');
-                }
-            });
-        }
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-dropdown')) {
+                dropdowns.forEach(d => d.classList.remove('active'));
+            }
+        });
 
         // Close mobile menu when clicking a link
-        document.querySelectorAll('.nav-link, .nav-dropdown-item').forEach(link => {
+        document.querySelectorAll('.nav-link:not(.nav-dropdown-toggle), .nav-dropdown-item').forEach(link => {
             link.addEventListener('click', () => {
                 menu?.classList.remove('active');
                 toggle?.classList.remove('active');
