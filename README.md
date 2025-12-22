@@ -26,6 +26,7 @@ Simply paste your generated app code, and it becomes a Progressive Web App (PWA)
 - **Anil's Library** - Plasma Physics Calculator
 - **Shopping List** - Offline shopping list with categories
 - **3D Colorizer** - Interactive 3D shape painter
+- **Secret Santa** - Gift exchange organizer with real-time sync
 
 ## Quick Start
 
@@ -48,10 +49,9 @@ python3 -m http.server 8000
    - Copy the complete HTML from Claude/ChatGPT/Gemini
    - Save as `my-app/index.html`
 
-3. **Add to gallery:**
-   - Edit `index.html`
-   - Add a card in the `#apps` section
-   - Update `shared/nav.js` apps array (optional)
+3. **Add to gallery and navigation:**
+   - Edit `index.html` and add a card in the `#apps` section
+   - Edit `shared/nav.js` and add your app to the `apps` array for Quick Launch menu
 
 ### Method 2: Use Templates
 
