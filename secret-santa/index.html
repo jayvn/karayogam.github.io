@@ -28,6 +28,7 @@
         .easter-egg { animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s forwards; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+        details[open] > summary span { transform: rotate(90deg); }
     </style>
 
     <!-- Firebase Configuration -->
@@ -103,10 +104,17 @@
 
         window.removeMember = (idx) => {
             const name = state.members[idx];
-            if (!getMyEntries().includes(name) && state.creator !== user.uid) {
-                showEgg("You can't remove someone you didn't add! 🚫");
-                return;
+            const myEntries = getMyEntries();
+
+            // Allow removing your own entries freely, but require PIN for others
+            if (!myEntries.includes(name)) {
+                const pin = document.getElementById('adminPin').value;
+                if (pin !== "2255") {
+                    showEgg("Contact admin to remove someone else 🔒");
+                    return;
+                }
             }
+
             state.members.splice(idx, 1);
             state.pairs = [];
             state.isReady = false;
@@ -167,7 +175,8 @@
             document.getElementById('list').innerHTML = state.members.map((m, i) => `
                 <div class="flex justify-between items-center bg-white/10 text-white p-3 mb-2 rounded-lg backdrop-blur-sm border border-white/20">
                     <span class="font-medium text-sm">${santaEmoji} ${m}</span>
-                    ${(!state.isReady && (myNames.includes(m) || state.creator === user.uid)) ? `<button onclick="removeMember(${i})">❌</button>` : ''}
+                    ${!state.isReady && myNames.includes(m) ? `<button onclick="removeMember(${i})">❌</button>` : ''}
+                    ${!state.isReady && !myNames.includes(m) ? `<button onclick="removeMember(${i})" class="opacity-50">🔒</button>` : ''}
                 </div>`).join('');
 
             document.getElementById('inputArea').style.display = state.isReady ? 'none' : 'flex';
@@ -238,17 +247,22 @@
             <div id="myMatchDisplay" class="text-white mt-4"></div>
         </div>
 
-        <div class="mt-12 pt-6 border-t border-white/5 space-y-4">
-            <p class="text-[10px] text-white/20 text-center uppercase tracking-widest">Admin Control Panel</p>
-            <input id="adminPin" type="password" placeholder="Access PIN" class="w-full bg-black/40 border border-white/10 p-2 rounded-lg text-white text-center text-sm outline-none focus:border-blue-900">
+        <details class="mt-12 pt-6 border-t border-white/5">
+            <summary class="text-[10px] text-white/20 text-center uppercase tracking-widest cursor-pointer hover:text-white/40 transition-colors list-none flex items-center justify-center gap-2">
+                <span class="inline-block transition-transform" style="font-size: 8px;">▶</span>
+                Admin Control Panel
+            </summary>
+            <div class="space-y-4 mt-4">
+                <input id="adminPin" type="password" placeholder="Access PIN" class="w-full bg-black/40 border border-white/10 p-2 rounded-lg text-white text-center text-sm outline-none focus:border-blue-900">
 
-            <div class="grid grid-cols-2 gap-2">
-                <button id="adminReadyBtn" onclick="setReady()" class="bg-blue-600/80 hover:bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Lock List 🔒</button>
-                <button id="adminDrawBtn" onclick="draw()" class="bg-green-700/80 hover:bg-green-700 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Match Santa 🎲</button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="adminReadyBtn" onclick="setReady()" class="bg-blue-600/80 hover:bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Lock List 🔒</button>
+                    <button id="adminDrawBtn" onclick="draw()" class="bg-green-700/80 hover:bg-green-700 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Match Santa 🎲</button>
+                </div>
+
+                <button onclick="clearAll()" class="w-full bg-red-950/20 text-red-500/30 hover:text-red-500/60 py-2 rounded-lg text-[9px] uppercase tracking-[0.2em] transition-colors border border-red-900/10">Destroy Session Data 💀</button>
             </div>
-
-            <button onclick="clearAll()" class="w-full bg-red-950/20 text-red-500/30 hover:text-red-500/60 py-2 rounded-lg text-[9px] uppercase tracking-[0.2em] transition-colors border border-red-900/10">Destroy Session Data 💀</button>
-        </div>
+        </details>
     </div>
     <footer class="mt-8 text-white/50 text-xs text-center font-medium max-w-xs">Made by Jay , pakshe Jay ee paripadikkilla (monster)</footer>
 </body>
