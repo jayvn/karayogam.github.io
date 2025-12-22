@@ -1,163 +1,113 @@
-# Karayogam Website
+# Browser App Gallery
 
-Website for Karayogam, a cultural and social group in Munich.
+A simple platform for hosting and sharing browser-based web apps as PWAs.
 
 Live at: [karayogam.de](https://karayogam.de)
 
-## What's Inside
+## Concept
 
-### Main Site
-Modern, modular website with shared navigation system.
+This app gallery is designed for effortlessly sharing AI-generated web apps with friends. Perfect for apps created with:
+- **Claude Artifacts**
+- **ChatGPT Canvas**
+- **Google Gemini**
+
+Simply paste your generated app code, and it becomes a Progressive Web App (PWA) that works offline and can be installed on any device. No build tools, no complex setup - just paste and share.
 
 **Features:**
-- Modern responsive navigation bar
-- Interactive landing page with app gallery
-- Events listing
-- Mobile responsive with hamburger menu
-- Dark theme
-- Bilingual content (Malayalam, Tamil, English)
-- Modular architecture for easy app additions
+- Zero-config app deployment - paste HTML/JS and go
+- PWA support - works offline, installable on phones/desktop
+- Shared navigation system (optional)
+- Mobile-responsive dark theme
+- Easy sharing via URL
 
-### Apps
+## Example Apps
 
-**ChoreoMarker** (`/choreo/`)
-Vanilla JavaScript PWA for marking choreography during dance rehearsals.
-📖 [Full documentation](choreo/README.md)
+- **ChoreoMarker** - Dance choreography marker ([docs](choreo/README.md))
+- **Anil's Library** - Plasma Physics Calculator
+- **Shopping List** - Offline shopping list with categories
+- **3D Colorizer** - Interactive 3D shape painter
 
-**Anil's Library** (`/anils-library/`)
-Plasma Physics Calculator with real-time visualizations for lab work.
+## Quick Start
 
-**Shopping List** (`/shopping/`)
-Simple offline PWA for managing shopping lists by category.
-
-## Development
-
-### Quick Start
 ```bash
 # Start local server
 python3 -m http.server 8000
-
 # Visit http://localhost:8000
 ```
 
-### Adding a New App
+## Adding Your AI-Generated App
 
-1. **Copy a template:**
+### Method 1: Paste Claude Artifact / ChatGPT Canvas HTML
+
+1. **Create folder:**
    ```bash
-   cp _templates/html-app-template.html my-app/index.html
-   # or
-   cp _templates/react-app-template.html my-app/index.html
+   mkdir my-app
    ```
 
-2. **Edit the app** - Add your content, styles, and logic
+2. **Paste your code:**
+   - Copy the complete HTML from Claude/ChatGPT/Gemini
+   - Save as `my-app/index.html`
 
-3. **Add to homepage** - Edit `index.html`, add app card to `#apps` section
+3. **Add to gallery:**
+   - Edit `index.html`
+   - Add a card in the `#apps` section
+   - Update `shared/nav.js` apps array (optional)
 
-4. **Update navigation** (optional) - Edit `shared/nav.js`, add to apps array
+### Method 2: Use Templates
 
-📖 **Full guide:** [_templates/README.md](_templates/README.md)
+Templates include navigation and PWA setup:
+```bash
+cp _templates/html-app-template.html my-app/index.html
+# or for React apps
+cp _templates/react-app-template.html my-app/index.html
+```
 
-### Navigation System
+📖 **Detailed guide:** [_templates/README.md](_templates/README.md)
 
-**Shared Components:**
-- `/shared/nav.js` - Navigation component (auto-injected)
-- `/shared/nav.css` - Navigation styles
+### Optional: Add Navigation
 
-**Features:**
-- Sticky header with brand logo
-- Responsive mobile menu
-- Dropdown for apps
-- Optional - apps can work standalone
-
-**Usage:**
+Include shared navigation in your app:
 ```html
-<!-- In your HTML head -->
+<!-- In <head> -->
 <link rel="stylesheet" href="/shared/nav.css">
 
-<!-- Before closing body tag -->
+<!-- Before </body> -->
 <script src="/shared/nav.js"></script>
 ```
 
 ## Deployment
 
-Automated via GitHub Actions - just push to master:
-- All files deployed as-is (no build step)
-- PWAs work offline after first visit
-- Navigation updates automatically
+GitHub Actions auto-deploys on push to main branch. No build step needed - pure static files.
 
 ## File Structure
 
 ```
 ├── index.html              # Landing page with app gallery
-├── events/                 # Events page
-├── shared/                 # 🆕 Shared components
-│   ├── nav.js             # Navigation component
-│   └── nav.css            # Navigation styles
-├── _templates/            # 🆕 App templates
-│   ├── README.md          # Guide to adding apps
-│   ├── html-app-template.html
-│   └── react-app-template.html
-├── style.css              # Main site styles
-├── script.js              # Main site interactions
-├── images/                # Shared assets
-├── shopping/              # 🆕 Shopping List PWA
-│   ├── index.html
-│   └── sw.js
-├── choreo/                # ChoreoMarker PWA
-│   ├── index.html
-│   ├── app.js
-│   ├── sw.js
-│   └── README.md
-└── anils-library/         # Plasma Physics Calculator
-    ├── index.html
-    ├── sw.js
-    └── manifest.json
+├── style.css               # Main site styles
+├── shared/                 # Shared navigation components
+│   ├── nav.js
+│   └── nav.css
+├── _templates/             # App templates for quick start
+├── your-app/               # Your apps go here
+│   └── index.html
+└── choreo/, shopping/, etc # Example apps
 ```
 
-## Architecture
+## How It Works
 
-### Modular Design
-- **Each app is self-contained** in its own folder
-- **Navigation is optional** - apps work standalone
-- **No build step required** - paste HTML/React and go
-- **Shared navigation** provides consistent UX
+- **Self-contained apps**: Each app lives in its own folder
+- **No build required**: Pure HTML/CSS/JS - paste and deploy
+- **Optional navigation**: Use shared nav or go standalone
+- **PWA-ready**: Add service worker for offline support
+- **CDN-based React**: Single-file React apps via Babel CDN
 
-### Adding Custom Apps
-The site is designed for easy app additions:
+## Tips
 
-1. **Vanilla HTML/JS** - Just paste and edit
-2. **React (CDN)** - Single-file React apps via Babel
-3. **External apps** - Paste build output from Vite/CRA
-4. **PWAs** - Add manifest + service worker for offline
-
-### Best Practices
-- Keep apps in separate folders (`/my-app/`)
-- Use templates from `/_templates/`
-- Test standalone before adding navigation
-- Update both homepage gallery and nav dropdown
+- Apps are standalone - test without navigation first
 - Use absolute paths for shared resources (`/shared/`, `/images/`)
-
-## Examples
-
-**Simple HTML app:**
-```html
-<!-- my-app/index.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" href="/shared/nav.css">
-</head>
-<body>
-    <h1>My App</h1>
-    <!-- Your content -->
-    <script src="/shared/nav.js"></script>
-</body>
-</html>
-```
-
-**React app (single file):**
-See `_templates/react-app-template.html`
+- See `_templates/` for quick-start templates
+- PWA support: add manifest.json + service worker (sw.js)
 
 ---
 
-📖 **New to the project?** Start with [_templates/README.md](_templates/README.md)
+📖 **Documentation:** [_templates/README.md](_templates/README.md)
