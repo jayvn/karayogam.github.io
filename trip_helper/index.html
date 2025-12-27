@@ -156,6 +156,12 @@
             border-color: #3b82f6;
         }
 
+        .cal-past {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
         .list-item {
             display: flex;
             align-items: center;
@@ -399,7 +405,8 @@
                             <input type="text" id="dest-input" class="input" placeholder="Search City..."
                                 autocomplete="off">
                             <div id="suggestions-list"
-                                class="absolute top-full left-0 right-0 mt-2 modal hidden max-h-48 overflow-y-auto">
+                                class="absolute top-full left-0 right-0 mt-2 hidden max-h-48 overflow-y-auto z-50"
+                                style="background: #1f2937; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;">
                             </div>
                         </div>
 
@@ -1146,12 +1153,14 @@
 
             const btn = document.createElement('button');
             const isToday = ds === todayStr;
+            const isPast = ds < todayStr;
 
-            btn.className = `cal-day day-cell ${isToday ? 'cal-today' : ''}`;
+            btn.className = `cal-day day-cell ${isToday ? 'cal-today' : ''} ${isPast ? 'cal-past' : ''}`;
             btn.dataset.date = ds;
             btn.innerHTML = `<span>${i}</span>`;
 
             btn.onclick = (e) => {
+                if (isPast) return;
                 if (!tripData.users[currentUser.id]) {
                     tripData.users[currentUser.id] = { name: currentUser.name, dates: [] };
                 }
@@ -1192,11 +1201,13 @@
 
     function renderCalendar() {
         const counts = {}; let max = 0;
+        const todayStr = new Date().toISOString().split('T')[0];
         Object.values(tripData.users).forEach(u => u.dates?.forEach(d => { counts[d] = (counts[d] || 0) + 1; max = Math.max(max, counts[d]); }));
         document.querySelectorAll('.day-cell').forEach(c => {
             const d = c.dataset.date;
             const my = tripData.users[currentUser.id]?.dates.includes(d);
             const count = counts[d] || 0;
+            const isPast = d < todayStr;
 
             const who = Object.values(tripData.users)
                 .filter(u => u.dates && u.dates.includes(d))
@@ -1205,13 +1216,14 @@
             c.title = who ? `Available: ${who}` : 'No one available';
 
             c.className = "cal-day day-cell";
+            if (isPast) c.classList.add('cal-past');
             if (my) c.classList.add('cal-my-date');
             else if (count > 0) {
                 if (count === max && max > 1) c.classList.add('cal-best-date');
                 else c.classList.add('cal-other-date');
             }
 
-            if (d === new Date().toISOString().split('T')[0]) {
+            if (d === todayStr) {
                 c.classList.add('cal-today');
             }
         });
