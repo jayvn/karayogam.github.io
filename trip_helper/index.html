@@ -1121,34 +1121,76 @@
         sync();
     };
 
+    let currentCalendarDate = new Date(); // State for calendar view
+
     function initCalendar() {
-        const cal = document.getElementById('calendar-grid'); cal.innerHTML = '';
+        renderCalendarGrid();
+    }
 
-        const now = new Date();
+    function changeMonth(delta) {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+        renderCalendarGrid();
+        renderCalendar(); // Re-apply availability highlights
+    }
+
+    function renderCalendarGrid() {
+        const cal = document.getElementById('calendar-grid');
+        cal.innerHTML = '';
+
+        const year = currentCalendarDate.getFullYear();
+        const month = currentCalendarDate.getMonth();
+
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        document.getElementById('calendar-header').innerText = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
 
+        // Header with Nav
+        const header = document.getElementById('calendar-header');
+        header.innerHTML = `
+            <div class="flex items-center justify-between w-full">
+                <button onclick="changeMonth(-1)" class="p-1 hover:text-white text-gray-400">←</button>
+                <span>${monthNames[month]} ${year}</span>
+                <button onclick="changeMonth(1)" class="p-1 hover:text-white text-gray-400">→</button>
+            </div>
+        `;
+
+        // Weekdays
         ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
             cal.innerHTML += `<div class="text-center text-[9px] font-bold text-gray-600 pb-1">${d}</div>`;
         });
-        const today = new Date();
-        for (let i = 0; i < 35; i++) {
-            const d = new Date(); d.setDate(today.getDate() + i);
-            const ds = d.toISOString().split('T')[0];
-            const btn = document.createElement('button');
-            btn.className = "day-cell h-8 rounded-lg flex flex-col items-center justify-center text-[10px] bg-black/20 border border-white/5 text-gray-500 transition-all";
-            btn.dataset.date = ds;
-            const isFirst = d.getDate() === 1 || i === 0;
-            const label = isFirst ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : d.getDate();
 
-            btn.innerHTML = `<span class="pointer-events-none ${isFirst ? 'font-bold text-[9px]' : ''}">${label}</span>`;
+        // Days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startDay = firstDay.getDay(); // 0 = Sunday
+
+        // Empty slots for start padding
+        for (let i = 0; i < startDay; i++) {
+            cal.innerHTML += `<div></div>`;
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const d = new Date(year, month, i);
+            // Local date string fix to avoid timezone offset issues
+            const yearStr = d.getFullYear();
+            const monthStr = String(d.getMonth() + 1).padStart(2, '0');
+            const dayStr = String(d.getDate()).padStart(2, '0');
+            const ds = `${yearStr}-${monthStr}-${dayStr}`;
+
+            const btn = document.createElement('button');
+            const isToday = ds === todayStr;
+
+            btn.className = `day-cell h-8 rounded-lg flex flex-col items-center justify-center text-[10px] bg-black/20 border border-white/5 text-gray-500 transition-all ${isToday ? 'ring-1 ring-blue-500/50 bg-blue-500/10' : ''}`;
+            btn.dataset.date = ds;
+            btn.innerHTML = `<span class="pointer-events-none ${isToday ? 'font-bold text-blue-200' : ''}">${i}</span>`;
+
             btn.onclick = (e) => {
                 if (!tripData.users[currentUser.id]) {
-                    // Safety recovery
                     tripData.users[currentUser.id] = { name: currentUser.name, dates: [] };
                 }
                 const u = tripData.users[currentUser.id];
-                let newDates = [...u.dates];
+                let newDates = [...(u.dates || [])];
 
                 if (e.shiftKey && lastClickedDate) {
                     // Range selection
@@ -1157,9 +1199,12 @@
                     const start = d1 < d2 ? d1 : d2;
                     const end = d1 < d2 ? d2 : d1;
 
-                    // Add all dates in range
                     for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
-                        const dateStr = dt.toISOString().split('T')[0];
+                        const dtYear = dt.getFullYear();
+                        const dtMonth = String(dt.getMonth() + 1).padStart(2, '0');
+                        const dtDay = String(dt.getDate()).padStart(2, '0');
+                        const dateStr = `${dtYear}-${dtMonth}-${dtDay}`;
+
                         if (!newDates.includes(dateStr)) newDates.push(dateStr);
                     }
                 } else {
@@ -1171,9 +1216,9 @@
                 lastClickedDate = ds;
                 u.dates = newDates;
 
-                // Also clear weather cache to force refresh with new dates
                 if (tripData.locations) tripData.locations.forEach(l => { l._weather = null; l._fetching = false; });
                 sync();
+                renderCalendar(); // Re-render highlights
             };
             cal.appendChild(btn);
         }
@@ -1209,6 +1254,12 @@
                     cls += "bg-blue-600/20 border-blue-400 text-blue-100 font-bold shadow-[0_0_5px_-2px_rgba(59,130,246,0.5)] ";
                 }
             }
+
+            // Preserve Today Highlight
+            if (d === new Date().toISOString().split('T')[0]) {
+                cls += " ring-1 ring-blue-500/50 bg-blue-500/10";
+            }
+
             c.className = cls;
         });
         document.getElementById('best-dates').innerHTML = max > 1 ? `<span class="text-amber-400 text-shadow-sm">🔥 Best Date found! (${max} friends)</span>` : "Select dates to match!";
@@ -1388,6 +1439,8 @@
         });
     }
 
+    window.initCalendar = initCalendar;
+    window.changeMonth = changeMonth;
     init();
 </script>
 </body>
