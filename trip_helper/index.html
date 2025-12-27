@@ -553,7 +553,7 @@
     }
 
     // --- DATABASE ADAPTER ---
-    // --- DATABASE ADAPTER ---
+    const useFirebase = true;
     const DB = {
         async listen(id, callback) {
             return onSnapshot(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), (snap) => {
@@ -571,23 +571,10 @@
     function setupRealtimeListener() {
         if (unsubscribe) unsubscribe();
 
+
         // If new trip and using LS, init empty data if needed
-        if (!useFirebase) {
-            const key = `trip_data_${tripId}`;
-            if (!localStorage.getItem(key)) {
-                localStorage.setItem(key, JSON.stringify({
-                    locations: [],
-                    duration: '',
-                    users: {},
-                    expenses: [],
-                    packing: [
-                        { id: 1, text: "Book Travel Tickets", checked: false },
-                        { id: 2, text: "Book Hotels", checked: false }
-                    ],
-                    itinerary: {}
-                }));
-            }
-        }
+
+
 
         unsubscribe = DB.listen(tripId, (data) => {
             if (data) {
