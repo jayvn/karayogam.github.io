@@ -19,6 +19,10 @@ Simply paste your generated app code, and it becomes a Progressive Web App (PWA)
 - Shared navigation system (optional)
 - Mobile-responsive dark theme
 - Easy sharing via URL
+philosophy: 
+
+ avoid unnecessary  exception/error handling and comments. For apps, errors should not be handled and should propagate to the console. Avoid React and use vanilla JavaScript. Code should be self-documenting and errors should be propagated unhandled for ease of understanding. Reduce code by using emojis instead of icons which are imported or drawn. Use default styles instead of too custom CSS. Use other refactoring methods while keeping functionality the same.  go for minimalism
+
 
 ## Example Apps
 
