@@ -174,6 +174,32 @@
 
                 <!-- TAB: ITINERARY -->
                 <div id="view-itin" class="hidden space-y-4">
+                    <div id="itin-finalized-banner" class="hidden card" style="background: rgba(251,191,36,0.1); border-color: #fbbf24;">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">🔒</span>
+                                <div>
+                                    <h4 class="font-bold text-amber-400">Dates Finalized</h4>
+                                    <p id="finalized-dates-text" class="text-xs text-gray-300"></p>
+                                </div>
+                            </div>
+                            <button onclick="unfinalizeItinerary()" class="btn btn-secondary btn-sm">
+                                Unlock
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="itin-finalize-prompt" class="hidden card" style="background: rgba(59,130,246,0.1); border-color: #3b82f6;">
+                        <div class="mb-3">
+                            <h4 class="font-bold text-blue-400 mb-1">Best Overlap Dates</h4>
+                            <p id="best-dates-text" class="text-sm text-gray-300 mb-2"></p>
+                            <p class="text-xs text-gray-500">Finalize these dates to lock in your trip planning.</p>
+                        </div>
+                        <button onclick="finalizeItinerary()" class="btn btn-success w-full">
+                            🔒 Finalize Dates
+                        </button>
+                    </div>
+
                     <div id="itin-empty-state"
                         class="hidden flex flex-col items-center justify-center p-8 text-center card">
                         <div class="text-4xl mb-4 opacity-50">📅</div>
@@ -1149,27 +1175,81 @@
         renderItinerary();
     };
 
+    window.finalizeItinerary = () => {
+        const bestDates = getBestDates();
+        if (bestDates.length === 0) {
+            alert("No overlap dates found! Make sure multiple people have selected dates.");
+            return;
+        }
+
+        if (!tripData.itinerary) tripData.itinerary = {};
+
+        bestDates.forEach(date => {
+            if (!tripData.itinerary[date]) tripData.itinerary[date] = [];
+        });
+
+        const datesToRemove = Object.keys(tripData.itinerary).filter(d => !bestDates.includes(d));
+        datesToRemove.forEach(date => {
+            delete tripData.itinerary[date];
+        });
+
+        tripData.finalized = true;
+        sync();
+        renderItinerary();
+    };
+
+    window.unfinalizeItinerary = () => {
+        tripData.finalized = false;
+        sync();
+        renderItinerary();
+    };
+
     function renderItinerary() {
         const itin = tripData.itinerary || {};
         const dates = Object.keys(itin).sort();
+        const bestDates = getBestDates();
 
         if (dates.length === 0) {
             document.getElementById('itin-empty-state').classList.remove('hidden');
             document.getElementById('itin-add-best-dates').classList.add('hidden');
+            document.getElementById('itin-finalize-prompt').classList.add('hidden');
+            document.getElementById('itin-finalized-banner').classList.add('hidden');
             document.getElementById('itin-content').innerHTML = '';
             return;
         }
 
         document.getElementById('itin-empty-state').classList.add('hidden');
 
-        // Check if there are best dates not in the itinerary
-        const bestDates = getBestDates();
-        const missingBestDates = bestDates.filter(d => !itin[d]);
-
-        if (missingBestDates.length > 0) {
-            document.getElementById('itin-add-best-dates').classList.remove('hidden');
-        } else {
+        if (tripData.finalized) {
+            document.getElementById('itin-finalized-banner').classList.remove('hidden');
+            document.getElementById('itin-finalize-prompt').classList.add('hidden');
             document.getElementById('itin-add-best-dates').classList.add('hidden');
+
+            const finalizedDatesText = bestDates.map(d => {
+                const dObj = new Date(d);
+                return dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }).join(', ');
+            document.getElementById('finalized-dates-text').innerText = finalizedDatesText;
+        } else {
+            document.getElementById('itin-finalized-banner').classList.add('hidden');
+
+            if (bestDates.length > 0) {
+                document.getElementById('itin-finalize-prompt').classList.remove('hidden');
+                const bestDatesText = bestDates.map(d => {
+                    const dObj = new Date(d);
+                    return dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                }).join(' • ');
+                document.getElementById('best-dates-text').innerText = bestDatesText;
+            } else {
+                document.getElementById('itin-finalize-prompt').classList.add('hidden');
+            }
+
+            const missingBestDates = bestDates.filter(d => !itin[d]);
+            if (missingBestDates.length > 0) {
+                document.getElementById('itin-add-best-dates').classList.remove('hidden');
+            } else {
+                document.getElementById('itin-add-best-dates').classList.add('hidden');
+            }
         }
 
         const html = dates.map(date => {
@@ -1224,8 +1304,10 @@
 
         document.getElementById('itin-modal-date').innerText = date;
 
-        const itinDates = Object.keys(tripData.itinerary || {}).sort();
-        daySelect.innerHTML = itinDates.map(d => {
+        const bestDates = getBestDates();
+        const availableDates = tripData.finalized ? bestDates : Object.keys(tripData.itinerary || {}).sort();
+
+        daySelect.innerHTML = availableDates.map(d => {
             const dObj = new Date(d);
             const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
             const datePretty = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
