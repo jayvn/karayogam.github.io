@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trip Planner</title>
+    <meta name="theme-color" content="#111827">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="https://fav.farm/✈️">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -799,6 +804,15 @@
 
         // Start
         init();
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
     </script>
 </body>
 
