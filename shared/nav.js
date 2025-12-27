@@ -1,7 +1,7 @@
 // Browser App Gallery Navigation Component
 // Usage: Include this script in any page to add the navigation bar
 
-(function() {
+(function () {
     'use strict';
 
     const nav = {
@@ -19,7 +19,8 @@
             { name: "Anil's Library", path: '/anils-library/', icon: '⚛️' },
             { name: 'Shopping List', path: '/shopping/', icon: '🛒' },
             { name: '3D Colorizer', path: '/3d_colorizer/', icon: '🎨' },
-            { name: 'Secret Santa', path: '/secret-santa/', icon: '🎅🏽' }
+            { name: 'Secret Santa', path: '/secret-santa/', icon: '🎅🏽' },
+            { name: 'Trip Planner', path: '/trip_helper/', icon: '✈️' }
         ],
         moreLinks: [
             { name: 'Events', path: '/events', icon: '📅' }
@@ -96,8 +97,8 @@
     function injectNav() {
         // Check if running as installed PWA (standalone mode)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                           window.navigator.standalone ||
-                           document.referrer.includes('android-app://');
+            window.navigator.standalone ||
+            document.referrer.includes('android-app://');
 
         // Don't inject nav if running as installed PWA
         if (isStandalone) {

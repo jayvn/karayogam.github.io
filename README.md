@@ -31,6 +31,7 @@ philosophy:
 - **Shopping List** - Offline shopping list with categories
 - **3D Colorizer** - Interactive 3D shape painter
 - **Secret Santa** - Gift exchange organizer with real-time sync
+- **Trip Planner** - Collaborative trip planning with expense tracking and voting
 
 ## Quick Start
 
