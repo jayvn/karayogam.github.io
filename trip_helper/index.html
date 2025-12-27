@@ -178,6 +178,23 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        .draggable {
+            cursor: move;
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+        }
+
+        .drop-zone {
+            transition: background 0.2s;
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(251, 191, 36, 0.1) !important;
+            border-color: #fbbf24 !important;
+        }
+
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -457,6 +474,10 @@
                 <h3 id="itin-modal-title" class="text-lg font-bold mb-4">Add Event</h3>
                 <input type="hidden" id="itin-modal-id">
                 <input type="hidden" id="itin-modal-date">
+
+                <label class="section-header mb-1 block">Day</label>
+                <select id="itin-day-select" class="input mb-4">
+                </select>
 
                 <label class="section-header mb-1 block">Activity</label>
                 <input type="text" id="itin-title-input" class="input mb-4" placeholder="e.g. Dinner at Mario's">
@@ -1377,10 +1398,10 @@
                         </div>
                         <button onclick="openItinModal('${date}')" class="w-8 h-8 rounded-lg card hover:bg-amber-500/20 flex items-center justify-center text-lg font-bold">+</button>
                     </div>
-                    <div class="p-2 space-y-2">
+                    <div class="p-2 space-y-2 drop-zone" data-date="${date}">
                         ${dayEvents.length === 0 ? '<div class="text-center text-xs text-gray-600 py-4 italic">No events planned</div>' : ''}
                         ${dayEvents.map(e => `
-                            <div onclick="openItinModal('${date}', '${e.id}')" class="list-item gap-4">
+                            <div draggable="true" data-event-id="${e.id}" data-event-date="${date}" onclick="openItinModal('${date}', '${e.id}')" class="list-item gap-4 draggable">
                                 <div class="flex flex-col items-center justify-center w-12 pr-4" style="border-right: 1px solid rgba(255,255,255,0.1)">
                                     <span class="text-sm font-bold">${e.time}</span>
                                 </div>
