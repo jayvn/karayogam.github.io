@@ -147,13 +147,15 @@
         }
 
         .cal-best-date {
-            background: #f59e0b;
+            background: #fbbf24 !important;
+            border-color: #fbbf24 !important;
             color: #000;
             font-weight: 900;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
         }
 
         .cal-today {
-            border-color: #3b82f6;
+            opacity: 0.5;
         }
 
         .cal-past {
@@ -371,6 +373,12 @@
                         <p class="text-sm text-gray-400 mb-6">Lock in the best dates to start planning!</p>
                         <button onclick="createItineraryFromBest()" class="btn btn-success">
                             ✨ Generate Itinerary
+                        </button>
+                    </div>
+                    <div id="itin-add-best-dates" class="hidden card">
+                        <p class="text-sm text-gray-400 mb-3">New best dates available! Add them to your itinerary:</p>
+                        <button onclick="addMissingBestDates()" class="btn btn-success w-full">
+                            ➕ Add Best Dates
                         </button>
                     </div>
                     <div id="itin-content" class="space-y-4"></div>
@@ -1217,11 +1225,13 @@
 
             c.className = "cal-day day-cell";
             if (isPast) c.classList.add('cal-past');
+
+            // Apply base styling (yours vs others)
             if (my) c.classList.add('cal-my-date');
-            else if (count > 0) {
-                if (count === max && max > 1) c.classList.add('cal-best-date');
-                else c.classList.add('cal-other-date');
-            }
+            else if (count > 0) c.classList.add('cal-other-date');
+
+            // Override with best styling if applicable
+            if (count === max && max > 1) c.classList.add('cal-best-date');
 
             if (d === todayStr) {
                 c.classList.add('cal-today');
@@ -1283,7 +1293,7 @@
         return formatted.join(', ');
     }
 
-    window.createItineraryFromBest = () => {
+    function getBestDates() {
         const counts = {};
         let maxVotes = 0;
 
@@ -1292,13 +1302,31 @@
             maxVotes = Math.max(maxVotes, counts[d]);
         }));
 
-        if (maxVotes < 2) {
+        if (maxVotes < 2) return [];
+
+        return Object.keys(counts).filter(d => counts[d] === maxVotes).sort();
+    }
+
+    window.createItineraryFromBest = () => {
+        const bestDates = getBestDates();
+
+        if (bestDates.length === 0) {
             alert("Need more votes to determine best dates!");
             return;
         }
 
-        const bestDates = Object.keys(counts).filter(d => counts[d] === maxVotes).sort();
+        if (!tripData.itinerary) tripData.itinerary = {};
 
+        bestDates.forEach(date => {
+            if (!tripData.itinerary[date]) tripData.itinerary[date] = [];
+        });
+
+        sync();
+        renderItinerary();
+    };
+
+    window.addMissingBestDates = () => {
+        const bestDates = getBestDates();
         if (!tripData.itinerary) tripData.itinerary = {};
 
         bestDates.forEach(date => {
@@ -1315,11 +1343,22 @@
 
         if (dates.length === 0) {
             document.getElementById('itin-empty-state').classList.remove('hidden');
+            document.getElementById('itin-add-best-dates').classList.add('hidden');
             document.getElementById('itin-content').innerHTML = '';
             return;
         }
 
         document.getElementById('itin-empty-state').classList.add('hidden');
+
+        // Check if there are best dates not in the itinerary
+        const bestDates = getBestDates();
+        const missingBestDates = bestDates.filter(d => !itin[d]);
+
+        if (missingBestDates.length > 0) {
+            document.getElementById('itin-add-best-dates').classList.remove('hidden');
+        } else {
+            document.getElementById('itin-add-best-dates').classList.add('hidden');
+        }
 
         const html = dates.map(date => {
             const dayEvents = itin[date] || [];
