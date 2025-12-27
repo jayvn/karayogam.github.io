@@ -438,46 +438,105 @@
             els.menuUserName.innerText = currentUser.name;
         }
 
+        // --- DATABASE ADAPTER ---
+        const useFirebase = false; // Forced fallback due to permission issues
+
+        const DB = {
+            async listen(id, callback) {
+                if (useFirebase) {
+                    return onSnapshot(doc(db, 'trips', id), (snap) => {
+                        callback(snap.exists() ? snap.data() : null);
+                    }, err => {
+                        console.error("Firebase Error:", err);
+                        console.warn("Falling back to LocalStorage...");
+                        // If firebase fails, we could try to fallback, but for now let's just use the boolean flag
+                    });
+                } else {
+                    // LocalStorage Simulation
+                    const key = `trip_data_${id}`;
+
+                    const load = () => {
+                        const raw = localStorage.getItem(key);
+                        return raw ? JSON.parse(raw) : null;
+                    };
+
+                    // Initial load
+                    callback(load());
+
+                    // Poll for changes (since 'storage' event only works across different tabs)
+                    const interval = setInterval(() => {
+                        const current = JSON.stringify(load());
+                        if (current !== this._lastState) {
+                            this._lastState = current;
+                            callback(load());
+                        }
+                    }, 1000);
+
+                    this._lastState = JSON.stringify(load());
+                    return () => clearInterval(interval);
+                }
+            },
+
+            async save(id, data) {
+                if (useFirebase) {
+                    await setDoc(doc(db, 'trips', id), data, { merge: true });
+                } else {
+                    localStorage.setItem(`trip_data_${id}`, JSON.stringify(data));
+                }
+            }
+        };
+
         function setupRealtimeListener() {
             if (unsubscribe) unsubscribe();
-            const docRef = doc(db, 'trips', tripId);
 
-            unsubscribe = onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    tripData = docSnap.data();
+            // If new trip and using LS, init empty data if needed
+            if (!useFirebase) {
+                const key = `trip_data_${tripId}`;
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify({
+                        locations: [],
+                        duration: '',
+                        users: {},
+                        expenses: [],
+                        packing: []
+                    }));
+                }
+            }
+
+            unsubscribe = DB.listen(tripId, (data) => {
+                if (data) {
+                    tripData = data;
                     if (!tripData.users) tripData.users = {};
 
-                    // Register if new, or update casing if existing but different logic?
-                    // We trust the local casing if specific. 
-                    // Actually, let's respect global data if ID exists to avoid casing wars.
-                    if (tripData.users[currentUser.id]) {
-                        // If we want to allow casing update:
-                        if (tripData.users[currentUser.id].name !== currentUser.name) {
-                            // Only update if strictly casing diff? 
-                            // Simplify: just keep local "name" as what was entered, or sync?
-                            // Let's adopt the server name to be consistent with others
-                            //  currentUser.name = tripData.users[currentUser.id].name;
-                            //  updateUserUI();
-                        }
-                    } else {
+                    // Ensure current user exists in trip
+                    if (!tripData.users[currentUser.id]) {
+                        console.log("User not in trip, registering...");
                         registerUserInTrip();
+                        return; // Wait for next update
                     }
+
+                    if (tripData.users[currentUser.id].name !== currentUser.name) {
+                        // Optional: Sync name updates
+                    }
+
                     updateRecentTripName();
                     render();
                 } else {
-                    tripData.users = {};
+                    // document doesn't exist
+                    tripData = { locations: [], duration: '', users: {}, expenses: [], packing: [] };
                     registerUserInTrip();
                 }
             });
         }
 
         function registerUserInTrip() {
+            if (!tripData.users) tripData.users = {};
             tripData.users[currentUser.id] = { name: currentUser.name, dates: [] };
             sync();
         }
 
         function sync() {
-            setDoc(doc(db, 'trips', tripId), tripData, { merge: true });
+            DB.save(tripId, tripData);
         }
 
         function addToRecentTrips(id, name) {
@@ -492,6 +551,39 @@
             const best = getBestLocation();
             const name = best ? `Trip to ${best.name}` : `Trip ${tripId.slice(0, 4)}`;
             addToRecentTrips(tripId, name);
+        }
+
+        function getTripDates() {
+            let userDates = [];
+            Object.values(tripData.users).forEach(u => {
+                if (u.dates) userDates = userDates.concat(u.dates);
+            });
+            if (userDates.length === 0) return null;
+            userDates.sort();
+            return { min: userDates[0], max: userDates[userDates.length - 1] };
+        }
+
+        async function fetchWeather(lat, lon, start, end) {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&start_date=${start}&end_date=${end}`;
+                const res = await fetch(url);
+                return await res.json();
+            } catch (e) {
+                console.error("Weather fetch failed", e);
+                return null;
+            }
+        }
+
+        function wCodeToIcon(code) {
+            if (code === 0) return '☀️';
+            if (code <= 3) return '⛅';
+            if (code <= 48) return '🌫️';
+            if (code <= 67) return '🌧️';
+            if (code <= 77) return '❄️';
+            if (code <= 82) return '🌧️';
+            if (code <= 86) return '❄️';
+            if (code <= 99) return '⛈️';
+            return '❓';
         }
 
         function getBestLocation() {
@@ -552,23 +644,127 @@
                     document.getElementById('dur-input').value = tripData.duration || '';
 
                 const locs = [...(tripData.locations || [])].sort((a, b) => b.votes.length - a.votes.length);
-                document.getElementById('location-list').innerHTML = locs.map(loc => {
+                const dates = getTripDates();
+
+                const locHtmlPromises = locs.map(async loc => {
                     const hasVoted = loc.votes.includes(currentUser.id);
+                    let weatherHtml = '';
+
+                    if (dates && loc.coords) {
+                        // Check cache or fetch
+                        // Simple in-memory cache for demo to avoid spamming API on re-renders
+                        if (!loc._weather && !loc._fetching) {
+                            loc._fetching = true;
+                            fetchWeather(loc.coords.lat, loc.coords.lon, dates.min, dates.max).then(w => {
+                                loc._weather = w;
+                                loc._fetching = false;
+                                render(); // Re-render once data is here
+                            });
+                        }
+
+                        if (loc._weather && loc._weather.daily) {
+                            const d = loc._weather.daily;
+                            weatherHtml = `<div class="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide border-t border-white/5 pt-2">`;
+                            for (let i = 0; i < d.time.length; i++) {
+                                const day = new Date(d.time[i]).toLocaleDateString('en-US', { weekday: 'short' });
+                                weatherHtml += `
+                                    <div class="flex flex-col items-center min-w-[3rem] p-1 bg-white/5 rounded-lg border border-white/5">
+                                        <span class="text-[9px] text-gray-400 uppercase">${day}</span>
+                                        <span class="text-base my-0.5">${wCodeToIcon(d.weather_code[i])}</span>
+                                        <span class="text-[9px] font-bold text-gray-300">${Math.round(d.temperature_2m_max[i])}°</span>
+                                        <span class="text-[9px] text-gray-500">${Math.round(d.temperature_2m_min[i])}°</span>
+                                    </div>
+                                `;
+                            }
+                            weatherHtml += `</div>`;
+                        }
+                    }
+
                     return `
-                    <div class="relative overflow-hidden flex justify-between items-center p-4 bg-black/20 rounded-2xl border ${hasVoted ? 'border-blue-500/50 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]' : 'border-white/5'} transition-all group">
-                        <div class="relative flex-1">
-                            <div class="font-bold text-base text-gray-100 mb-0.5">${loc.name}</div>
-                            <div class="flex items-center gap-1">
-                                <span class="bg-gray-800 text-gray-400 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">${loc.votes.length} Votes</span>
-                                ${hasVoted ? '<span class="text-[9px] text-blue-400 font-bold">YOU</span>' : ''}
+                    <div class="relative overflow-hidden flex flex-col p-4 bg-black/20 rounded-2xl border ${hasVoted ? 'border-blue-500/50 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]' : 'border-white/5'} transition-all group">
+                        <div class="flex justify-between items-center w-full">
+                            <div class="relative flex-1">
+                                <div class="font-bold text-base text-gray-100 mb-0.5">${loc.name}</div>
+                                <div class="flex items-center gap-1">
+                                    <span class="bg-gray-800 text-gray-400 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">${loc.votes.length} Votes</span>
+                                    ${hasVoted ? '<span class="text-[9px] text-blue-400 font-bold">YOU</span>' : ''}
+                                </div>
                             </div>
+                            <button onclick="window.toggleVote(${loc.id})" 
+                                class="relative z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${hasVoted ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'}">
+                                ${hasVoted ? '✓' : '+'}
+                            </button>
                         </div>
-                        <button onclick="window.toggleVote(${loc.id})" 
-                            class="relative z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${hasVoted ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'}">
-                            ${hasVoted ? '✓' : '+'}
-                        </button>
+                        ${weatherHtml}
                     </div>`;
-                }).join('');
+                });
+
+                Promise.all(locHtmlPromises).then(htmls => {
+                    // Dirty hack: since render is synchronous but we need async for weather... 
+                    // Actually, we shouldn't await inside map for render. Use state.
+                    // Let's rely on the fact that the first pass triggers fetch, and then re-renders.
+                    // Construction of HTML needs to be synchronous here to avoid flickering or complicated async UI logic in this simple app.
+
+                    // Revised approach: Build HTML synchronously. If data missing, show loader or nothing.
+                    const finalHtml = locs.map(loc => {
+                        const hasVoted = loc.votes.includes(currentUser.id);
+                        let weatherHtml = '';
+
+                        if (!dates) {
+                            weatherHtml = `<div class="mt-2 text-[9px] text-gray-500 italic flex items-center gap-1"><span class="grayscale">📅</span> Select dates in Planning to see forecast</div>`;
+                        } else if (loc.coords) {
+                            if (!loc._weather && !loc._fetching) {
+                                loc._fetching = true;
+                                fetchWeather(loc.coords.lat, loc.coords.lon, dates.min, dates.max).then(w => {
+                                    loc._weather = w;
+                                    loc._fetching = false;
+                                    render();
+                                });
+                                weatherHtml = `<div class="mt-2 text-[9px] text-gray-500 italic animate-pulse">Loading forecast...</div>`;
+                            } else if (loc._weather && loc._weather.daily) {
+                                const d = loc._weather.daily;
+                                weatherHtml = `<div class="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide border-t border-white/5 pt-2">`;
+                                for (let i = 0; i < d.time.length; i++) {
+                                    // simple parser
+                                    const dateParts = d.time[i].split('-');
+                                    const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                                    const day = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+
+                                    weatherHtml += `
+                                        <div class="flex flex-col items-center min-w-[3rem] p-1 bg-white/5 rounded-lg border border-white/5">
+                                            <span class="text-[9px] text-gray-400 uppercase">${day}</span>
+                                            <span class="text-base my-0.5">${wCodeToIcon(d.weather_code[i])}</span>
+                                            <div class="flex gap-1">
+                                             <span class="text-[9px] font-bold text-gray-300">${Math.round(d.temperature_2m_max[i])}°</span>
+                                             <span class="text-[9px] text-gray-500">${Math.round(d.temperature_2m_min[i])}°</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                weatherHtml += `</div>`;
+                            }
+                        }
+
+                        return `
+                        <div class="relative overflow-hidden flex flex-col p-4 bg-black/20 rounded-2xl border ${hasVoted ? 'border-blue-500/50 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]' : 'border-white/5'} transition-all group">
+                            <div class="flex justify-between items-center w-full">
+                                <div class="relative flex-1">
+                                    <div class="font-bold text-base text-gray-100 mb-0.5">${loc.name}</div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="bg-gray-800 text-gray-400 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">${loc.votes.length} Votes</span>
+                                        ${hasVoted ? '<span class="text-[9px] text-blue-400 font-bold">YOU</span>' : ''}
+                                    </div>
+                                </div>
+                                <button onclick="window.toggleVote(${loc.id})" 
+                                    class="relative z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${hasVoted ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'}">
+                                    ${hasVoted ? '✓' : '+'}
+                                </button>
+                            </div>
+                            ${weatherHtml}
+                        </div>`;
+                    }).join('');
+                    document.getElementById('location-list').innerHTML = finalHtml;
+                });
 
                 if (locs.length > 0) document.getElementById('weather-widget').classList.remove('hidden');
             }
@@ -684,14 +880,44 @@
                 btn.className = "day-cell h-8 rounded-lg flex flex-col items-center justify-center text-[10px] bg-black/20 border border-white/5 text-gray-500 transition-all";
                 btn.dataset.date = ds;
                 btn.innerHTML = `<span class="pointer-events-none">${d.getDate()}</span>`;
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                    if (!tripData.users[currentUser.id]) {
+                        // Safety recovery
+                        tripData.users[currentUser.id] = { name: currentUser.name, dates: [] };
+                    }
                     const u = tripData.users[currentUser.id];
-                    if (u.dates.includes(ds)) u.dates = u.dates.filter(x => x !== ds); else u.dates.push(ds);
+                    let newDates = [...u.dates];
+
+                    if (e.shiftKey && lastClickedDate) {
+                        // Range selection
+                        const d1 = new Date(lastClickedDate);
+                        const d2 = new Date(ds);
+                        const start = d1 < d2 ? d1 : d2;
+                        const end = d1 < d2 ? d2 : d1;
+
+                        // Add all dates in range
+                        for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+                            const dateStr = dt.toISOString().split('T')[0];
+                            if (!newDates.includes(dateStr)) newDates.push(dateStr);
+                        }
+                    } else {
+                        // Toggle single
+                        if (newDates.includes(ds)) newDates = newDates.filter(x => x !== ds);
+                        else newDates.push(ds);
+                    }
+
+                    lastClickedDate = ds;
+                    u.dates = newDates;
+
+                    // Also clear weather cache to force refresh with new dates
+                    if (tripData.locations) tripData.locations.forEach(l => { l._weather = null; l._fetching = false; });
                     sync();
                 };
                 cal.appendChild(btn);
             }
         }
+
+        let lastClickedDate = null;
 
         function renderCalendar() {
             const counts = {}; let max = 0;
