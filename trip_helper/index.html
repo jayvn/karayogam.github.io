@@ -53,12 +53,13 @@
     </style>
 </head>
 
-<body
-    class="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#111827] to-black text-gray-100 h-screen flex flex-col overflow-hidden selection:bg-blue-500 selection:text-white">
+<body class="bg-black h-full w-full overflow-hidden"></body>
+<div id="app-wrapper"
+    class="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#111827] to-black text-gray-100 h-[100dvh] w-full flex flex-col relative overflow-hidden selection:bg-blue-500 selection:text-white">
 
     <!-- LANDING SCREEN -->
     <div id="landing-screen"
-        class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 hidden backdrop-blur-sm">
+        class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 hidden backdrop-blur-sm">
         <div class="absolute inset-0 bg-black/60"></div>
         <div class="relative z-10 flex flex-col items-center w-full max-w-sm">
             <div class="text-7xl mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">✈️</div>
@@ -86,10 +87,10 @@
     </div>
 
     <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 hidden">
+    <div id="login-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-4 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
         <div
-            class="relative z-10 w-full max-w-xs bg-gray-900/50 p-8 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl">
+            class="relative z-10 w-full max-w-xs bg-gray-900/50 p-8 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl max-h-[85dvh] overflow-y-auto custom-scrollbar">
             <h1 class="text-4xl mb-4 text-center">👋</h1>
             <h2 class="text-xl font-bold mb-6 text-gray-200 text-center">Who are you?</h2>
 
@@ -116,8 +117,10 @@
                     class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/5 group-hover:border-blue-500/30 transition-colors">
                     <span class="text-xl">✈️</span>
                 </div>
-                <div>
-                    <h1 class="font-bold text-base text-gray-100 leading-tight">Trip Planner</h1>
+                <div class="group/title flex items-center gap-2">
+                    <h1 id="header-trip-name" class="font-bold text-base text-gray-100 leading-tight">Trip Planner</h1>
+                    <button onclick="editTripName()"
+                        class="opacity-0 group-hover/title:opacity-100 transition-opacity text-gray-500 hover:text-white text-xs">✎</button>
                 </div>
             </div>
             <div class="flex gap-2">
@@ -167,10 +170,11 @@
         </div>
 
         <!-- SCROLLABLE CONTENT -->
-        <div class="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 space-y-4 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-32 space-y-4 custom-scrollbar">
 
             <!-- TAB: PLANNING -->
-            <div id="view-plan" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div id="view-plan"
+                class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-x-hidden">
                 <!-- DESTINATION HEADER -->
                 <div
                     class="relative overflow-hidden bg-gradient-to-br from-blue-900/40 to-gray-900/40 border border-white/10 rounded-2xl p-6 flex justify-between items-center group">
@@ -225,162 +229,175 @@
                 </div>
 
             </div>
-        </div>
 
-        <!-- TAB: ITINERARY -->
-        <div id="view-itin" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <!-- TAB: ITINERARY -->
+            <div id="view-itin"
+                class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-x-hidden">
 
-            <div id="itin-empty-state"
-                class="hidden flex flex-col items-center justify-center p-8 text-center bg-gray-800/30 border border-white/5 rounded-2xl backdrop-blur-sm">
-                <div class="text-4xl mb-4 grayscale opacity-50">📅</div>
-                <h3 class="text-lg font-bold text-gray-200 mb-2">No Itinerary Yet</h3>
-                <p class="text-sm text-gray-400 mb-6">Voting finished? Lock in the best dates to start planning the
-                    details!</p>
-                <button onclick="createItineraryFromBest()"
-                    class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-amber-900/20 active:scale-95 transition-all">
-                    ✨ Generate Itinerary
-                </button>
+                <div id="itin-empty-state"
+                    class="hidden flex flex-col items-center justify-center p-8 text-center bg-gray-800/30 border border-white/5 rounded-2xl backdrop-blur-sm">
+                    <div class="text-4xl mb-4 grayscale opacity-50">📅</div>
+                    <h3 class="text-lg font-bold text-gray-200 mb-2">No Itinerary Yet</h3>
+                    <p class="text-sm text-gray-400 mb-6">Voting finished? Lock in the best dates to start planning the
+                        details!</p>
+                    <button onclick="createItineraryFromBest()"
+                        class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-amber-900/20 active:scale-95 transition-all">
+                        ✨ Generate Itinerary
+                    </button>
+                </div>
+
+                <div id="itin-content" class="space-y-4"></div>
+
+                <!-- Add Event Modal -->
+                <div id="itin-modal"
+                    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div
+                        class="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative max-h-[85dvh] overflow-y-auto custom-scrollbar">
+                        <h3 id="itin-modal-title" class="text-lg font-bold text-white mb-4">Add Event</h3>
+                        <input type="hidden" id="itin-modal-id">
+                        <input type="hidden" id="itin-modal-date">
+
+                        <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Activity</label>
+                        <input type="text" id="itin-title-input"
+                            class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-amber-500/50 outline-none"
+                            placeholder="e.g. Dinner at Mario's">
+
+                        <div class="flex gap-3 mb-4">
+                            <div class="flex-1">
+                                <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Time</label>
+                                <input type="time" id="itin-time-input"
+                                    class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-amber-500/50 outline-none">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Cost (Est)</label>
+                                <input type="number" id="itin-cost-input"
+                                    class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-amber-500/50 outline-none"
+                                    placeholder="€">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="closeItinModal()"
+                                class="flex-1 bg-white/5 hover:bg-white/10 text-gray-400 py-3 rounded-xl font-bold transition-colors">Cancel</button>
+                            <button onclick="saveItinEvent()"
+                                class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-amber-900/20">Save</button>
+                        </div>
+                        <button id="itin-delete-btn" onclick="deleteItinEvent()"
+                            class="mt-2 w-full text-xs text-red-400 py-2 hover:text-red-300 hidden">Delete
+                            Event</button>
+                    </div>
+                </div>
+
             </div>
 
-            <div id="itin-content" class="space-y-4"></div>
-
-            <!-- Add Event Modal -->
-            <div id="itin-modal"
-                class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div class="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
-                    <h3 id="itin-modal-title" class="text-lg font-bold text-white mb-4">Add Event</h3>
-                    <input type="hidden" id="itin-modal-id">
-                    <input type="hidden" id="itin-modal-date">
-
-                    <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Activity</label>
-                    <input type="text" id="itin-title-input"
-                        class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-amber-500/50 outline-none"
-                        placeholder="e.g. Dinner at Mario's">
-
-                    <div class="flex gap-3 mb-4">
-                        <div class="flex-1">
-                            <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Time</label>
-                            <input type="time" id="itin-time-input"
-                                class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-amber-500/50 outline-none">
+            <!-- TAB: PACKING -->
+            <div id="view-pack"
+                class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-x-hidden">
+                    <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
+                        <h3 class="font-bold text-gray-500 text-[10px] uppercase mb-3 tracking-wider">✅ Trip Checklist
+                        </h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="pack-input" placeholder="Add item..."
+                                class="flex-1 px-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-base md:text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors">
+                            <button id="add-pack-btn"
+                                class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg shadow-blue-900/20">+</button>
                         </div>
-                        <div class="flex-1">
-                            <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Cost (Est)</label>
-                            <input type="number" id="itin-cost-input"
-                                class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-amber-500/50 outline-none"
-                                placeholder="€">
+                        <div id="packing-list" class="space-y-2 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- TAB: VOTE -->
+            <div id="view-vote"
+                class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-x-hidden">
+                    <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+                        <div class="flex items-center justify-center gap-3 text-sm pb-4 mb-4 border-b border-white/5">
+                            <span class="text-gray-400 text-xs font-bold uppercase">Trip Length</span>
+                            <div class="flex items-center bg-black/20 rounded-lg p-1 border border-white/5">
+                                <input type="number" id="dur-input"
+                                    class="w-12 bg-transparent text-center text-white font-bold outline-none"
+                                    placeholder="?" min="1">
+                                <span class="text-gray-500 text-xs pr-2 font-medium">Days</span>
+                            </div>
+                        </div>
+
+                        <div class="relative mb-6 w-full max-w-full z-30">
+                            <div class="flex gap-2">
+                                <input type="text" id="dest-input"
+                                    class="flex-1 w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-base md:text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors"
+                                    placeholder="Search City..." autocomplete="off">
+                            </div>
+                            <div id="suggestions-list"
+                                class="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-white/10 rounded-xl shadow-xl hidden max-h-48 overflow-y-auto w-full overflow-hidden">
+                            </div>
+                        </div>
+
+                        <div id="location-list" class="space-y-3"></div>
+
+                        <!-- Weather Widget -->
+                        <div id="weather-widget"
+                            class="hidden mt-6 bg-blue-900/10 border border-blue-500/10 rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-3 cursor-pointer"
+                                onclick="toggleWeather()">
+                                <h4 class="text-[10px] font-bold text-blue-300 uppercase tracking-widest">🌤️ Forecast
+                                </h4>
+                                <span id="weather-toggle-icon"
+                                    class="text-[10px] text-blue-400 font-bold bg-blue-900/30 px-2 py-0.5 rounded-full">Expand</span>
+                            </div>
+                            <div id="weather-content" class="hidden">
+                                <div id="weather-loading" class="text-center text-xs text-blue-400 py-4 animate-pulse">
+                                    Scanning satellites...</div>
+                                <div id="weather-row" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: EXPENSES -->
+            <div id="view-exp"
+                class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-x-hidden">
+                    <div
+                        class="bg-gray-800/30 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
+                        <div
+                            class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl pointer-events-none">
+                        </div>
+
+                        <!-- Graph Section -->
+                        <div id="cost-graph-container" class="mb-6 hidden">
+                            <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Spending
+                                Breakdown</h4>
+                            <div id="cost-graph-bars" class="space-y-2"></div>
+                        </div>
+
+                        <div class="flex justify-between items-end mb-6 relative">
+                            <div>
+                                <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider mb-1">Total
+                                    Spent
+                                </h3>
+                                <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">€0.00</div>
+                            </div>
+                            <div class="text-2xl">💸</div>
+                        </div>
+
+                        <div class="space-y-3 mb-2">
+                            <input type="text" id="exp-desc" placeholder="What involved money?"
+                                class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none transition-colors">
+                            <div class="flex gap-2">
+                                <input type="number" id="exp-amt" placeholder="0.00"
+                                    class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none">
+                                <button id="add-exp-btn"
+                                    class="bg-green-600 hover:bg-green-500 text-white px-6 rounded-xl font-bold shadow-lg shadow-green-900/20">Add</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex gap-2">
-                        <button onclick="closeItinModal()"
-                            class="flex-1 bg-white/5 hover:bg-white/10 text-gray-400 py-3 rounded-xl font-bold transition-colors">Cancel</button>
-                        <button onclick="saveItinEvent()"
-                            class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-amber-900/20">Save</button>
-                    </div>
-                    <button id="itin-delete-btn" onclick="deleteItinEvent()"
-                        class="mt-2 w-full text-xs text-red-400 py-2 hover:text-red-300 hidden">Delete Event</button>
+                    <div id="expense-list" class="space-y-2 pb-10"></div>
                 </div>
-            </div>
 
-        </div>
-    </div>
-
-    <!-- TAB: PACKING -->
-    <div id="view-pack" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-            <h3 class="font-bold text-gray-500 text-[10px] uppercase mb-3 tracking-wider">✅ Trip Checklist
-            </h3>
-            <div class="flex gap-2 mb-4">
-                <input type="text" id="pack-input" placeholder="Add item..."
-                    class="flex-1 px-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-base md:text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors">
-                <button id="add-pack-btn"
-                    class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg shadow-blue-900/20">+</button>
-            </div>
-            <div id="packing-list" class="space-y-2 text-sm"></div>
-        </div>
-    </div>
-    </div>
-
-    <!-- TAB: VOTE -->
-    <div id="view-vote" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-            <div class="flex items-center justify-center gap-3 text-sm pb-4 mb-4 border-b border-white/5">
-                <span class="text-gray-400 text-xs font-bold uppercase">Trip Length</span>
-                <div class="flex items-center bg-black/20 rounded-lg p-1 border border-white/5">
-                    <input type="number" id="dur-input"
-                        class="w-12 bg-transparent text-center text-white font-bold outline-none" placeholder="?"
-                        min="1">
-                    <span class="text-gray-500 text-xs pr-2 font-medium">Days</span>
-                </div>
-            </div>
-
-            <div class="relative mb-6 w-full max-w-full z-30">
-                <div class="flex gap-2">
-                    <input type="text" id="dest-input"
-                        class="flex-1 w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-base md:text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors"
-                        placeholder="Search City..." autocomplete="off">
-                </div>
-                <div id="suggestions-list"
-                    class="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-white/10 rounded-xl shadow-xl hidden max-h-48 overflow-y-auto w-full overflow-hidden">
-                </div>
-            </div>
-
-            <div id="location-list" class="space-y-3"></div>
-
-            <!-- Weather Widget -->
-            <div id="weather-widget" class="hidden mt-6 bg-blue-900/10 border border-blue-500/10 rounded-xl p-4">
-                <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleWeather()">
-                    <h4 class="text-[10px] font-bold text-blue-300 uppercase tracking-widest">🌤️ Forecast</h4>
-                    <span id="weather-toggle-icon"
-                        class="text-[10px] text-blue-400 font-bold bg-blue-900/30 px-2 py-0.5 rounded-full">Expand</span>
-                </div>
-                <div id="weather-content" class="hidden">
-                    <div id="weather-loading" class="text-center text-xs text-blue-400 py-4 animate-pulse">
-                        Scanning satellites...</div>
-                    <div id="weather-row" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TAB: EXPENSES -->
-    <div id="view-exp" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl pointer-events-none">
-            </div>
-
-            <!-- Graph Section -->
-            <div id="cost-graph-container" class="mb-6 hidden">
-                <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Spending Breakdown</h4>
-                <div id="cost-graph-bars" class="space-y-2"></div>
-            </div>
-
-            <div class="flex justify-between items-end mb-6 relative">
-                <div>
-                    <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider mb-1">Total Spent
-                    </h3>
-                    <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">€0.00</div>
-                </div>
-                <div class="text-2xl">💸</div>
-            </div>
-
-            <div class="space-y-3 mb-2">
-                <input type="text" id="exp-desc" placeholder="What involved money?"
-                    class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none transition-colors">
-                <div class="flex gap-2">
-                    <input type="number" id="exp-amt" placeholder="0.00"
-                        class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none">
-                    <button id="add-exp-btn"
-                        class="bg-green-600 hover:bg-green-500 text-white px-6 rounded-xl font-bold shadow-lg shadow-green-900/20">Add</button>
-                </div>
             </div>
         </div>
 
-        <div id="expense-list" class="space-y-2 pb-10"></div>
-    </div>
-
-    </div>
-    </div>
+        <!-- Add Event Modal (outside scrollable content) -->
+    </div> <!-- End app-wrapper -->
 
     <!-- Firebase Configuration -->
     <script>
@@ -656,6 +673,10 @@
         }
 
         function updateRecentTripName() {
+            if (tripData.name) {
+                addToRecentTrips(tripId, tripData.name);
+                return;
+            }
             const best = getBestLocation();
             const name = best ? `Trip to ${best.name}` : `Trip ${tripId.slice(0, 4)}`;
             addToRecentTrips(tripId, name);
@@ -741,6 +762,9 @@
                     <span class="font-medium">${u.name}</span>
                 </div>
             `).join('');
+
+            document.getElementById('header-trip-name').innerText = tripData.name || "Trip Planner";
+
 
             const topLoc = getBestLocation();
             if (currentTab === 'plan') {
@@ -1009,6 +1033,16 @@
         }
 
         // --- ACTIONS ---
+        window.editTripName = () => {
+            const newName = prompt("Enter a name for this trip:", tripData.name || "Trip Planner");
+            if (newName && newName.trim()) {
+                tripData.name = newName.trim();
+                sync();
+                render();
+                updateRecentTripName();
+            }
+        };
+
         window.switchTrip = () => window.location.href = window.location.pathname;
         window.logout = () => { localStorage.removeItem('trip_user_name'); location.reload(); };
         window.toggleUserMenu = () => {
@@ -1402,6 +1436,6 @@
 
         init();
     </script>
-</body>
+    </body>
 
 </html>
