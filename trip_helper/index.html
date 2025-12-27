@@ -12,216 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #000;
-            color: #e5e7eb;
-        }
-
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-            padding: 1rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-lg {
-            padding: 1rem 1.5rem;
-            font-size: 1.125rem;
-        }
-
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-        }
-
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: #9ca3af;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .btn-danger {
-            background: transparent;
-            color: #ef4444;
-        }
-
-        .input {
-            width: 100%;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            color: white;
-            outline: none;
-        }
-
-        .input:focus {
-            border-color: #3b82f6;
-        }
-
-        .input::placeholder {
-            color: #6b7280;
-        }
-
-        .section-header {
-            font-size: 10px;
-            font-weight: 700;
-            color: #9ca3af;
-            text-transform: uppercase;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.625rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            font-size: 0.75rem;
-        }
-
-        .cal-day {
-            height: 2rem;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.625rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #9ca3af;
-            cursor: pointer;
-        }
-
-        .cal-my-date {
-            background: rgba(34, 197, 94, 0.1);
-            border-color: #22c55e;
-            color: #4ade80;
-        }
-
-        .cal-other-date {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: #3b82f6;
-            color: #60a5fa;
-        }
-
-        .cal-best-date {
-            background: #fbbf24 !important;
-            border-color: #fbbf24 !important;
-            color: #000;
-            font-weight: 900;
-            box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
-        }
-
-        .cal-today {
-            opacity: 0.5;
-        }
-
-        .cal-past {
-            opacity: 0.3;
-            cursor: not-allowed;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .list-item {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            cursor: pointer;
-        }
-
-        .list-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .draggable {
-            cursor: move;
-        }
-
-        .draggable.dragging {
-            opacity: 0.5;
-        }
-
-        .drop-zone {
-            transition: background 0.2s;
-        }
-
-        .drop-zone.drag-over {
-            background: rgba(251, 191, 36, 0.1) !important;
-            border-color: #fbbf24 !important;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .modal {
-            background: #1f2937;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            width: 100%;
-            max-width: 24rem;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="h-full w-full overflow-hidden">
@@ -1416,6 +1207,69 @@
         }).join('');
 
         document.getElementById('itin-content').innerHTML = html;
+        setupDragAndDrop();
+    }
+
+    function setupDragAndDrop() {
+        document.querySelectorAll('.draggable').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    eventId: item.dataset.eventId,
+                    sourceDate: item.dataset.eventDate
+                }));
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+            });
+        });
+
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                zone.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', (e) => {
+                if (e.target === zone) {
+                    zone.classList.remove('drag-over');
+                }
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove('drag-over');
+
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const targetDate = zone.dataset.date;
+
+                if (data.sourceDate !== targetDate) {
+                    moveEvent(data.sourceDate, data.eventId, targetDate);
+                }
+            });
+        });
+    }
+
+    function moveEvent(sourceDate, eventId, targetDate) {
+        if (!tripData.itinerary[sourceDate]) return;
+
+        const eventIndex = tripData.itinerary[sourceDate].findIndex(e => e.id == eventId);
+        if (eventIndex === -1) return;
+
+        const event = tripData.itinerary[sourceDate][eventIndex];
+        tripData.itinerary[sourceDate].splice(eventIndex, 1);
+
+        if (!tripData.itinerary[targetDate]) {
+            tripData.itinerary[targetDate] = [];
+        }
+        tripData.itinerary[targetDate].push(event);
+
+        sync();
+        renderItinerary();
     }
 
     let editingDate = null;
@@ -1429,8 +1283,17 @@
         const time = document.getElementById('itin-time-input');
         const cost = document.getElementById('itin-cost-input');
         const delBtn = document.getElementById('itin-delete-btn');
+        const daySelect = document.getElementById('itin-day-select');
 
         document.getElementById('itin-modal-date').innerText = date;
+
+        const itinDates = Object.keys(tripData.itinerary || {}).sort();
+        daySelect.innerHTML = itinDates.map(d => {
+            const dObj = new Date(d);
+            const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const datePretty = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return `<option value="${d}" ${d === date ? 'selected' : ''}>${dayName}, ${datePretty}</option>`;
+        }).join('');
 
         if (id) {
             const item = tripData.itinerary[date].find(i => i.id == id);
@@ -1459,22 +1322,38 @@
         const title = document.getElementById('itin-title-input').value;
         const time = document.getElementById('itin-time-input').value;
         const cost = document.getElementById('itin-cost-input').value;
+        const selectedDate = document.getElementById('itin-day-select').value;
 
         if (!title || !time) return;
 
         if (!tripData.itinerary) tripData.itinerary = {};
-        if (!tripData.itinerary[editingDate]) tripData.itinerary[editingDate] = [];
 
         if (editingId) {
             const idx = tripData.itinerary[editingDate].findIndex(i => i.id == editingId);
             if (idx > -1) {
-                tripData.itinerary[editingDate][idx] = {
-                    ...tripData.itinerary[editingDate][idx],
-                    title, time, cost
-                };
+                const event = tripData.itinerary[editingDate][idx];
+
+                if (selectedDate !== editingDate) {
+                    tripData.itinerary[editingDate].splice(idx, 1);
+                    if (!tripData.itinerary[selectedDate]) {
+                        tripData.itinerary[selectedDate] = [];
+                    }
+                    tripData.itinerary[selectedDate].push({
+                        ...event,
+                        title, time, cost
+                    });
+                } else {
+                    tripData.itinerary[editingDate][idx] = {
+                        ...event,
+                        title, time, cost
+                    };
+                }
             }
         } else {
-            tripData.itinerary[editingDate].push({
+            if (!tripData.itinerary[selectedDate]) {
+                tripData.itinerary[selectedDate] = [];
+            }
+            tripData.itinerary[selectedDate].push({
                 id: Date.now(),
                 title, time, cost
             });
