@@ -553,50 +553,18 @@
     }
 
     // --- DATABASE ADAPTER ---
-    const useFirebase = true;
-
+    // --- DATABASE ADAPTER ---
     const DB = {
         async listen(id, callback) {
-            if (useFirebase) {
-                return onSnapshot(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), (snap) => {
-                    callback(snap.exists() ? snap.data() : null);
-                }, err => {
-                    console.error("Firebase Error:", err);
-                    console.warn("Falling back to LocalStorage...");
-                    // If firebase fails, we could try to fallback, but for now let's just use the boolean flag
-                });
-            } else {
-                // LocalStorage Simulation
-                const key = `trip_data_${id}`;
-
-                const load = () => {
-                    const raw = localStorage.getItem(key);
-                    return raw ? JSON.parse(raw) : null;
-                };
-
-                // Initial load
-                callback(load());
-
-                // Poll for changes (since 'storage' event only works across different tabs)
-                const interval = setInterval(() => {
-                    const current = JSON.stringify(load());
-                    if (current !== this._lastState) {
-                        this._lastState = current;
-                        callback(load());
-                    }
-                }, 1000);
-
-                this._lastState = JSON.stringify(load());
-                return () => clearInterval(interval);
-            }
+            return onSnapshot(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), (snap) => {
+                callback(snap.exists() ? snap.data() : null);
+            }, err => {
+                console.error("Firebase Error:", err);
+            });
         },
 
         async save(id, data) {
-            if (useFirebase) {
-                await setDoc(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), data, { merge: true });
-            } else {
-                localStorage.setItem(`trip_data_${id}`, JSON.stringify(data));
-            }
+            await setDoc(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), data, { merge: true });
         }
     };
 
