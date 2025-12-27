@@ -34,6 +34,7 @@ jobs:
           cp -r shopping deploy/ || true
           cp -r 3d_colorizer deploy/ || true
           cp -r secret-santa deploy/ || true
+          cp -r trip_helper deploy/ || true
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/
