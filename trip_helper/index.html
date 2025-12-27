@@ -92,8 +92,11 @@
                             <button onclick="downloadTripData()" class="w-full btn btn-secondary btn-sm mb-2">
                                 💾 Download Data
                             </button>
-                            <button onclick="logout()" class="w-full btn btn-danger btn-sm">
+                            <button onclick="logout()" class="w-full btn btn-danger btn-sm mb-2">
                                 🚪 Switch User
+                            </button>
+                            <button onclick="removeMe()" class="w-full btn btn-danger btn-sm">
+                                🗑️ Remove Me from Trip
                             </button>
                         </div>
                     </div>
@@ -862,6 +865,30 @@
 
     window.switchTrip = () => window.location.href = window.location.pathname;
     window.logout = () => { localStorage.removeItem('trip_user_name'); location.reload(); };
+    window.removeMe = () => {
+        const confirmed = confirm(`Remove yourself from this trip?\n\nThis will:\n• Delete your availability dates\n• Remove your votes\n• Keep expenses you paid (already spent)\n\nThis cannot be undone!`);
+
+        if (!confirmed) return;
+
+        // Remove user from users list
+        delete tripData.users[currentUser.id];
+
+        // Remove votes from all locations
+        if (tripData.locations) {
+            tripData.locations.forEach(loc => {
+                loc.votes = loc.votes.filter(v => v !== currentUser.id);
+            });
+        }
+
+        // Keep expenses - they represent real money already spent
+        // User data remains in expense records for accountability
+
+        sync();
+        localStorage.removeItem('trip_user_name');
+
+        alert('You have been removed from the trip.');
+        window.location.href = window.location.pathname;
+    };
     window.toggleUserMenu = () => {
         userMenuOpen = !userMenuOpen;
         els.userMenu.classList.toggle('hidden', !userMenuOpen);
