@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Trip Planner</title>
+    <title>Trip Helper</title>
     <meta name="theme-color" content="#111827">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="https://fav.farm/✈️">
@@ -207,7 +207,7 @@
             style="background: rgba(0,0,0,0.6)">
             <div class="flex flex-col items-center w-full max-w-sm">
                 <div class="text-7xl mb-6">✈️</div>
-                <h2 class="text-4xl font-bold mb-10 text-blue-400">Trip Planner</h2>
+                <h2 class="text-4xl font-bold mb-10 text-blue-400">Trip Helper</h2>
 
                 <div id="welcome-msg" class="hidden text-gray-400 text-sm mb-4"></div>
 
@@ -254,7 +254,7 @@
                         <span class="text-xl">✈️</span>
                     </div>
                     <div class="flex items-center gap-2 group">
-                        <h1 id="header-trip-name" class="font-bold text-base">Trip Planner</h1>
+                        <h1 id="header-trip-name" class="font-bold text-base">Trip Helper</h1>
                         <button onclick="editTripName()"
                             class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-white text-xs">✎</button>
                     </div>
@@ -349,9 +349,9 @@
                         </div>
                         <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 mb-3"></div>
                         <div id="best-dates" class="text-xs text-center font-bold text-amber-400"></div>
-                        <div id="date-details" class="mt-4 card hidden">
-                            <h4 class="section-header mb-2" id="detail-date-header">Date Details</h4>
-                            <div id="detail-user-list" class="flex flex-wrap gap-2"></div>
+                        <div id="person-availability" class="mt-4 card">
+                            <h4 class="section-header mb-3">Availability by Person</h4>
+                            <div id="person-availability-list" class="space-y-2"></div>
                         </div>
                     </div>
                 </div>
@@ -774,7 +774,7 @@
             </div>
         `).join('');
 
-        document.getElementById('header-trip-name').innerText = tripData.name || "Trip Planner";
+        document.getElementById('header-trip-name').innerText = tripData.name || "Trip Helper";
 
         const topLoc = getBestLocation();
         if (currentTab === 'plan') {
@@ -961,7 +961,7 @@
     }
 
     window.editTripName = () => {
-        const newName = prompt("Enter a name for this trip:", tripData.name || "Trip Planner");
+        const newName = prompt("Enter a name for this trip:", tripData.name || "Trip Helper");
         if (newName && newName.trim()) {
             tripData.name = newName.trim();
             sync();
@@ -1217,32 +1217,58 @@
         });
         document.getElementById('best-dates').innerHTML = max > 1 ? `🔥 Best Date found! (${max} friends)` : "Select dates to match!";
 
-        if (lastClickedDate) {
-            const [y, m, d] = lastClickedDate.split('-');
-            const dateObj = new Date(y, m - 1, d);
-            const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        // Render Person Availability
+        const users = Object.values(tripData.users).sort((a, b) => a.name.localeCompare(b.name));
 
-            const who = Object.values(tripData.users)
-                .filter(u => u.dates && u.dates.includes(lastClickedDate))
-                .sort((a, b) => a.name.localeCompare(b.name));
+        if (users.length > 0 && users.some(u => u.dates && u.dates.length > 0)) {
+            const personListHtml = users.map(user => {
+                const dates = (user.dates || []).sort();
+                const isCurrentUser = user.name === currentUser.name;
 
-            const container = document.getElementById('date-details');
-            container.classList.remove('hidden');
-            document.getElementById('detail-date-header').innerText = `Available on ${dateStr}`;
+                if (dates.length === 0) {
+                    return `
+                        <div class="card" style="padding: 0.625rem">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-1.5 h-1.5 rounded-full ${isCurrentUser ? 'bg-green-500' : 'bg-blue-500'}"></div>
+                                <span class="font-bold text-xs text-gray-300">${user.name}</span>
+                            </div>
+                            <div class="text-xs text-gray-600 italic ml-3.5">No dates selected</div>
+                        </div>
+                    `;
+                }
 
-            if (who.length > 0) {
-                document.getElementById('detail-user-list').innerHTML = who.map(u => `
-                    <div class="badge" style="background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.3); color: #bfdbfe">
-                        <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
-                        <span>${u.name}</span>
+                const dateRanges = formatDateRanges(dates);
+
+                return `
+                    <div class="card" style="padding: 0.625rem; ${isCurrentUser ? 'border-color: rgba(34,197,94,0.3)' : ''}">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <div class="w-1.5 h-1.5 rounded-full ${isCurrentUser ? 'bg-green-500' : 'bg-blue-500'}"></div>
+                            <span class="font-bold text-xs ${isCurrentUser ? 'text-green-300' : 'text-gray-300'}">${user.name}</span>
+                            <span class="text-xs text-gray-500">(${dates.length} ${dates.length === 1 ? 'day' : 'days'})</span>
+                        </div>
+                        <div class="text-xs text-gray-400 ml-3.5">${dateRanges}</div>
                     </div>
-                `).join('');
-            } else {
-                document.getElementById('detail-user-list').innerHTML = `<span class="text-xs text-gray-500 italic">No one is available.</span>`;
-            }
+                `;
+            }).join('');
+
+            document.getElementById('person-availability-list').innerHTML = personListHtml;
         } else {
-            document.getElementById('date-details').classList.add('hidden');
+            document.getElementById('person-availability-list').innerHTML = `
+                <div class="text-xs text-gray-500 italic text-center py-2">No availability marked yet. Select dates on the calendar!</div>
+            `;
         }
+    }
+
+    function formatDateRanges(dates) {
+        if (dates.length === 0) return '';
+
+        const formatted = dates.map(d => {
+            const [y, m, day] = d.split('-');
+            const dateObj = new Date(y, m - 1, day);
+            return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+
+        return formatted.join(', ');
     }
 
     window.createItineraryFromBest = () => {
