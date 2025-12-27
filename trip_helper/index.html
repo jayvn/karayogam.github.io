@@ -145,6 +145,10 @@
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider">Logged in as</p>
                             <p id="menu-user-name" class="font-bold text-white truncate"></p>
                         </div>
+                        <button onclick="downloadTripData()"
+                            class="w-full text-left px-4 py-3 text-sm text-blue-300 hover:bg-blue-500/10 transition-colors flex items-center gap-2 border-b border-white/5">
+                            <span class="text-xs">💾</span> Download Data
+                        </button>
                         <button onclick="logout()"
                             class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2">
                             <span class="text-xs">🚪</span> Switch User
@@ -169,7 +173,7 @@
         </div>
 
         <!-- SCROLLABLE CONTENT -->
-        <div class="flex-1 overflow-y-auto px-4 pb-4 space-y-4 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 space-y-4 custom-scrollbar">
 
             <!-- TAB: PLANNING -->
             <div id="view-plan" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -288,6 +292,13 @@
         <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
             <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl pointer-events-none">
             </div>
+
+            <!-- Graph Section -->
+            <div id="cost-graph-container" class="mb-6 hidden">
+                <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Spending Breakdown</h4>
+                <div id="cost-graph-bars" class="space-y-2"></div>
+            </div>
+
             <div class="flex justify-between items-end mb-6 relative">
                 <div>
                     <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider mb-1">Total Spent
@@ -856,6 +867,43 @@
 
                 document.getElementById('exp-total').innerText = `€${total.toFixed(2)}`;
 
+                // --- COST GRAPH ---
+                const spendingByUser = {};
+                users.forEach(u => spendingByUser[u.name] = 0);
+                expenses.forEach(e => {
+                    spendingByUser[e.who] = (spendingByUser[e.who] || 0) + parseFloat(e.amt);
+                });
+
+                const sortedSpenders = Object.entries(spendingByUser)
+                    .sort(([, a], [, b]) => b - a);
+
+                const maxSpent = sortedSpenders.length > 0 ? sortedSpenders[0][1] : 0;
+
+                if (maxSpent > 0) {
+                    document.getElementById('cost-graph-container').classList.remove('hidden');
+                    document.getElementById('cost-graph-bars').innerHTML = sortedSpenders.map(([name, amt]) => {
+                        const percent = (amt / maxSpent) * 100;
+                        const isMax = amt === maxSpent;
+                        const isMin = amt === sortedSpenders[sortedSpenders.length - 1][1] && sortedSpenders.length > 1;
+
+                        let colorClass = "bg-gray-600";
+                        if (isMax) colorClass = "bg-red-500"; // Big spender
+                        else if (isMin) colorClass = "bg-green-500"; // Saver
+
+                        return `
+                            <div class="flex items-center gap-2 text-xs">
+                                <div class="w-16 truncate text-right text-gray-400 font-medium">${name}</div>
+                                <div class="flex-1 bg-black/40 rounded-full h-2 overflow-hidden">
+                                    <div class="h-full ${colorClass} rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                                </div>
+                                <div class="w-12 text-right font-mono text-gray-300">€${amt.toFixed(0)}</div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    document.getElementById('cost-graph-container').classList.add('hidden');
+                }
+
                 // Render Balances
                 const balanceHtml = users.map(u => {
                     const paid = balances[u.name] || 0;
@@ -913,6 +961,16 @@
             navigator.clipboard.writeText(window.location.href).then(() => {
                 alert("Trip Link Copied!");
             });
+        };
+
+        window.downloadTripData = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tripData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "trip_data_" + tripId + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
         };
 
         // Listeners for inputs
