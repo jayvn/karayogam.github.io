@@ -165,6 +165,8 @@
                     class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Plan</button>
                 <button id="tab-vote"
                     class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Vote</button>
+                <button id="tab-itin"
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Itinerary</button>
                 <button id="tab-pack"
                     class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Checklist</button>
                 <button id="tab-exp"
@@ -207,7 +209,11 @@
                 <!-- CALENDAR -->
                 <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-5 backdrop-blur-sm">
                     <div class="flex justify-between items-end mb-4">
-                        <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider">📅 Availability</h3>
+                        <div class="flex flex-col">
+                            <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider">📅 Availability
+                            </h3>
+                            <div id="calendar-header" class="text-sm font-bold text-blue-200 mt-1"></div>
+                        </div>
                         <div class="flex gap-3 text-[10px] items-center">
                             <span class="flex items-center gap-1 text-gray-400">
                                 <div class="w-2 h-2 rounded-full bg-green-500"></div> You
@@ -229,20 +235,78 @@
             </div>
         </div>
 
-        <!-- TAB: PACKING -->
-        <div id="view-pack" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-                <h3 class="font-bold text-gray-500 text-[10px] uppercase mb-3 tracking-wider">✅ Trip Checklist
-                </h3>
-                <div class="flex gap-2 mb-4">
-                    <input type="text" id="pack-input" placeholder="Add item..."
-                        class="flex-1 px-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-base md:text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors">
-                    <button id="add-pack-btn"
-                        class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg shadow-blue-900/20">+</button>
-                </div>
-                <div id="packing-list" class="space-y-2 text-sm"></div>
+        <!-- TAB: ITINERARY -->
+        <div id="view-itin" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+
+            <div id="itin-empty-state"
+                class="hidden flex flex-col items-center justify-center p-8 text-center bg-gray-800/30 border border-white/5 rounded-2xl backdrop-blur-sm">
+                <div class="text-4xl mb-4 grayscale opacity-50">📅</div>
+                <h3 class="text-lg font-bold text-gray-200 mb-2">No Itinerary Yet</h3>
+                <p class="text-sm text-gray-400 mb-6">Voting finished? Lock in the best dates to start planning the
+                    details!</p>
+                <button onclick="createItineraryFromBest()"
+                    class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-amber-900/20 active:scale-95 transition-all">
+                    ✨ Generate Itinerary
+                </button>
             </div>
+
+            <div id="itin-content" class="space-y-4"></div>
+
+            <!-- Add Event Modal -->
+            <div id="itin-modal"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div class="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
+                    <h3 id="itin-modal-title" class="text-lg font-bold text-white mb-4">Add Event</h3>
+                    <input type="hidden" id="itin-modal-id">
+                    <input type="hidden" id="itin-modal-date">
+
+                    <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Activity</label>
+                    <input type="text" id="itin-title-input"
+                        class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white mb-4 focus:border-amber-500/50 outline-none"
+                        placeholder="e.g. Dinner at Mario's">
+
+                    <div class="flex gap-3 mb-4">
+                        <div class="flex-1">
+                            <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Time</label>
+                            <input type="time" id="itin-time-input"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-amber-500/50 outline-none">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs uppercase text-gray-500 font-bold mb-1">Cost (Est)</label>
+                            <input type="number" id="itin-cost-input"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-amber-500/50 outline-none"
+                                placeholder="€">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="closeItinModal()"
+                            class="flex-1 bg-white/5 hover:bg-white/10 text-gray-400 py-3 rounded-xl font-bold transition-colors">Cancel</button>
+                        <button onclick="saveItinEvent()"
+                            class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-amber-900/20">Save</button>
+                    </div>
+                    <button id="itin-delete-btn" onclick="deleteItinEvent()"
+                        class="mt-2 w-full text-xs text-red-400 py-2 hover:text-red-300 hidden">Delete Event</button>
+                </div>
+            </div>
+
         </div>
+    </div>
+
+    <!-- TAB: PACKING -->
+    <div id="view-pack" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
+            <h3 class="font-bold text-gray-500 text-[10px] uppercase mb-3 tracking-wider">✅ Trip Checklist
+            </h3>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="pack-input" placeholder="Add item..."
+                    class="flex-1 px-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-base md:text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors">
+                <button id="add-pack-btn"
+                    class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg shadow-blue-900/20">+</button>
+            </div>
+            <div id="packing-list" class="space-y-2 text-sm"></div>
+        </div>
+    </div>
     </div>
 
     <!-- TAB: VOTE -->
@@ -349,7 +413,8 @@
 
         let currentUser = { id: null, name: null };
         let tripId = null;
-        let tripData = { locations: [], duration: '', users: {}, expenses: [], packing: [] };
+        let tripData = { locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {} };
+
         let currentTab = 'plan';
         let weatherExpanded = false;
         let unsubscribe = null;
@@ -365,14 +430,17 @@
             tabs: {
                 plan: document.getElementById('tab-plan'),
                 vote: document.getElementById('tab-vote'),
+                itin: document.getElementById('tab-itin'),
                 pack: document.getElementById('tab-pack'),
                 exp: document.getElementById('tab-exp')
             },
             views: {
                 plan: document.getElementById('view-plan'),
                 vote: document.getElementById('view-vote'),
+                itin: document.getElementById('view-itin'),
                 pack: document.getElementById('view-pack'),
                 exp: document.getElementById('view-exp')
+
             },
 
             // Components
@@ -539,7 +607,8 @@
                         packing: [
                             { id: 1, text: "Book Travel Tickets", checked: false },
                             { id: 2, text: "Book Hotels", checked: false }
-                        ]
+                        ],
+                        itinerary: {}
                     }));
                 }
             }
@@ -568,7 +637,8 @@
                         locations: [], duration: '', users: {}, expenses: [], packing: [
                             { id: 1, text: "Book Travel Tickets", checked: false },
                             { id: 2, text: "Book Hotels", checked: false }
-                        ]
+                        ],
+                        itinerary: {}
                     };
                     registerUserInTrip();
                 }
@@ -698,6 +768,10 @@
                     els.destIcon.classList.add('hidden');
                 }
                 renderCalendar();
+            }
+
+            if (currentTab === 'itin') {
+                renderItinerary();
             }
 
             if (currentTab === 'pack') {
@@ -1067,9 +1141,13 @@
             sync();
         };
 
-        // Calendar
         function initCalendar() {
             const cal = document.getElementById('calendar-grid'); cal.innerHTML = '';
+
+            const now = new Date();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calendar-header').innerText = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
             ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
                 cal.innerHTML += `<div class="text-center text-[9px] font-bold text-gray-600 pb-1">${d}</div>`;
             });
@@ -1080,7 +1158,10 @@
                 const btn = document.createElement('button');
                 btn.className = "day-cell h-8 rounded-lg flex flex-col items-center justify-center text-[10px] bg-black/20 border border-white/5 text-gray-500 transition-all";
                 btn.dataset.date = ds;
-                btn.innerHTML = `<span class="pointer-events-none">${d.getDate()}</span>`;
+                const isFirst = d.getDate() === 1 || i === 0;
+                const label = isFirst ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : d.getDate();
+
+                btn.innerHTML = `<span class="pointer-events-none ${isFirst ? 'font-bold text-[9px]' : ''}">${label}</span>`;
                 btn.onclick = (e) => {
                     if (!tripData.users[currentUser.id]) {
                         // Safety recovery
@@ -1141,7 +1222,8 @@
 
                 if (count > 0) {
                     if (count === max && max > 1) {
-                        cls = "day-cell h-9 rounded-lg flex flex-col items-center justify-center text-[10px] transition-all border bg-purple-900/40 border-purple-500 text-yellow-200 font-bold shadow-[0_0_10px_-2px_rgba(168,85,247,0.4)] scale-105 z-10";
+                        // BEST DATE HIGHLIGHT (User requested "more clear")
+                        cls = "day-cell h-9 rounded-lg flex flex-col items-center justify-center text-[10px] transition-all border bg-amber-500 text-black font-black shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-110 z-20 ring-2 ring-white";
                     } else if (!my) {
                         // Stronger highlight for others
                         cls += "bg-blue-600/20 border-blue-400 text-blue-100 font-bold shadow-[0_0_5px_-2px_rgba(59,130,246,0.5)] ";
@@ -1149,12 +1231,174 @@
                 }
                 c.className = cls;
             });
-            document.getElementById('best-dates').innerText = max > 1 ? `🔥 Best Date: ${max} friends` : "Select dates to match!";
+            document.getElementById('best-dates').innerHTML = max > 1 ? `<span class="text-amber-400 text-shadow-sm">🔥 Best Date found! (${max} friends)</span>` : "Select dates to match!";
         }
 
-        window.toggleWeather = () => {
-            const c = document.getElementById('weather-content');
-            c.classList.toggle('hidden');
+        // --- ITINERARY LOGIC ---
+
+        window.createItineraryFromBest = () => {
+            // Find best sequence of dates
+            const counts = {};
+            let maxVotes = 0;
+
+            // Generate Vote Counts
+            Object.values(tripData.users).forEach(u => u.dates?.forEach(d => {
+                counts[d] = (counts[d] || 0) + 1;
+                maxVotes = Math.max(maxVotes, counts[d]);
+            }));
+
+            if (maxVotes < 2) {
+                alert("Need more votes to determine best dates!");
+                return;
+            }
+
+            // Find all dates with maxVotes
+            const bestDates = Object.keys(counts).filter(d => counts[d] === maxVotes).sort();
+
+            // Initialize itinerary structure
+            if (!tripData.itinerary) tripData.itinerary = {};
+
+            // Add dates if not exist
+            bestDates.forEach(date => {
+                if (!tripData.itinerary[date]) tripData.itinerary[date] = [];
+            });
+
+            sync();
+            renderItinerary();
+        };
+
+        function renderItinerary() {
+            const itin = tripData.itinerary || {};
+            const dates = Object.keys(itin).sort();
+
+            if (dates.length === 0) {
+                document.getElementById('itin-empty-state').classList.remove('hidden');
+                document.getElementById('itin-content').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('itin-empty-state').classList.add('hidden');
+
+            const html = dates.map(date => {
+                const dayEvents = itin[date] || [];
+                dayEvents.sort((a, b) => a.time.localeCompare(b.time));
+
+                const dObj = new Date(date);
+                const dayName = dObj.toLocaleDateString('en-US', { weekday: 'long' });
+                const datePretty = dObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+                return `
+                <div class="bg-gray-800/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
+                    <div class="bg-white/5 p-3 flex justify-between items-center border-b border-white/5">
+                        <div>
+                            <span class="block text-xs font-bold text-amber-500 uppercase tracking-widest">${dayName}</span>
+                            <span class="block text-lg font-bold text-white">${datePretty}</span>
+                        </div>
+                        <button onclick="openItinModal('${date}')" class="w-8 h-8 rounded-lg bg-black/20 hover:bg-amber-500/20 text-gray-400 hover:text-amber-400 flex items-center justify-center transition-colors text-lg font-bold">+</button>
+                    </div>
+                    <div class="p-2 space-y-2">
+                        ${dayEvents.length === 0 ? '<div class="text-center text-xs text-gray-600 py-4 italic">No events planned</div>' : ''}
+                        ${dayEvents.map(e => `
+                            <div onclick="openItinModal('${date}', '${e.id}')" class="flex gap-4 p-3 rounded-xl bg-black/20 border border-white/5 hover:border-amber-500/30 hover:bg-white/5 cursor-pointer transition-all group">
+                                <div class="flex flex-col items-center justify-center w-12 border-r border-white/10 pr-4">
+                                    <span class="text-sm font-bold text-gray-200">${e.time}</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-200 text-sm group-hover:text-amber-200">${e.title}</h4>
+                                    ${e.cost ? `<span class="text-[10px] text-green-400 font-mono">Est: €${e.cost}</span>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('itin-content').innerHTML = html;
+        }
+
+        // Modal Logic
+        let editingDate = null;
+        let editingId = null;
+
+        window.openItinModal = (date, id = null) => {
+            editingDate = date;
+            editingId = id;
+            const modal = document.getElementById('itin-modal');
+            const title = document.getElementById('itin-title-input');
+            const time = document.getElementById('itin-time-input');
+            const cost = document.getElementById('itin-cost-input');
+            const delBtn = document.getElementById('itin-delete-btn');
+
+            document.getElementById('itin-modal-date').innerText = date;
+
+            if (id) {
+                const item = tripData.itinerary[date].find(i => i.id == id);
+                document.getElementById('itin-modal-title').innerText = "Edit Event";
+                title.value = item.title;
+                time.value = item.time;
+                cost.value = item.cost || '';
+                delBtn.classList.remove('hidden');
+            } else {
+                document.getElementById('itin-modal-title').innerText = "New Event";
+                title.value = '';
+                time.value = "12:00";
+                cost.value = '';
+                delBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            title.focus();
+        };
+
+        window.closeItinModal = () => {
+            document.getElementById('itin-modal').classList.add('hidden');
+        };
+
+        window.saveItinEvent = () => {
+            const title = document.getElementById('itin-title-input').value;
+            const time = document.getElementById('itin-time-input').value;
+            const cost = document.getElementById('itin-cost-input').value;
+
+            if (!title || !time) return; // Simple validation
+
+            if (!tripData.itinerary) tripData.itinerary = {};
+            if (!tripData.itinerary[editingDate]) tripData.itinerary[editingDate] = [];
+
+            if (editingId) {
+                // Edit
+                const idx = tripData.itinerary[editingDate].findIndex(i => i.id == editingId);
+                if (idx > -1) {
+                    tripData.itinerary[editingDate][idx] = {
+                        ...tripData.itinerary[editingDate][idx],
+                        title, time, cost
+                    };
+                }
+            } else {
+                // Create
+                tripData.itinerary[editingDate].push({
+                    id: Date.now(),
+                    title, time, cost
+                });
+            }
+
+            // Check if cost needs to be added to Expenses tab? 
+            // For now, keep separate as requested ("Estimate").
+
+            sync();
+            closeItinModal();
+            renderItinerary();
+        };
+
+        window.deleteItinEvent = () => {
+            if (editingDate && editingId && tripData.itinerary[editingDate]) {
+                tripData.itinerary[editingDate] = tripData.itinerary[editingDate].filter(i => i.id != editingId);
+                sync();
+                closeItinModal();
+                renderItinerary();
+            }
+        };
+        const c = document.getElementById('weather-content');
+        c.classList.toggle('hidden');
         };
 
         if ('serviceWorker' in navigator) {
