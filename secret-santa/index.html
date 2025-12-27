@@ -84,6 +84,12 @@
             const input = document.getElementById('nameIn');
             const name = input.value.trim();
             if (!name) return;
+
+            if (state.members.some(m => m.toLowerCase() === name.toLowerCase())) {
+                showEgg("Name already added! 🛑");
+                return;
+            }
+
             const n = name.toLowerCase();
             if (['lakshmi', 'lamsi'].includes(n)) showEgg(`Hi ${name}, Jayde 2 EUR eppo kodukkum?`);
             if (['ayana', 'akhil antony', 'akhil', 'eva', 'evangela'].includes(n)) showEgg(`Hi ${name}, Nammal eppo Gajapokkiri kaanum gooys ?`);
@@ -131,15 +137,13 @@
         window.draw = () => {
             if (state.members.length < 2) return showEgg("Need at least 2 people!");
             if (!validateAdmin()) return;
-            let pool = [...state.members], givers = [...state.members], attempt = 0;
-            while (attempt++ < 100) {
-                let shuffled = [...pool].sort(() => Math.random() - 0.5);
-                if (givers.every((m, i) => m !== shuffled[i])) {
-                    state.pairs = givers.map((m, i) => ({ from: m, to: shuffled[i] }));
-                    sync(state);
-                    return;
-                }
-            }
+
+            const shuffled = [...state.members].sort(() => Math.random() - 0.5);
+            state.pairs = shuffled.map((m, i) => ({
+                from: m,
+                to: shuffled[(i + 1) % shuffled.length]
+            }));
+            sync(state);
         };
 
         window.clearAll = () => {
