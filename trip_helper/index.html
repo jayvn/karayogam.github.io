@@ -1189,10 +1189,10 @@
                         </div>
                         <button onclick="openItinModal('${date}')" class="w-8 h-8 rounded-lg card hover:bg-amber-500/20 flex items-center justify-center text-lg font-bold">+</button>
                     </div>
-                    <div class="p-2 space-y-2 drop-zone" data-date="${date}">
+                    <div class="p-2 space-y-2">
                         ${dayEvents.length === 0 ? '<div class="text-center text-xs text-gray-600 py-4 italic">No events planned</div>' : ''}
                         ${dayEvents.map(e => `
-                            <div draggable="true" data-event-id="${e.id}" data-event-date="${date}" onclick="openItinModal('${date}', '${e.id}')" class="list-item gap-4 draggable">
+                            <div onclick="openItinModal('${date}', '${e.id}')" class="list-item gap-4">
                                 <div class="flex flex-col items-center justify-center w-12 pr-4" style="border-right: 1px solid rgba(255,255,255,0.1)">
                                     <span class="text-sm font-bold">${e.time}</span>
                                 </div>
@@ -1207,69 +1207,6 @@
         }).join('');
 
         document.getElementById('itin-content').innerHTML = html;
-        setupDragAndDrop();
-    }
-
-    function setupDragAndDrop() {
-        document.querySelectorAll('.draggable').forEach(item => {
-            item.addEventListener('dragstart', (e) => {
-                item.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', JSON.stringify({
-                    eventId: item.dataset.eventId,
-                    sourceDate: item.dataset.eventDate
-                }));
-            });
-
-            item.addEventListener('dragend', () => {
-                item.classList.remove('dragging');
-            });
-        });
-
-        document.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                zone.classList.add('drag-over');
-            });
-
-            zone.addEventListener('dragleave', (e) => {
-                if (e.target === zone) {
-                    zone.classList.remove('drag-over');
-                }
-            });
-
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                zone.classList.remove('drag-over');
-
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                const targetDate = zone.dataset.date;
-
-                if (data.sourceDate !== targetDate) {
-                    moveEvent(data.sourceDate, data.eventId, targetDate);
-                }
-            });
-        });
-    }
-
-    function moveEvent(sourceDate, eventId, targetDate) {
-        if (!tripData.itinerary[sourceDate]) return;
-
-        const eventIndex = tripData.itinerary[sourceDate].findIndex(e => e.id == eventId);
-        if (eventIndex === -1) return;
-
-        const event = tripData.itinerary[sourceDate][eventIndex];
-        tripData.itinerary[sourceDate].splice(eventIndex, 1);
-
-        if (!tripData.itinerary[targetDate]) {
-            tripData.itinerary[targetDate] = [];
-        }
-        tripData.itinerary[targetDate].push(event);
-
-        sync();
-        renderItinerary();
     }
 
     let editingDate = null;

@@ -163,23 +163,6 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.draggable {
-    cursor: move;
-}
-
-.draggable.dragging {
-    opacity: 0.5;
-}
-
-.drop-zone {
-    transition: background 0.2s;
-}
-
-.drop-zone.drag-over {
-    background: rgba(251, 191, 36, 0.1) !important;
-    border-color: #fbbf24 !important;
-}
-
 .modal-overlay {
     position: fixed;
     inset: 0;
