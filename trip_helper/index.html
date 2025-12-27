@@ -865,10 +865,13 @@
 
     window.switchTrip = () => window.location.href = window.location.pathname;
     window.logout = () => { localStorage.removeItem('trip_user_name'); location.reload(); };
-    window.removeMe = () => {
+    window.removeMe = async () => {
         const confirmed = confirm(`Remove yourself from this trip?\n\nThis will:\n• Delete your availability dates\n• Remove your votes\n• Keep expenses you paid (already spent)\n\nThis cannot be undone!`);
 
         if (!confirmed) return;
+
+        // Unsubscribe from real-time listener to prevent auto-rejoin
+        if (unsubscribe) unsubscribe();
 
         // Remove user from users list
         delete tripData.users[currentUser.id];
@@ -883,7 +886,7 @@
         // Keep expenses - they represent real money already spent
         // User data remains in expense records for accountability
 
-        sync();
+        await DB.save(tripId, tripData);
         localStorage.removeItem('trip_user_name');
 
         alert('You have been removed from the trip.');
