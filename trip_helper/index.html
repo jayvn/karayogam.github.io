@@ -154,11 +154,13 @@
         <div class="px-4 mb-2">
             <div class="flex bg-black/20 p-1 rounded-xl backdrop-blur-sm border border-white/5">
                 <button id="tab-plan"
-                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Planning</button>
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Plan</button>
                 <button id="tab-vote"
-                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Location</button>
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Vote</button>
+                <button id="tab-pack"
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Pack</button>
                 <button id="tab-exp"
-                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Expenses</button>
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all hover:text-white">Cost</button>
             </div>
         </div>
 
@@ -211,92 +213,97 @@
                     <div id="best-dates" class="text-xs text-center font-bold text-purple-300 h-4"></div>
                 </div>
 
-                <!-- PACKING LIST -->
-                <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-                    <h3 class="font-bold text-gray-500 text-[10px] uppercase mb-3 tracking-wider">🎒 Packing Essentials
-                    </h3>
-                    <div class="flex gap-2 mb-4">
-                        <input type="text" id="pack-input" placeholder="Add item..."
-                            class="flex-1 px-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors">
-                        <button id="add-pack-btn"
-                            class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg shadow-blue-900/20">+</button>
-                    </div>
-                    <div id="packing-list" class="space-y-2 text-sm"></div>
-                </div>
             </div>
-
-            <!-- TAB: VOTE -->
-            <div id="view-vote" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
-                    <div class="flex items-center justify-center gap-3 text-sm pb-4 mb-4 border-b border-white/5">
-                        <span class="text-gray-400 text-xs font-bold uppercase">Trip Length</span>
-                        <div class="flex items-center bg-black/20 rounded-lg p-1 border border-white/5">
-                            <input type="number" id="dur-input"
-                                class="w-12 bg-transparent text-center text-white font-bold outline-none"
-                                placeholder="?" min="1">
-                            <span class="text-gray-500 text-xs pr-2 font-medium">Days</span>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 mb-6">
-                        <input type="text" id="dest-input"
-                            class="flex-1 px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors"
-                            placeholder="Suggest City...">
-                        <button id="suggest-btn"
-                            class="bg-white text-black hover:bg-gray-200 px-5 rounded-xl text-sm font-bold shadow-lg">Vote</button>
-                    </div>
-
-                    <div id="location-list" class="space-y-3"></div>
-
-                    <!-- Weather Widget -->
-                    <div id="weather-widget"
-                        class="hidden mt-6 bg-blue-900/10 border border-blue-500/10 rounded-xl p-4">
-                        <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleWeather()">
-                            <h4 class="text-[10px] font-bold text-blue-300 uppercase tracking-widest">🌤️ Forecast</h4>
-                            <span id="weather-toggle-icon"
-                                class="text-[10px] text-blue-400 font-bold bg-blue-900/30 px-2 py-0.5 rounded-full">Expand</span>
-                        </div>
-                        <div id="weather-content" class="hidden">
-                            <div id="weather-loading" class="text-center text-xs text-blue-400 py-4 animate-pulse">
-                                Scanning satellites...</div>
-                            <div id="weather-row" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: EXPENSES -->
-            <div id="view-exp" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div
-                    class="bg-gray-800/30 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl pointer-events-none">
-                    </div>
-                    <div class="flex justify-between items-end mb-6 relative">
-                        <div>
-                            <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider mb-1">Total Spent
-                            </h3>
-                            <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">$0.00</div>
-                        </div>
-                        <div class="text-2xl">💸</div>
-                    </div>
-
-                    <div class="space-y-3 mb-2">
-                        <input type="text" id="exp-desc" placeholder="What involved money?"
-                            class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none transition-colors">
-                        <div class="flex gap-2">
-                            <input type="number" id="exp-amt" placeholder="0.00"
-                                class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none">
-                            <button id="add-exp-btn"
-                                class="bg-green-600 hover:bg-green-500 text-white px-6 rounded-xl font-bold shadow-lg shadow-green-900/20">Add</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="expense-list" class="space-y-2 pb-10"></div>
-            </div>
-
         </div>
+
+        <!-- TAB: PACKING -->
+        <div id="view-pack" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
+                <h3 class="font-bold text-gray-500 text-[10px] uppercase mb-3 tracking-wider">🎒 Packing Essentials
+                </h3>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="pack-input" placeholder="Add item..."
+                        class="flex-1 px-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors">
+                    <button id="add-pack-btn"
+                        class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg shadow-blue-900/20">+</button>
+                </div>
+                <div id="packing-list" class="space-y-2 text-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: VOTE -->
+    <div id="view-vote" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
+            <div class="flex items-center justify-center gap-3 text-sm pb-4 mb-4 border-b border-white/5">
+                <span class="text-gray-400 text-xs font-bold uppercase">Trip Length</span>
+                <div class="flex items-center bg-black/20 rounded-lg p-1 border border-white/5">
+                    <input type="number" id="dur-input"
+                        class="w-12 bg-transparent text-center text-white font-bold outline-none" placeholder="?"
+                        min="1">
+                    <span class="text-gray-500 text-xs pr-2 font-medium">Days</span>
+                </div>
+            </div>
+
+            <div class="relative mb-6">
+                <div class="flex gap-2">
+                    <input type="text" id="dest-input"
+                        class="flex-1 px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-blue-500/50 outline-none transition-colors"
+                        placeholder="Search City..." autocomplete="off">
+                </div>
+                <div id="suggestions-list"
+                    class="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-white/10 rounded-xl shadow-xl z-50 hidden max-h-48 overflow-y-auto">
+                </div>
+            </div>
+
+            <div id="location-list" class="space-y-3"></div>
+
+            <!-- Weather Widget -->
+            <div id="weather-widget" class="hidden mt-6 bg-blue-900/10 border border-blue-500/10 rounded-xl p-4">
+                <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleWeather()">
+                    <h4 class="text-[10px] font-bold text-blue-300 uppercase tracking-widest">🌤️ Forecast</h4>
+                    <span id="weather-toggle-icon"
+                        class="text-[10px] text-blue-400 font-bold bg-blue-900/30 px-2 py-0.5 rounded-full">Expand</span>
+                </div>
+                <div id="weather-content" class="hidden">
+                    <div id="weather-loading" class="text-center text-xs text-blue-400 py-4 animate-pulse">
+                        Scanning satellites...</div>
+                    <div id="weather-row" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: EXPENSES -->
+    <div id="view-exp" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div class="bg-gray-800/30 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl pointer-events-none">
+            </div>
+            <div class="flex justify-between items-end mb-6 relative">
+                <div>
+                    <h3 class="font-bold text-gray-500 text-[10px] uppercase tracking-wider mb-1">Total Spent
+                    </h3>
+                    <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">€0.00</div>
+                </div>
+                <div class="text-2xl">💸</div>
+            </div>
+
+            <div class="space-y-3 mb-2">
+                <input type="text" id="exp-desc" placeholder="What involved money?"
+                    class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none transition-colors">
+                <div class="flex gap-2">
+                    <input type="number" id="exp-amt" placeholder="0.00"
+                        class="w-full px-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-gray-600 focus:border-green-500/30 outline-none">
+                    <button id="add-exp-btn"
+                        class="bg-green-600 hover:bg-green-500 text-white px-6 rounded-xl font-bold shadow-lg shadow-green-900/20">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="expense-list" class="space-y-2 pb-10"></div>
+    </div>
+
+    </div>
     </div>
 
     <!-- Firebase Configuration -->
@@ -338,11 +345,13 @@
             tabs: {
                 plan: document.getElementById('tab-plan'),
                 vote: document.getElementById('tab-vote'),
+                pack: document.getElementById('tab-pack'),
                 exp: document.getElementById('tab-exp')
             },
             views: {
                 plan: document.getElementById('view-plan'),
                 vote: document.getElementById('view-vote'),
+                pack: document.getElementById('view-pack'),
                 exp: document.getElementById('view-exp')
             },
 
@@ -628,6 +637,9 @@
                     els.destIcon.classList.add('hidden');
                 }
                 renderCalendar();
+            }
+
+            if (currentTab === 'pack') {
                 document.getElementById('packing-list').innerHTML = (tripData.packing || []).map(item => `
                     <div class="group flex items-center p-3.5 bg-black/20 rounded-xl border border-white/5 hover:border-blue-500/30 cursor-pointer transition-all active:scale-[0.99]" 
                          onclick="window.togglePackItem(${item.id})">
@@ -718,7 +730,10 @@
                                 fetchWeather(loc.coords.lat, loc.coords.lon, dates.min, dates.max).then(w => {
                                     loc._weather = w;
                                     loc._fetching = false;
-                                    render();
+                                    // render();  // Don't re-call render loop here to avoid flashing, state update will trigger next pipe
+                                    // Use a simpler approach: update just this element? No, too complex. 
+                                    // Re-trigger render is fine as long as we don't fetch indefinitely.
+                                    if (currentTab === 'vote') render();
                                 });
                                 weatherHtml = `<div class="mt-2 text-[9px] text-gray-500 italic animate-pulse">Loading forecast...</div>`;
                             } else if (loc._weather && loc._weather.daily) {
@@ -729,10 +744,12 @@
                                     const dateParts = d.time[i].split('-');
                                     const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                                     const day = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dateNum = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
                                     weatherHtml += `
-                                        <div class="flex flex-col items-center min-w-[3rem] p-1 bg-white/5 rounded-lg border border-white/5">
+                                        <div class="flex flex-col items-center min-w-[4rem] p-1 bg-white/5 rounded-lg border border-white/5">
                                             <span class="text-[9px] text-gray-400 uppercase">${day}</span>
+                                            <span class="text-[8px] text-gray-500 mb-0.5">${dateNum}</span>
                                             <span class="text-base my-0.5">${wCodeToIcon(d.weather_code[i])}</span>
                                             <div class="flex gap-1">
                                              <span class="text-[9px] font-bold text-gray-300">${Math.round(d.temperature_2m_max[i])}°</span>
@@ -771,14 +788,14 @@
 
             if (currentTab === 'exp') {
                 const total = (tripData.expenses || []).reduce((sum, e) => sum + parseFloat(e.amt), 0);
-                document.getElementById('exp-total').innerText = `$${total.toFixed(2)}`;
+                document.getElementById('exp-total').innerText = `€${total.toFixed(2)}`;
                 document.getElementById('expense-list').innerHTML = (tripData.expenses || []).slice().reverse().map(e => `
                     <div class="flex justify-between items-center bg-black/20 p-4 rounded-xl border-l-2 border-green-500/50 mb-2">
                         <div class="flex flex-col">
                             <span class="font-medium text-gray-200 text-sm">${e.what}</span>
                             <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-0.5">by ${e.who}</span>
                         </div>
-                        <div class="font-mono font-bold text-green-400 text-base">$${parseFloat(e.amt).toFixed(2)}</div>
+                        <div class="font-mono font-bold text-green-400 text-base">€${parseFloat(e.amt).toFixed(2)}</div>
                     </div>
                 `).join('');
             }
@@ -818,24 +835,57 @@
 
         Object.keys(els.tabs).forEach(k => els.tabs[k].onclick = () => setTab(k));
 
-        // Suggest / Exp / Pack logic same as before but adapted to new selectors if any changed
-        document.getElementById('suggest-btn').onclick = async () => {
-            const inp = document.getElementById('dest-input');
-            const query = inp.value; if (!query) return; /* ... same fetch logic ... */
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    const name = data[0].display_name.split(',')[0];
-                    if (!tripData.locations.find(l => l.name === name)) {
-                        tripData.locations.push({
-                            id: Date.now(), name: name, coords: { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) }, votes: [currentUser.id]
-                        });
-                        sync();
+        // Improvements: Autocomplete
+        let debounceTimer;
+        const suggestionBox = document.getElementById('suggestions-list');
+        const destInput = document.getElementById('dest-input');
+
+        destInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const query = e.target.value;
+            if (query.length < 3) {
+                suggestionBox.classList.add('hidden');
+                return;
+            }
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        suggestionBox.innerHTML = data.slice(0, 5).map(place => `
+                            <div class="p-3 hover:bg-white/10 cursor-pointer text-xs border-b border-white/5 last:border-0" 
+                                 onclick="selectLocation('${place.display_name.replace(/'/g, "\\'")}', ${place.lat}, ${place.lon})">
+                                <div class="font-bold text-gray-200">${place.display_name.split(',')[0]}</div>
+                                <div class="text-gray-500 truncate">${place.display_name}</div>
+                            </div>
+                        `).join('');
+                        suggestionBox.classList.remove('hidden');
                     }
-                }
-            } catch (e) { }
-            inp.value = '';
+                } catch (e) { }
+            }, 300);
+        });
+
+        // Hide suggestions on outside click
+        document.addEventListener('click', (e) => {
+            if (!destInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+                suggestionBox.classList.add('hidden');
+            }
+        });
+
+        window.selectLocation = (fullName, lat, lon) => {
+            const shortName = fullName.split(',')[0];
+            if (!tripData.locations.find(l => l.name === shortName)) {
+                tripData.locations.push({
+                    id: Date.now(),
+                    name: shortName, // Display name
+                    fullName: fullName, // Store full for context if needed
+                    coords: { lat: parseFloat(lat), lon: parseFloat(lon) },
+                    votes: [currentUser.id]
+                });
+                sync();
+            }
+            destInput.value = '';
+            suggestionBox.classList.add('hidden');
         };
 
         document.getElementById('dur-input').onchange = (e) => { tripData.duration = e.target.value; sync(); };
@@ -926,6 +976,13 @@
                 const d = c.dataset.date;
                 const my = tripData.users[currentUser.id]?.dates.includes(d);
                 const count = counts[d] || 0;
+
+                // Tooltip logic
+                const who = Object.values(tripData.users)
+                    .filter(u => u.dates && u.dates.includes(d))
+                    .map(u => u.name)
+                    .join(', ');
+                c.title = who ? `Available: ${who}` : 'No one available';
 
                 let cls = "day-cell h-9 rounded-lg flex flex-col items-center justify-center text-[10px] transition-all border ";
                 if (my) cls += "bg-green-600/20 border-green-500/50 text-green-300 ";
