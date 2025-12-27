@@ -64,7 +64,7 @@
         <!-- MAIN APP -->
         <div id="app-screen" class="flex-1 flex flex-col hidden max-w-lg mx-auto w-full h-full">
             <!-- HEADER -->
-            <header class="p-4 pt-6 flex justify-between items-center">
+            <header class="p-4 pt-6 pb-2 flex justify-between items-center">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="copyTripLink()">
                     <div class="w-10 h-10 rounded-xl card flex items-center justify-center">
                         <span class="text-xl">✈️</span>
@@ -100,6 +100,18 @@
                 </div>
             </header>
 
+            <!-- FINALIZED INFO -->
+            <div id="finalized-info" class="hidden px-4 pb-2">
+                <div class="card text-xs" style="padding: 0.5rem 0.75rem; background: rgba(251,191,36,0.1); border-color: #fbbf24;">
+                    <div id="finalized-dest" class="hidden mb-1">
+                        <span class="text-amber-400 font-bold">📍 <span id="finalized-dest-text"></span></span>
+                    </div>
+                    <div id="finalized-dates" class="hidden">
+                        <span class="text-amber-400 font-bold">📅 <span id="finalized-dates-text"></span></span>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABS -->
             <div class="px-4 mb-2">
                 <div class="card flex p-1 gap-1">
@@ -123,11 +135,16 @@
                 <div id="view-plan" class="space-y-4">
                     <!-- DESTINATION HEADER -->
                     <div class="card flex justify-between items-center" style="background: rgba(59,130,246,0.1)">
-                        <div>
+                        <div class="flex-1">
                             <h3 class="section-header text-blue-400 mb-1">Destination</h3>
                             <div id="plan-dest-display" class="text-2xl font-bold"></div>
                         </div>
-                        <div id="plan-weather-icon" class="text-5xl"></div>
+                        <div class="flex items-center gap-3">
+                            <button id="finalize-dest-btn" onclick="finalizeDestination()" class="hidden btn btn-sm" style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.75rem; padding: 0.5rem 0.75rem;">
+                                🔒 Lock
+                            </button>
+                            <div id="plan-weather-icon" class="text-5xl"></div>
+                        </div>
                     </div>
 
                     <!-- MEMBERS -->
@@ -164,7 +181,12 @@
                             </div>
                         </div>
                         <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 mb-3"></div>
-                        <div id="best-dates" class="text-xs text-center font-bold text-amber-400"></div>
+                        <div class="flex justify-between items-center mb-3">
+                            <div id="best-dates" class="text-xs font-bold text-amber-400"></div>
+                            <button id="finalize-dates-btn" onclick="finalizeDates()" class="hidden btn btn-sm" style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.75rem; padding: 0.5rem 0.75rem;">
+                                🔒 Lock
+                            </button>
+                        </div>
                         <div id="person-availability" class="mt-4 card">
                             <h4 class="section-header mb-3">Availability by Person</h4>
                             <div id="person-availability-list" class="space-y-2"></div>
@@ -174,32 +196,6 @@
 
                 <!-- TAB: ITINERARY -->
                 <div id="view-itin" class="hidden space-y-4">
-                    <div id="itin-finalized-banner" class="hidden card" style="background: rgba(251,191,36,0.1); border-color: #fbbf24;">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="text-2xl">🔒</span>
-                                <div>
-                                    <h4 class="font-bold text-amber-400">Dates Finalized</h4>
-                                    <p id="finalized-dates-text" class="text-xs text-gray-300"></p>
-                                </div>
-                            </div>
-                            <button onclick="unfinalizeItinerary()" class="btn btn-secondary btn-sm">
-                                Unlock
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="itin-finalize-prompt" class="hidden card" style="background: rgba(59,130,246,0.1); border-color: #3b82f6;">
-                        <div class="mb-3">
-                            <h4 class="font-bold text-blue-400 mb-1">Best Overlap Dates</h4>
-                            <p id="best-dates-text" class="text-sm text-gray-300 mb-2"></p>
-                            <p class="text-xs text-gray-500">Finalize these dates to lock in your trip planning.</p>
-                        </div>
-                        <button onclick="finalizeItinerary()" class="btn btn-success w-full">
-                            🔒 Finalize Dates
-                        </button>
-                    </div>
-
                     <div id="itin-empty-state"
                         class="hidden flex flex-col items-center justify-center p-8 text-center card">
                         <div class="text-4xl mb-4 opacity-50">📅</div>
@@ -629,14 +625,55 @@
 
         document.getElementById('header-trip-name').innerText = tripData.name || "Trip Helper";
 
+        // Update finalized info banner
+        const finalizedInfo = document.getElementById('finalized-info');
+        const finalizedDest = document.getElementById('finalized-dest');
+        const finalizedDates = document.getElementById('finalized-dates');
+        let hasFinalized = false;
+
+        if (tripData.finalizedDestination) {
+            finalizedDest.classList.remove('hidden');
+            document.getElementById('finalized-dest-text').innerText = tripData.finalizedDestination;
+            hasFinalized = true;
+        } else {
+            finalizedDest.classList.add('hidden');
+        }
+
+        if (tripData.finalizedDates) {
+            finalizedDates.classList.remove('hidden');
+            const datesText = tripData.finalizedDates.map(d => {
+                const dObj = new Date(d);
+                return dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }).join(', ');
+            document.getElementById('finalized-dates-text').innerText = datesText;
+            hasFinalized = true;
+        } else {
+            finalizedDates.classList.add('hidden');
+        }
+
+        if (hasFinalized) {
+            finalizedInfo.classList.remove('hidden');
+        } else {
+            finalizedInfo.classList.add('hidden');
+        }
+
         const topLoc = getBestLocation();
         if (currentTab === 'plan') {
             if (topLoc && topLoc.votes.length > 0) {
                 els.destDisplay.innerText = topLoc.name;
                 els.destIcon.innerText = topLoc.isTie ? '⚖️' : '🌤️';
+
+                // Show finalize button if not finalized
+                const finalizeDestBtn = document.getElementById('finalize-dest-btn');
+                if (!tripData.finalizedDestination && !topLoc.isTie) {
+                    finalizeDestBtn.classList.remove('hidden');
+                } else {
+                    finalizeDestBtn.classList.add('hidden');
+                }
             } else {
                 els.destDisplay.innerText = "Vote Pending";
                 els.destIcon.innerText = '';
+                document.getElementById('finalize-dest-btn').classList.add('hidden');
             }
             renderCalendar();
         }
@@ -1075,7 +1112,15 @@
                 c.classList.add('cal-today');
             }
         });
-        document.getElementById('best-dates').innerHTML = max > 1 ? `🔥 Best Date found! (${max} friends)` : "Select dates to match!";
+        document.getElementById('best-dates').innerHTML = max > 1 ? `🔥 Best Dates (${max} friends)` : "Select dates to match!";
+
+        // Show finalize dates button if we have best dates and not finalized
+        const finalizeDatesBtn = document.getElementById('finalize-dates-btn');
+        if (max > 1 && !tripData.finalizedDates) {
+            finalizeDatesBtn.classList.remove('hidden');
+        } else {
+            finalizeDatesBtn.classList.add('hidden');
+        }
 
         // Render Person Availability
         const users = Object.values(tripData.users).sort((a, b) => a.name.localeCompare(b.name));
@@ -1175,81 +1220,53 @@
         renderItinerary();
     };
 
-    window.finalizeItinerary = () => {
+    window.finalizeDestination = () => {
+        const topLoc = getBestLocation();
+        if (!topLoc || topLoc.isTie) return;
+
+        tripData.finalizedDestination = topLoc.name;
+        sync();
+        render();
+    };
+
+    window.finalizeDates = () => {
         const bestDates = getBestDates();
         if (bestDates.length === 0) {
-            alert("No overlap dates found! Make sure multiple people have selected dates.");
+            alert("No overlap dates found!");
             return;
         }
 
-        if (!tripData.itinerary) tripData.itinerary = {};
+        tripData.finalizedDates = bestDates;
 
+        // Auto-create itinerary if needed
+        if (!tripData.itinerary) tripData.itinerary = {};
         bestDates.forEach(date => {
             if (!tripData.itinerary[date]) tripData.itinerary[date] = [];
         });
 
-        const datesToRemove = Object.keys(tripData.itinerary).filter(d => !bestDates.includes(d));
-        datesToRemove.forEach(date => {
-            delete tripData.itinerary[date];
-        });
-
-        tripData.finalized = true;
         sync();
-        renderItinerary();
-    };
-
-    window.unfinalizeItinerary = () => {
-        tripData.finalized = false;
-        sync();
-        renderItinerary();
+        render();
     };
 
     function renderItinerary() {
         const itin = tripData.itinerary || {};
         const dates = Object.keys(itin).sort();
-        const bestDates = getBestDates();
 
         if (dates.length === 0) {
             document.getElementById('itin-empty-state').classList.remove('hidden');
             document.getElementById('itin-add-best-dates').classList.add('hidden');
-            document.getElementById('itin-finalize-prompt').classList.add('hidden');
-            document.getElementById('itin-finalized-banner').classList.add('hidden');
             document.getElementById('itin-content').innerHTML = '';
             return;
         }
 
         document.getElementById('itin-empty-state').classList.add('hidden');
 
-        if (tripData.finalized) {
-            document.getElementById('itin-finalized-banner').classList.remove('hidden');
-            document.getElementById('itin-finalize-prompt').classList.add('hidden');
-            document.getElementById('itin-add-best-dates').classList.add('hidden');
-
-            const finalizedDatesText = bestDates.map(d => {
-                const dObj = new Date(d);
-                return dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }).join(', ');
-            document.getElementById('finalized-dates-text').innerText = finalizedDatesText;
+        const bestDates = getBestDates();
+        const missingBestDates = bestDates.filter(d => !itin[d]);
+        if (missingBestDates.length > 0 && !tripData.finalizedDates) {
+            document.getElementById('itin-add-best-dates').classList.remove('hidden');
         } else {
-            document.getElementById('itin-finalized-banner').classList.add('hidden');
-
-            if (bestDates.length > 0) {
-                document.getElementById('itin-finalize-prompt').classList.remove('hidden');
-                const bestDatesText = bestDates.map(d => {
-                    const dObj = new Date(d);
-                    return dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                }).join(' • ');
-                document.getElementById('best-dates-text').innerText = bestDatesText;
-            } else {
-                document.getElementById('itin-finalize-prompt').classList.add('hidden');
-            }
-
-            const missingBestDates = bestDates.filter(d => !itin[d]);
-            if (missingBestDates.length > 0) {
-                document.getElementById('itin-add-best-dates').classList.remove('hidden');
-            } else {
-                document.getElementById('itin-add-best-dates').classList.add('hidden');
-            }
+            document.getElementById('itin-add-best-dates').classList.add('hidden');
         }
 
         const html = dates.map(date => {
@@ -1304,8 +1321,8 @@
 
         document.getElementById('itin-modal-date').innerText = date;
 
-        const bestDates = getBestDates();
-        const availableDates = tripData.finalized ? bestDates : Object.keys(tripData.itinerary || {}).sort();
+        const bestDates = tripData.finalizedDates || getBestDates();
+        const availableDates = tripData.finalizedDates ? tripData.finalizedDates : Object.keys(tripData.itinerary || {}).sort();
 
         daySelect.innerHTML = availableDates.map(d => {
             const dObj = new Date(d);
