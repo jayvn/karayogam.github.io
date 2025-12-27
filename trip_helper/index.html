@@ -631,6 +631,20 @@
             return sorted[0];
         }
 
+        // --- ACTIONS ---
+        window.togglePackItem = (id) => {
+            const item = tripData.packing.find(i => i.id === id);
+            if (item) {
+                item.checked = !item.checked;
+                sync();
+            }
+        };
+
+        window.deletePackItem = (id) => {
+            tripData.packing = tripData.packing.filter(i => i.id !== id);
+            sync();
+        };
+
         // --- TABS & UI ---
         function setTab(tab) {
             currentTab = tab;
@@ -682,7 +696,8 @@
                         <div class="w-5 h-5 rounded border ${item.checked ? 'bg-blue-500 border-blue-500' : 'border-gray-500'} flex items-center justify-center mr-3 transition-colors">
                             ${item.checked ? '<div class="text-[10px] text-white font-bold">✓</div>' : ''}
                         </div>
-                        <span class="${item.checked ? 'text-gray-500 line-through' : 'text-gray-200'} font-medium select-none">${item.text}</span>
+                        <span class="${item.checked ? 'text-gray-500 line-through' : 'text-gray-200'} font-medium select-none flex-1">${item.text}</span>
+                        <button onclick="event.stopPropagation(); window.deletePackItem(${item.id})" class="text-gray-600 hover:text-red-400 p-2 transition-colors">✕</button>
                     </div>
                 `).join('');
             }
@@ -823,17 +838,59 @@
             }
 
             if (currentTab === 'exp') {
-                const total = (tripData.expenses || []).reduce((sum, e) => sum + parseFloat(e.amt), 0);
+                const expenses = tripData.expenses || [];
+                const total = expenses.reduce((sum, e) => sum + parseFloat(e.amt), 0);
+                const users = Object.values(tripData.users);
+                const userCount = users.length || 1;
+                const split = total / userCount;
+
+                // Calculate balances
+                const balances = {};
+                users.forEach(u => balances[u.name] = 0);
+
+                // Add paid amounts (using name matching for now, simplistic)
+                expenses.forEach(e => {
+                    if (balances[e.who] !== undefined) balances[e.who] += parseFloat(e.amt);
+                    else balances[e.who] = (balances[e.who] || 0) + parseFloat(e.amt); // Handle users not in list gracefully-ish
+                });
+
                 document.getElementById('exp-total').innerText = `€${total.toFixed(2)}`;
-                document.getElementById('expense-list').innerHTML = (tripData.expenses || []).slice().reverse().map(e => `
-                    <div class="flex justify-between items-center bg-black/20 p-4 rounded-xl border-l-2 border-green-500/50 mb-2">
+
+                // Render Balances
+                const balanceHtml = users.map(u => {
+                    const paid = balances[u.name] || 0;
+                    const diff = paid - split;
+                    const isOwed = diff > 0.01;
+                    const isOwing = diff < -0.01;
+                    const color = isOwed ? 'text-green-400' : (isOwing ? 'text-red-400' : 'text-gray-400');
+                    const text = isOwed ? `Gets €${Math.abs(diff).toFixed(2)}` : (isOwing ? `Owes €${Math.abs(diff).toFixed(2)}` : 'Settled');
+
+                    return `
+                        <div class="flex justify-between items-center text-sm py-1 border-b border-white/5 last:border-0">
+                            <span class="text-gray-300">${u.name}</span>
+                            <span class="font-mono font-bold ${color}">${text}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                const balanceContainer = `
+                    <div class="bg-gray-900/50 rounded-xl p-4 border border-white/5 mb-4">
+                        <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Balances (Split ${users.length})</h4>
+                        <div class="space-y-1">${balanceHtml}</div>
+                    </div>
+                `;
+
+                const listHtml = expenses.slice().reverse().map(e => `
+                    <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border-l-2 border-green-500/50 mb-2">
                         <div class="flex flex-col">
                             <span class="font-medium text-gray-200 text-sm">${e.what}</span>
-                            <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-0.5">by ${e.who}</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-0.5">${e.who} paid</span>
                         </div>
-                        <div class="font-mono font-bold text-green-400 text-base">€${parseFloat(e.amt).toFixed(2)}</div>
+                        <div class="font-mono font-bold text-gray-300 text-sm">€${parseFloat(e.amt).toFixed(2)}</div>
                     </div>
                 `).join('');
+
+                document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
             }
         }
 
