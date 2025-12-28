@@ -67,8 +67,8 @@
             <h2 class="text-xl font-bold mb-4 text-center">🤝 Settle Up</h2>
 
             <div class="mb-4">
-                <label class="block text-xs text-gray-500 mb-1">Payer (You)</label>
-                <input type="text" id="settle-payer" class="input bg-gray-700" readonly>
+                <label class="block text-xs text-gray-500 mb-1">Payer</label>
+                <select id="settle-payer" class="input"></select>
             </div>
 
             <div class="mb-4">
@@ -484,6 +484,74 @@
                     document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
                 }
 
+                // --- SETTLE UP MODAL LOGIC ---
+                // --- SETTLE UP MODAL LOGIC ---
+                window.openSettleModal = () => {
+                    const payerSelect = document.getElementById('settle-payer');
+                    const receiverSelect = document.getElementById('settle-receiver');
+                    payerSelect.innerHTML = '';
+                    receiverSelect.innerHTML = '';
+
+                    const users = tripData.users ? Object.values(tripData.users) : [];
+
+                    // Populate Payer
+                    users.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u.name;
+                        opt.innerText = u.name;
+                        payerSelect.appendChild(opt);
+                    });
+                    payerSelect.value = currentUser.name; // Default to current user
+
+                    // Populate Receiver
+                    users.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u.name;
+                        opt.innerText = u.name;
+                        receiverSelect.appendChild(opt);
+                    });
+
+                    // Try to set receiver to someone else
+                    const others = users.filter(u => u.name !== currentUser.name);
+                    if (others.length > 0) receiverSelect.value = others[0].name;
+
+                    const settleModal = document.getElementById('settle-modal');
+                    settleModal.classList.remove('hidden');
+                };
+
+                window.closeSettleModal = () => {
+                    document.getElementById('settle-modal').classList.add('hidden');
+                    document.getElementById('settle-amt').value = '';
+                };
+
+                window.confirmSettle = () => {
+                    const payer = document.getElementById('settle-payer').value;
+                    const to = document.getElementById('settle-receiver').value;
+                    const amt = document.getElementById('settle-amt').value;
+
+                    if (payer && to && amt) {
+                        if (payer === to) {
+                            alert("Payer and Recipient cannot be the same person.");
+                            return;
+                        }
+
+                        if (!tripData.expenses) tripData.expenses = [];
+                        tripData.expenses.push({
+                            who: payer,
+                            to: to,
+                            what: 'Settlement',
+                            amt: parseFloat(amt),
+                            type: 'settlement',
+                            date: new Date().toISOString().split('T')[0],
+                            id: Date.now()
+                        });
+                        sync();
+                        window.closeSettleModal();
+                    }
+                };
+                // -----------------------------
+
+
                 window.toggleUserMenu = () => {
                     userMenuOpen = !userMenuOpen;
                     els.userMenu.classList.toggle('hidden', !userMenuOpen);
@@ -566,7 +634,7 @@
                     if (expense.date) {
                         document.getElementById('exp-date').value = expense.date;
                     } else {
-                        document.getElementById('exp-date').valueAsDate = new Date();
+                        document.getElementById('exp-date').value = '';
                     }
 
                     document.getElementById('add-exp-btn').innerText = 'Update';
@@ -581,7 +649,7 @@
                     editingId = null;
                     document.getElementById('exp-desc').value = '';
                     document.getElementById('exp-amt').value = '';
-                    document.getElementById('exp-date').valueAsDate = new Date();
+                    document.getElementById('exp-date').value = '';
 
                     document.getElementById('add-exp-btn').innerText = 'Add';
                     document.getElementById('add-exp-btn').classList.replace('btn-primary', 'btn-success');
