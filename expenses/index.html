@@ -88,6 +88,9 @@
                             <p class="section-header mb-1">Logged in as</p>
                             <p id="menu-user-name" class="font-bold truncate"></p>
                         </div>
+                        <button onclick="updateGroupSettings()" class="w-full btn btn-secondary btn-sm mb-2 text-left">
+                            ⚙️ Group Settings
+                        </button>
                         <button onclick="downloadTripData()" class="w-full btn btn-secondary btn-sm mb-2">
                             💾 Download Data
                         </button>
@@ -113,10 +116,15 @@
                 </div>
 
                 <div class="space-y-3 mb-2">
+                    <input type="date" id="exp-date" class="input text-gray-400">
                     <input type="text" id="exp-desc" placeholder="What involved money?" class="input">
                     <div class="flex gap-2">
                         <input type="number" id="exp-amt" placeholder="0.00" class="input">
                         <button id="add-exp-btn" class="btn btn-success">Add</button>
+                    </div>
+                    <div id="edit-controls" class="hidden flex justify-end">
+                        <button type="button" onclick="cancelEdit()"
+                            class="text-xs text-red-400 hover:text-red-300 underline">Cancel Edit</button>
                     </div>
                 </div>
             </div>
@@ -164,9 +172,15 @@
                 nameIn: document.getElementById('username-input'),
             };
 
+            let editingId = null;
+
             async function init() {
                 const urlParams = new URLSearchParams(window.location.search);
                 tripId = urlParams.get('token');
+
+                // Set default date to today
+                document.getElementById('exp-date').valueAsDate = new Date();
+
                 await signInAnonymously(auth);
 
                 if (tripId) attemptAutoJoin(); else showLanding();
@@ -274,7 +288,7 @@
                         render();
                     } else {
                         tripData = {
-                            locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {}
+                            locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {}, currency: '€'
                         };
                         registerUserInTrip();
                     }
@@ -307,6 +321,11 @@
                 addToRecentTrips(tripId, `Trip ${tripId.slice(0, 4)}`);
             }
 
+            function formatMoney(amount) {
+                const currency = tripData.currency || '€';
+                return `${currency}${parseFloat(amount).toFixed(2)}`;
+            }
+
             function render() {
                 if (!tripData) return;
 
@@ -318,6 +337,7 @@
                 const users = Object.values(tripData.users);
                 const userCount = users.length || 1;
                 const split = total / userCount;
+                const currency = tripData.currency || '€';
 
                 const balances = {};
                 users.forEach(u => balances[u.name] = 0);
@@ -327,7 +347,7 @@
                     else balances[e.who] = (balances[e.who] || 0) + parseFloat(e.amt);
                 });
 
-                document.getElementById('exp-total').innerText = `€${total.toFixed(2)}`;
+                document.getElementById('exp-total').innerText = formatMoney(total);
 
                 const spendingByUser = {};
                 users.forEach(u => spendingByUser[u.name] = 0);
@@ -355,7 +375,7 @@
                         <div class="flex-1 rounded-full h-2" style="background: rgba(0,0,0,0.4)">
                             <div class="h-full ${colorClass} rounded-full" style="width: ${percent}%"></div>
                         </div>
-                        <div class="w-12 text-right font-mono text-gray-300">€${amt.toFixed(0)}</div>
+                        <div class="w-16 text-right font-mono text-gray-300 transform transition-all hover:scale-110">${formatMoney(amt)}</div>
                     </div>
                 `;
                     }).join('');
@@ -369,7 +389,7 @@
                     const isOwed = diff > 0.01;
                     const isOwing = diff < -0.01;
                     const color = isOwed ? 'text-green-400' : (isOwing ? 'text-red-400' : 'text-gray-400');
-                    const text = isOwed ? `Gets €${Math.abs(diff).toFixed(2)}` : (isOwing ? `Owes €${Math.abs(diff).toFixed(2)}` : 'Settled');
+                    const text = isOwed ? `Gets ${formatMoney(Math.abs(diff))}` : (isOwing ? `Owes ${formatMoney(Math.abs(diff))}` : 'Settled');
 
                     return `
                 <div class="flex justify-between items-center text-sm py-1" style="border-bottom: 1px solid rgba(255,255,255,0.1)">
@@ -386,20 +406,29 @@
             </div>
         `;
 
-                const listHtml = expenses.slice().reverse().map(e => `
-            <div class="card flex justify-between items-center" style="border-left: 2px solid #10b981">
+                const listHtml = expenses.slice().reverse().map(e => {
+                    const dateStr = e.date ? new Date(e.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                    return `
+            <div class="card flex justify-between items-center group relative" style="border-left: 2px solid #10b981">
                 <div>
-                    <span class="font-medium text-sm">${e.what}</span>
+                    <div class="flex items-center gap-2">
+                         <span class="font-medium text-sm">${e.what}</span>
+                         ${dateStr ? `<span class="text-[10px] bg-gray-700 px-1 rounded text-gray-300">${dateStr}</span>` : ''}
+                    </div>
                     <span class="block text-xs text-gray-500">${e.who} paid</span>
                 </div>
-                <div class="font-mono font-bold text-sm">€${parseFloat(e.amt).toFixed(2)}</div>
+                <div class="flex items-center gap-3">
+                    <div class="font-mono font-bold text-sm text-right min-w-[60px]">${formatMoney(e.amt)}</div>
+                    <button onclick="editExpense(${e.id})" class="text-gray-500 hover:text-blue-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                         ✎
+                    </button>
+                    ${e.who === currentUser.name ? `<button onclick="deleteExpense(${e.id})" class="text-gray-500 hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">✕</button>` : ''}
+                </div>
             </div>
-        `).join('');
+        `}).join('');
 
                 document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
             }
-
-
 
             window.toggleUserMenu = () => {
                 userMenuOpen = !userMenuOpen;
@@ -432,20 +461,32 @@
             };
 
             window.createNewGroup = () => {
-                // Generate a random ID (8 chars)
                 const newId = Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('');
                 window.location.href = `?token=${newId}`;
             };
 
-            window.updateGroupName = () => {
+            window.updateGroupSettings = () => {
                 const currentName = tripData.name || "Group Expenses";
-                const newName = prompt("Enter a new name for this group:", currentName);
-                if (newName && newName.trim() !== "") {
-                    tripData.name = newName.trim();
-                    sync();
-                    render(); // Update immediately
+                const currentCurrency = tripData.currency || "€";
+
+                // Simple prompt sequence for now
+                const newName = prompt("Enter Group Name:", currentName);
+                if (newName !== null) {
+                    const newCurrency = prompt("Enter Currency Symbol (e.g. $, €, £, ₹):", currentCurrency);
+
+                    if (newCurrency !== null) {
+                        tripData.name = newName.trim() || currentName;
+                        tripData.currency = newCurrency.trim() || currentCurrency;
+                        sync();
+                        render();
+                        userMenuOpen = false;
+                        els.userMenu.classList.add('hidden');
+                    }
                 }
             };
+
+            // Kept for backward compat if needed, but updateGroupSettings subsumes it
+            window.updateGroupName = window.updateGroupSettings;
 
             window.downloadTripData = () => {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tripData, null, 2));
@@ -460,12 +501,84 @@
             document.getElementById('login-btn').onclick = () => joinTrip(els.nameIn.value);
             els.nameIn.onkeypress = (e) => { if (e.key === 'Enter') joinTrip(els.nameIn.value); };
 
+            window.editExpense = (id) => {
+                const expense = tripData.expenses.find(e => e.id === id);
+                if (!expense) return;
+
+                editingId = id;
+
+                document.getElementById('exp-desc').value = expense.what;
+                document.getElementById('exp-amt').value = expense.amt;
+                if (expense.date) {
+                    document.getElementById('exp-date').value = expense.date;
+                } else {
+                    document.getElementById('exp-date').valueAsDate = new Date();
+                }
+
+                document.getElementById('add-exp-btn').innerText = 'Update';
+                document.getElementById('add-exp-btn').classList.replace('btn-success', 'btn-primary');
+                document.getElementById('edit-controls').classList.remove('hidden');
+
+                // Scroll to top to see edit form
+                document.querySelector('.overflow-y-auto').scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            window.cancelEdit = () => {
+                editingId = null;
+                document.getElementById('exp-desc').value = '';
+                document.getElementById('exp-amt').value = '';
+                document.getElementById('exp-date').valueAsDate = new Date();
+
+                document.getElementById('add-exp-btn').innerText = 'Add';
+                document.getElementById('add-exp-btn').classList.replace('btn-primary', 'btn-success');
+                document.getElementById('edit-controls').classList.add('hidden');
+            };
+
+            window.deleteExpense = (id) => {
+                if (confirm("Delete this expense?")) {
+                    tripData.expenses = tripData.expenses.filter(e => e.id !== id);
+                    sync();
+                    // If we were editing this one, cancel edit
+                    if (editingId === id) cancelEdit();
+                }
+            };
+
             document.getElementById('add-exp-btn').onclick = () => {
-                const d = document.getElementById('exp-desc'), a = document.getElementById('exp-amt');
+                const d = document.getElementById('exp-desc');
+                const a = document.getElementById('exp-amt');
+                const dateInput = document.getElementById('exp-date');
+
                 if (d.value && a.value) {
+                    const desc = d.value.trim();
+                    const amt = parseFloat(a.value);
+                    const date = dateInput.value;
+
                     if (!tripData.expenses) tripData.expenses = [];
-                    tripData.expenses.push({ who: currentUser.name, what: d.value, amt: a.value, id: Date.now() });
-                    sync(); d.value = ''; a.value = '';
+
+                    if (editingId) {
+                        // UPDATE EXISTING
+                        const idx = tripData.expenses.findIndex(e => e.id === editingId);
+                        if (idx !== -1) {
+                            tripData.expenses[idx] = {
+                                ...tripData.expenses[idx],
+                                what: desc,
+                                amt: amt,
+                                date: date
+                            };
+                        }
+                    } else {
+                        // ADD NEW
+                        tripData.expenses.push({
+                            who: currentUser.name,
+                            what: desc,
+                            amt: amt,
+                            date: date,
+                            id: Date.now()
+                        });
+                    }
+
+                    sync();
+                    cancelEdit(); // Resets form and ID
                 }
             };
 
