@@ -236,15 +236,7 @@
                 <!-- TAB: VOTE -->
                 <div id="view-vote" class="hidden space-y-4">
                     <div class="card">
-                        <div class="flex items-center justify-center gap-3 pb-4 mb-4"
-                            style="border-bottom: 1px solid rgba(255,255,255,0.1)">
-                            <span class="section-header">Trip Length</span>
-                            <div class="flex items-center card p-1 gap-1">
-                                <input type="number" id="dur-input" class="w-12 bg-transparent text-center font-bold"
-                                    style="outline: none; color: white" placeholder="?" min="1">
-                                <span class="text-gray-500 text-xs font-medium">Days</span>
-                            </div>
-                        </div>
+
 
                         <div class="mb-6 relative flex gap-2">
                             <select id="search-day-select"
@@ -268,29 +260,18 @@
 
                 <!-- TAB: EXPENSES -->
                 <div id="view-exp" class="hidden space-y-4">
-                    <div class="card">
-                        <div id="cost-graph-container" class="mb-6 hidden">
-                            <h4 class="section-header mb-3">Spending Breakdown</h4>
-                            <div id="cost-graph-bars" class="space-y-2"></div>
-                        </div>
-
-                        <div class="flex justify-between items-end mb-6">
-                            <div>
-                                <h3 class="section-header mb-1">Total Spent</h3>
-                                <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">€0.00</div>
-                            </div>
-                            <div class="text-2xl">💸</div>
-                        </div>
-
-                        <div class="space-y-3 mb-2">
-                            <input type="text" id="exp-desc" placeholder="What involved money?" class="input">
-                            <div class="flex gap-2">
-                                <input type="number" id="exp-amt" placeholder="0.00" class="input">
-                                <button id="add-exp-btn" class="btn btn-success">Add</button>
-                            </div>
-                        </div>
+                    <div class="card flex flex-col items-center justify-center py-12 text-center">
+                        <div class="text-5xl mb-4">💸</div>
+                        <h3 class="text-xl font-bold mb-2">Split Cost App</h3>
+                        <p class="text-gray-400 text-sm mb-6 max-w-xs">
+                            Expenses have moved to a dedicated app for better tracking.
+                        </p>
+                        <button onclick="openExpensesApp()"
+                            class="btn btn-primary btn-lg w-full max-w-xs flex items-center justify-center gap-2">
+                            <span>Open App</span>
+                            <span class="text-lg">➜</span>
+                        </button>
                     </div>
-                    <div id="expense-list" class="space-y-2"></div>
                 </div>
             </div>
         </div>
@@ -711,159 +692,135 @@
             }
 
             if (currentTab === 'vote') {
-                if (document.activeElement !== document.getElementById('dur-input'))
-                    document.getElementById('dur-input').value = tripData.duration || '';
+                const daySelect = document.getElementById('search-day-select');
 
-                const locs = [...(tripData.locations || [])].sort((a, b) => b.votes.length - a.votes.length);
+                // Update Day Select Options
+                // Update Day Select Options
+                if (document.activeElement !== daySelect) {
+                    const currentVal = daySelect.value;
+                    const days = parseInt(tripData.duration) || 15; // Default to 15 if unset
+                    let opts = '<option value="0">Unset</option>';
+                    for (let i = 1; i <= days; i++) {
+                        opts += `<option value="${i}">Day ${i}</option>`;
+                    }
+                    daySelect.innerHTML = opts;
+                    if (currentVal <= days) daySelect.value = currentVal;
+                }
+
+                const locs = [...(tripData.locations || [])];
+
+                // Group by Day
+                const grouped = {};
+                locs.forEach(l => {
+                    const d = l.day || 0;
+                    if (!grouped[d]) grouped[d] = [];
+                    grouped[d].push(l);
+                });
+
+                // Sort logic: Sort keys (days), then sort locations within days by votes
+                const dayKeys = Object.keys(grouped).sort((a, b) => parseInt(a) - parseInt(b));
                 const dates = getTripDates();
 
-                const finalHtml = locs.map(loc => {
-                    const hasVoted = loc.votes.includes(currentUser.id);
-                    let weatherHtml = '';
+                let finalHtml = '';
 
-                    if (!dates) {
-                        weatherHtml = `<div class="mt-2 text-xs text-gray-500 italic">📅 Select dates to see forecast</div>`;
-                    } else if (loc.coords) {
-                        if (!loc._weather && !loc._fetching) {
-                            loc._fetching = true;
-                            fetchWeather(loc.coords.lat, loc.coords.lon, dates.min, dates.max).then(w => {
-                                loc._weather = w;
-                                loc._fetching = false;
-                                if (currentTab === 'vote') render();
-                            });
-                            weatherHtml = `<div class="mt-2 text-xs text-gray-500 italic">Loading forecast...</div>`;
-                        } else if (loc._weather && loc._weather.daily) {
-                            const d = loc._weather.daily;
-                            weatherHtml = `<div class="mt-3 flex gap-2 overflow-x-auto pb-1" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem">`;
-                            for (let i = 0; i < d.time.length; i++) {
-                                const dateParts = d.time[i].split('-');
-                                const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-                                const day = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-                                const dateNum = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dayKeys.forEach(day => {
+                    const dayLocs = grouped[day].sort((a, b) => b.votes.length - a.votes.length);
+                    const dayTitle = day == 0 ? "General / Unset" : `Day ${day}`;
 
-                                weatherHtml += `
-                                <div class="flex flex-col items-center min-w-[4rem] p-1 card">
-                                    <span class="text-xs text-gray-400">${day}</span>
-                                    <span class="text-xs text-gray-500 mb-0.5">${dateNum}</span>
-                                    <span class="text-base my-0.5">${wCodeToIcon(d.weather_code[i])}</span>
-                                    <div class="flex gap-1 text-xs">
-                                        <span class="font-bold text-gray-300">${Math.round(d.temperature_2m_max[i])}°</span>
-                                        <span class="text-gray-500">${Math.round(d.temperature_2m_min[i])}°</span>
-                                    </div>
-                                </div>
-                            `;
-                            }
-                            weatherHtml += `</div>`;
-                        }
-                    }
-
-                    return `
-                    <div class="card ${hasVoted ? 'border-blue-500' : ''}">
-                        <div class="flex justify-between items-center">
-                            <div class="flex-1">
-                                <div class="font-bold text-base mb-1">${loc.name}</div>
-                                <div class="flex items-center gap-1">
-                                    <span class="badge text-xs">${loc.votes.length} Votes</span>
-                                    ${hasVoted ? '<span class="text-xs text-blue-400 font-bold">YOU</span>' : ''}
-                                </div>
-                            </div>
-                            <button onclick="window.toggleVote(${loc.id})"
-                                class="w-10 h-10 rounded-xl flex items-center justify-center transition-all ${hasVoted ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'}">
-                                ${hasVoted ? '✓' : '+'}
-                            </button>
+                    finalHtml += `
+                        <div class="mb-2 mt-4 flex items-center gap-2">
+                            <div class="h-px bg-gray-700 flex-1"></div>
+                            <span class="text-gray-400 text-xs font-bold uppercase tracking-wider">${dayTitle}</span>
+                            <div class="h-px bg-gray-700 flex-1"></div>
                         </div>
-                        ${weatherHtml}
-                    </div>`;
-                }).join('');
+                    `;
+
+                    finalHtml += dayLocs.map(loc => {
+                        const hasVoted = loc.votes.includes(currentUser.id);
+                        let weatherHtml = '';
+
+                        if (!dates) {
+                            weatherHtml = `<div class="mt-2 text-xs text-gray-500 italic">📅 Select dates to see forecast</div>`;
+                        } else if (loc.coords) {
+                            if (!loc._weather && !loc._fetching) {
+                                loc._fetching = true;
+                                fetchWeather(loc.coords.lat, loc.coords.lon, dates.min, dates.max).then(w => {
+                                    loc._weather = w;
+                                    loc._fetching = false;
+                                    if (currentTab === 'vote') render();
+                                });
+                                weatherHtml = `<div class="mt-2 text-xs text-gray-500 italic">Loading forecast...</div>`;
+                            } else if (loc._weather && loc._weather.daily) {
+                                const d = loc._weather.daily;
+                                weatherHtml = `<div class="mt-3 flex gap-2 overflow-x-auto pb-1" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem">`;
+                                for (let i = 0; i < d.time.length; i++) {
+                                    const dateParts = d.time[i].split('-');
+                                    const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                                    const day = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dateNum = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                                    weatherHtml += `
+                                        <div class="flex flex-col items-center min-w-[4rem] p-1 card">
+                                            <span class="text-xs text-gray-400">${day}</span>
+                                            <span class="text-xs text-gray-500 mb-0.5">${dateNum}</span>
+                                            <span class="text-base my-0.5">${wCodeToIcon(d.weather_code[i])}</span>
+                                            <div class="flex gap-1 text-xs">
+                                                <span class="font-bold text-gray-300">${Math.round(d.temperature_2m_max[i])}°</span>
+                                                <span class="text-gray-500">${Math.round(d.temperature_2m_min[i])}°</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                weatherHtml += `</div>`;
+                            } else {
+                                weatherHtml = `<div class="mt-2 text-xs text-red-400 italic">⚠️ Weather unavailable</div>`;
+                            }
+                        } else {
+                            weatherHtml = `<div class="mt-2 text-xs text-gray-600 italic">No location data for weather</div>`;
+                        }
+
+                        const tripDays = parseInt(tripData.duration) || 1;
+                        let dayOptions = `<option value="0" ${(!loc.day || loc.day == 0) ? 'selected' : ''}>Unset</option>`;
+                        for (let i = 1; i <= tripDays; i++) {
+                            dayOptions += `<option value="${i}" ${(loc.day == i) ? 'selected' : ''}>Day ${i}</option>`;
+                        }
+
+                        return `
+                            <div class="card ${hasVoted ? 'border-blue-500' : ''} relative group">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="font-bold text-base mb-1">${loc.name}</div>
+                                        <div class="flex items-center gap-1 mb-2">
+                                            <span class="badge text-xs">${loc.votes.length} Votes</span>
+                                            ${hasVoted ? '<span class="text-xs text-blue-400 font-bold">YOU</span>' : ''}
+                                        </div>
+                                    </div>
+                                    <button onclick="window.toggleVote(${loc.id})"
+                                        class="w-10 h-10 rounded-xl flex items-center justify-center transition-all ${hasVoted ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'}">
+                                        ${hasVoted ? '✓' : '+'}
+                                    </button>
+                                </div>
+                                ${weatherHtml}
+                                
+                                <div class="mt-3 pt-3 flex items-center justify-between" style="border-top: 1px solid rgba(255,255,255,0.05)">
+                                    <select onchange="window.updateLocationDay(${loc.id}, this.value)" 
+                                        class="bg-gray-800 text-gray-400 text-xs py-1 px-2 rounded border border-gray-700 outline-none">
+                                        ${dayOptions}
+                                    </select>
+                                    <button onclick="window.deleteLocation(${loc.id})" class="text-gray-600 hover:text-red-500 p-1" title="Delete Location">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>`;
+                    }).join('');
+                });
+
+                if (!finalHtml) finalHtml = '<div class="text-gray-500 text-sm italic text-center py-8">No locations added yet. Search above!</div>';
+
                 document.getElementById('location-list').innerHTML = finalHtml;
             }
 
-            if (currentTab === 'exp') {
-                const expenses = tripData.expenses || [];
-                const total = expenses.reduce((sum, e) => sum + parseFloat(e.amt), 0);
-                const users = Object.values(tripData.users);
-                const userCount = users.length || 1;
-                const split = total / userCount;
 
-                const balances = {};
-                users.forEach(u => balances[u.name] = 0);
-
-                expenses.forEach(e => {
-                    if (balances[e.who] !== undefined) balances[e.who] += parseFloat(e.amt);
-                    else balances[e.who] = (balances[e.who] || 0) + parseFloat(e.amt);
-                });
-
-                document.getElementById('exp-total').innerText = `€${total.toFixed(2)}`;
-
-                const spendingByUser = {};
-                users.forEach(u => spendingByUser[u.name] = 0);
-                expenses.forEach(e => {
-                    spendingByUser[e.who] = (spendingByUser[e.who] || 0) + parseFloat(e.amt);
-                });
-
-                const sortedSpenders = Object.entries(spendingByUser).sort(([, a], [, b]) => b - a);
-                const maxSpent = sortedSpenders.length > 0 ? sortedSpenders[0][1] : 0;
-
-                if (maxSpent > 0) {
-                    document.getElementById('cost-graph-container').classList.remove('hidden');
-                    document.getElementById('cost-graph-bars').innerHTML = sortedSpenders.map(([name, amt]) => {
-                        const percent = (amt / maxSpent) * 100;
-                        const isMax = amt === maxSpent;
-                        const isMin = amt === sortedSpenders[sortedSpenders.length - 1][1] && sortedSpenders.length > 1;
-
-                        let colorClass = "bg-gray-600";
-                        if (isMax) colorClass = "bg-red-500";
-                        else if (isMin) colorClass = "bg-green-500";
-
-                        return `
-                        <div class="flex items-center gap-2 text-xs">
-                            <div class="w-16 truncate text-right text-gray-400">${name}</div>
-                            <div class="flex-1 rounded-full h-2" style="background: rgba(0,0,0,0.4)">
-                                <div class="h-full ${colorClass} rounded-full" style="width: ${percent}%"></div>
-                            </div>
-                            <div class="w-12 text-right font-mono text-gray-300">€${amt.toFixed(0)}</div>
-                        </div>
-                    `;
-                    }).join('');
-                } else {
-                    document.getElementById('cost-graph-container').classList.add('hidden');
-                }
-
-                const balanceHtml = users.map(u => {
-                    const paid = balances[u.name] || 0;
-                    const diff = paid - split;
-                    const isOwed = diff > 0.01;
-                    const isOwing = diff < -0.01;
-                    const color = isOwed ? 'text-green-400' : (isOwing ? 'text-red-400' : 'text-gray-400');
-                    const text = isOwed ? `Gets €${Math.abs(diff).toFixed(2)}` : (isOwing ? `Owes €${Math.abs(diff).toFixed(2)}` : 'Settled');
-
-                    return `
-                    <div class="flex justify-between items-center text-sm py-1" style="border-bottom: 1px solid rgba(255,255,255,0.1)">
-                        <span class="text-gray-300">${u.name}</span>
-                        <span class="font-mono font-bold ${color}">${text}</span>
-                    </div>
-                `;
-                }).join('');
-
-                const balanceContainer = `
-                <div class="card mb-4">
-                    <h4 class="section-header mb-2">Balances (Split ${users.length})</h4>
-                    <div>${balanceHtml}</div>
-                </div>
-            `;
-
-                const listHtml = expenses.slice().reverse().map(e => `
-                <div class="card flex justify-between items-center" style="border-left: 2px solid #10b981">
-                    <div>
-                        <span class="font-medium text-sm">${e.what}</span>
-                        <span class="block text-xs text-gray-500">${e.who} paid</span>
-                    </div>
-                    <div class="font-mono font-bold text-sm">€${parseFloat(e.amt).toFixed(2)}</div>
-                </div>
-            `).join('');
-
-                document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
-            }
         }
 
         window.editTripName = () => {
@@ -917,6 +874,10 @@
             }
         });
 
+        window.openExpensesApp = () => {
+            window.location.href = '../expenses/index.html?token=' + tripId;
+        };
+
         window.copyTripLink = () => {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 alert("Trip Link Copied!");
@@ -961,9 +922,10 @@
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                     const data = await res.json();
                     if (data && data.length > 0) {
+                        const selectedDay = document.getElementById('search-day-select').value;
                         suggestionBox.innerHTML = data.slice(0, 5).map(place => `
                         <div class="p-3 hover:bg-gray-700 cursor-pointer text-xs" style="border-bottom: 1px solid rgba(255,255,255,0.1)"
-                             onclick="selectLocation('${place.display_name.replace(/'/g, "\\'")}', ${place.lat}, ${place.lon})">
+                             onclick="selectLocation('${place.display_name.replace(/'/g, "\\'")}', ${place.lat}, ${place.lon}, ${selectedDay})">
                             <div class="font-bold">${place.display_name.split(',')[0]}</div>
                             <div class="text-gray-500 truncate">${place.display_name}</div>
                         </div>
@@ -980,7 +942,7 @@
             }
         });
 
-        window.selectLocation = (fullName, lat, lon) => {
+        window.selectLocation = (fullName, lat, lon, day = 0) => {
             const shortName = fullName.split(',')[0];
             if (!tripData.locations.find(l => l.name === shortName)) {
                 tripData.locations.push({
@@ -988,7 +950,8 @@
                     name: shortName,
                     fullName: fullName,
                     coords: { lat: parseFloat(lat), lon: parseFloat(lon) },
-                    votes: [currentUser.id]
+                    votes: [currentUser.id],
+                    day: parseInt(day)
                 });
                 sync();
             }
@@ -996,14 +959,30 @@
             suggestionBox.classList.add('hidden');
         };
 
-        document.getElementById('dur-input').onchange = (e) => { tripData.duration = e.target.value; sync(); };
-        document.getElementById('add-exp-btn').onclick = () => {
-            const d = document.getElementById('exp-desc'), a = document.getElementById('exp-amt');
-            if (d.value && a.value) {
-                tripData.expenses.push({ who: currentUser.name, what: d.value, amt: a.value, id: Date.now() });
-                sync(); d.value = ''; a.value = '';
+        window.toggleVote = (id) => {
+            const l = tripData.locations.find(x => x.id === id);
+            if (!l) return;
+            if (l.votes.includes(currentUser.id)) l.votes = l.votes.filter(v => v !== currentUser.id);
+            else l.votes.push(currentUser.id);
+            sync();
+        };
+
+        window.deleteLocation = (id) => {
+            if (!confirm('Delete this location?')) return;
+            tripData.locations = tripData.locations.filter(l => l.id !== id);
+            sync();
+        };
+
+        window.updateLocationDay = (id, newDay) => {
+            const l = tripData.locations.find(x => x.id === id);
+            if (l) {
+                l.day = parseInt(newDay);
+                sync();
             }
         };
+
+
+
         document.getElementById('add-pack-btn').onclick = () => {
             const p = document.getElementById('pack-input');
             if (p.value.trim()) {
