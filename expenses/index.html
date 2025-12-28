@@ -64,13 +64,11 @@
     <div id="app-screen" class="flex-1 flex flex-col hidden max-w-lg mx-auto w-full h-full">
         <!-- HEADER -->
         <header class="p-4 pt-6 pb-2 flex justify-between items-center">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="updateGroupName()">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="updateGroupName()">
                 <img src="logo.png" alt="Group Expenses" class="w-8 h-8">
-                <div class="flex items-center gap-2 group">
-                    <h1 id="header-trip-name" class="font-bold text-base hover:underline decoration-dotted">Group
-                        Expenses</h1>
-                    <span class="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">✎</span>
-                </div>
+                <h1 id="header-trip-name" class="font-bold text-base hover:underline decoration-dotted">Group Expenses
+                </h1>
+                <span class="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">✎</span>
             </div>
             <div class="flex gap-2">
                 <button onclick="copyTripLink()"
@@ -199,17 +197,15 @@
                 } else {
                     els.recentTripsCont.classList.remove('hidden');
                     els.recentTripsList.innerHTML = recent.map(t => `
-                <div onclick="window.location.href='?token=${t.id}'" class="list-item">
-                    <div class="flex items-center gap-3 flex-1">
-                        <div class="w-8 h-8 rounded-full card flex items-center justify-center overflow-hidden">
-                            <img src="logo.png" alt="Trip" class="w-6 h-6">
-                        </div>
-                        <div>
-                            <span class="font-bold text-sm">${t.name}</span>
-                            <span class="block text-xs text-gray-500">ID: ${t.id.slice(0, 6)}...</span>
-                        </div>
+                <div onclick="window.location.href='?token=${t.id}'" class="list-item gap-3">
+                    <div class="w-8 h-8 rounded-full card flex items-center justify-center overflow-hidden shrink-0">
+                        <img src="logo.png" alt="Trip" class="w-6 h-6">
                     </div>
-                    <span class="text-gray-500 text-sm">➜</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="font-bold text-sm block truncate">${t.name}</span>
+                        <span class="block text-xs text-gray-500">ID: ${t.id.slice(0, 6)}...</span>
+                    </div>
+                    <span class="text-gray-500 text-sm shrink-0">➜</span>
                 </div>
             `).join('');
                 }
