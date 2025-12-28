@@ -387,28 +387,33 @@
 
                     // EXPENSES LOGIC
                     const expenses = tripData.expenses || [];
-                    const total = expenses.reduce((sum, e) => sum + parseFloat(e.amt), 0);
                     const users = Object.values(tripData.users);
                     const userCount = users.length || 1;
-                    const split = total / userCount;
                     const currency = tripData.currency || '€';
 
+                    // 1. Calculate Totals & Balances (ALWAYS use ALL expenses)
+                    let totalSpent = 0;
                     const balances = {};
                     users.forEach(u => balances[u.name] = 0);
-
-                    expenses.forEach(e => {
-                        if (balances[e.who] !== undefined) balances[e.who] += parseFloat(e.amt);
-                        else balances[e.who] = (balances[e.who] || 0) + parseFloat(e.amt);
-                    });
-
-                    document.getElementById('exp-total').innerText = formatMoney(total);
-
                     const spendingByUser = {};
                     users.forEach(u => spendingByUser[u.name] = 0);
+
                     expenses.forEach(e => {
-                        spendingByUser[e.who] = (spendingByUser[e.who] || 0) + parseFloat(e.amt);
+                        const amt = parseFloat(e.amt);
+                        if (e.type === 'settlement') {
+                            if (balances[e.who] !== undefined) balances[e.who] += amt;
+                            if (balances[e.to] !== undefined) balances[e.to] -= amt;
+                        } else {
+                            totalSpent += amt;
+                            if (balances[e.who] !== undefined) balances[e.who] += amt;
+                            else balances[e.who] = amt;
+                            spendingByUser[e.who] = (spendingByUser[e.who] || 0) + amt;
+                        }
                     });
 
+                    document.getElementById('exp-total').innerText = formatMoney(totalSpent);
+
+                    // 2. Render Graph (Total)
                     const sortedSpenders = Object.entries(spendingByUser).sort(([, a], [, b]) => b - a);
                     const maxSpent = sortedSpenders.length > 0 ? sortedSpenders[0][1] : 0;
 
@@ -418,10 +423,7 @@
                             const percent = (amt / maxSpent) * 100;
                             const isMax = amt === maxSpent;
                             const isMin = amt === sortedSpenders[sortedSpenders.length - 1][1] && sortedSpenders.length > 1;
-
-                            let colorClass = "bg-gray-600";
-                            if (isMax) colorClass = "bg-red-500";
-                            else if (isMin) colorClass = "bg-green-500";
+                            let colorClass = isMax ? "bg-red-500" : (isMin ? "bg-green-500" : "bg-gray-600");
 
                             return `
                     <div class="flex items-center gap-2 text-xs">
@@ -437,6 +439,8 @@
                         document.getElementById('cost-graph-container').classList.add('hidden');
                     }
 
+                    // 3. Render Balances
+                    const split = totalSpent / userCount;
                     const balanceHtml = users.map(u => {
                         const paid = balances[u.name] || 0;
                         const diff = paid - split;
@@ -460,22 +464,45 @@
             </div>
         `;
 
-                    const listHtml = expenses.slice().reverse().map(e => {
+                    // 4. Filter List
+                    const searchQuery = document.getElementById('search-input').value.toLowerCase();
+                    const filterType = document.getElementById('filter-type').value;
+
+                    const filteredExpenses = expenses.filter(e => {
+                        // Search Match
+                        const textMatch = (e.what || '').toLowerCase().includes(searchQuery) ||
+                            (e.who || '').toLowerCase().includes(searchQuery) ||
+                            (e.to || '').toLowerCase().includes(searchQuery);
+
+                        // Type Match
+                        let typeMatch = true;
+                        if (filterType === 'expense') typeMatch = (!e.type || e.type === 'expense');
+                        else if (filterType === 'settlement') typeMatch = (e.type === 'settlement');
+
+                        return textMatch && typeMatch;
+                    });
+
+                    // 5. Render List
+                    const listHtml = filteredExpenses.slice().reverse().map(e => {
                         const dateStr = e.date ? new Date(e.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                        const isSettlement = e.type === 'settlement';
+                        const borderColor = isSettlement ? '#3b82f6' : '#10b981';
+                        const icon = isSettlement ? '🤝' : '';
+
                         return `
-            <div class="card flex justify-between items-center group relative" style="border-left: 2px solid #10b981">
+            <div class="card flex justify-between items-center group relative" style="border-left: 2px solid ${borderColor}">
                 <div>
                     <div class="flex items-center gap-2">
-                         <span class="font-medium text-sm">${e.what}</span>
+                         <span class="font-medium text-sm">${icon} ${e.what}</span>
                          ${dateStr ? `<span class="text-[10px] bg-gray-700 px-1 rounded text-gray-300">${dateStr}</span>` : ''}
                     </div>
-                    <span class="block text-xs text-gray-500">${e.who} paid</span>
+                    <span class="block text-xs text-gray-500">
+                        ${isSettlement ? `${e.who} ➞ ${e.to}` : `${e.who} paid`}
+                    </span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="font-mono font-bold text-sm text-right min-w-[60px]">${formatMoney(e.amt)}</div>
-                    <button onclick="editExpense(${e.id})" class="text-gray-500 hover:text-blue-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                         ✎
-                    </button>
+                    <div class="font-mono font-bold text-sm text-right min-w-[60px] ${isSettlement ? 'text-blue-400' : ''}">${formatMoney(e.amt)}</div>
+                    ${!isSettlement ? `<button onclick="editExpense(${e.id})" class="text-gray-500 hover:text-blue-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">✎</button>` : ''}
                     ${e.who === currentUser.name ? `<button onclick="deleteExpense(${e.id})" class="text-gray-500 hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">✕</button>` : ''}
                 </div>
             </div>
