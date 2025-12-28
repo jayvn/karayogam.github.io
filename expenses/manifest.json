@@ -1,11 +1,11 @@
 {
-    "name": "Trip Expenses",
-    "short_name": "TripExp",
+    "name": "Group Expenses",
+    "short_name": "GroupExp",
     "start_url": "./",
     "display": "standalone",
     "background_color": "#111827",
     "theme_color": "#111827",
-    "description": "Collaborative trip expenses split",
+    "description": "Collaborative group expenses split",
     "icons": [
         {
             "src": "logo.png",
