@@ -171,8 +171,13 @@
 
                 <!-- SEARCH & FILTER -->
                 <div class="flex gap-2 mb-4">
-                    <input type="text" id="search-input" placeholder="Search..."
-                        class="flex-1 bg-gray-700 border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-green-500">
+                    <div class="relative flex-1">
+                        <input type="text" id="search-input" placeholder="Search..."
+                            class="w-full bg-gray-700 border-none rounded-lg pl-4 pr-10 py-2 text-sm focus:ring-2 focus:ring-green-500 transition-all">
+                        <div id="search-loading" class="absolute right-3 top-1/2 transform -translate-y-1/2 hidden">
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        </div>
+                    </div>
                     <select id="filter-type"
                         class="bg-gray-700 border-none rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500">
                         <option value="all">All</option>
@@ -457,14 +462,23 @@
             `;
                     }).join('');
 
+                    // Separate container for items to allow independent updates
                     const balanceContainer = `
             <div class="card mb-4">
                 <h4 class="section-header mb-2">Balances (Split ${users.length})</h4>
                 <div>${balanceHtml}</div>
             </div>
+            <div id="expense-items-container" class="space-y-3"></div>
         `;
 
-                    // 4. Filter List
+                    document.getElementById('expense-list').innerHTML = balanceContainer;
+
+                    // 5. Render List
+                    renderList();
+                }
+
+                function renderList() {
+                    const expenses = tripData.expenses || [];
                     const searchQuery = document.getElementById('search-input').value.toLowerCase();
                     const filterType = document.getElementById('filter-type').value;
 
@@ -482,7 +496,7 @@
                         return textMatch && typeMatch;
                     });
 
-                    // 5. Render List
+                    // Render List
                     const listHtml = filteredExpenses.slice().reverse().map(e => {
                         const dateStr = e.date ? new Date(e.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
                         const isSettlement = e.type === 'settlement';
@@ -508,8 +522,50 @@
             </div>
         `}).join('');
 
-                    document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
+                    // We need to re-grab the balance container from a simpler way or separate it completely
+                    // For now, let's just append listHtml to the container, assuming balances are handled in render() 
+                    // Wait, render() replaces innerHTML of 'expense-list' which included balances.
+                    // Let's split specific containers in HTML in next step or just re-inject here.
+                    // To keep it simple: render() handles totals layout. renderList ONLY updates the list part.
+                    // But currently #expense-list holds both. Let's fix that by separating containers in HTML first?
+                    // Done: I'll modify HTML structure simply via JS injection in render() to add a dedicated list container matching main render flow.
+
+                    const listContainer = document.getElementById('expense-items-container');
+                    if (listContainer) {
+                        listContainer.innerHTML = listHtml;
+                    } else {
+                        // Fallback if structure isn't ready (first render)
+                        const expenseListDiv = document.getElementById('expense-list');
+                        // We can't easily update just the list part if it's mixed.
+                        // Let's assume render() sets up the structure and we just update the list div inside it?
+                        // Actually, looking at original code: document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
+                        // So we should target a new container.
+                    }
                 }
+
+                // Debounce Utility
+                function debounce(func, wait) {
+                    let timeout;
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                            document.getElementById('search-loading').classList.add('hidden');
+                        };
+                        clearTimeout(timeout);
+                        document.getElementById('search-loading').classList.remove('hidden');
+                        timeout = setTimeout(later, wait);
+                    };
+                }
+
+                // Search & Filter Listeners
+                document.getElementById('search-input').addEventListener('input', debounce(() => {
+                    renderList();
+                }, 300));
+
+                document.getElementById('filter-type').addEventListener('change', () => {
+                    renderList();
+                });
 
                 // --- SETTLE UP MODAL LOGIC ---
                 // --- SETTLE UP MODAL LOGIC ---
