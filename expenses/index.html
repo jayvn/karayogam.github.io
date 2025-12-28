@@ -66,12 +66,15 @@
         <div id="app-screen" class="flex-1 flex flex-col hidden max-w-lg mx-auto w-full h-full">
             <!-- HEADER -->
             <header class="p-4 pt-6 pb-2 flex justify-between items-center">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="copyTripLink()">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="updateGroupName()">
                     <div class="w-10 h-10 rounded-xl card flex items-center justify-center overflow-hidden">
-                        <img src="logo.png" alt="Trip Helper" class="w-8 h-8">
+                        <img src="logo.png" alt="Group Expenses" class="w-8 h-8">
                     </div>
                     <div class="flex items-center gap-2 group">
-                        <h1 id="header-trip-name" class="font-bold text-base">Group Expenses</h1>
+                        <h1 id="header-trip-name" class="font-bold text-base hover:underline decoration-dotted">Group
+                            Expenses</h1>
+                        <span
+                            class="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">✎</span>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -254,7 +257,7 @@
 
         const DB = {
             async listen(id, callback) {
-                return onSnapshot(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), (snap) => {
+                return onSnapshot(doc(db, 'artifacts', 'group-expenses-v1', 'expenses', id), (snap) => {
                     callback(snap.exists() ? snap.data() : null);
                 }, err => {
                     console.error("Firebase Error:", err);
@@ -262,7 +265,7 @@
             },
 
             async save(id, data) {
-                await setDoc(doc(db, 'artifacts', 'trip-planner-v1', 'public', 'data', 'trips', id), data, { merge: true });
+                await setDoc(doc(db, 'artifacts', 'group-expenses-v1', 'expenses', id), data, { merge: true });
             }
         };
 
@@ -444,6 +447,16 @@
             // Generate a random ID (8 chars)
             const newId = Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('');
             window.location.href = `?token=${newId}`;
+        };
+
+        window.updateGroupName = () => {
+            const currentName = tripData.name || "Group Expenses";
+            const newName = prompt("Enter a new name for this group:", currentName);
+            if (newName && newName.trim() !== "") {
+                tripData.name = newName.trim();
+                sync();
+                render(); // Update immediately
+            }
         };
 
         window.downloadTripData = () => {
