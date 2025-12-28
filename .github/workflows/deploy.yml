@@ -31,8 +31,8 @@ jobs:
           # Copy all apps
           cp -r choreo deploy/ || true
           cp -r anils-library deploy/ || true
-          cp -r shopping deploy/ || true
-          cp -r 3d_colorizer deploy/ || true
+
+
           cp -r secret-santa deploy/ || true
           cp -r trip_helper deploy/ || true
           cp -r expenses deploy/ || true
