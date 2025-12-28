@@ -60,6 +60,34 @@
         </div>
     </div>
 
+    <!-- SETTLE UP MODAL -->
+    <div id="settle-modal" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-4 hidden"
+        style="background: rgba(0,0,0,0.8)">
+        <div class="modal w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-center">🤝 Settle Up</h2>
+
+            <div class="mb-4">
+                <label class="block text-xs text-gray-500 mb-1">Payer (You)</label>
+                <input type="text" id="settle-payer" class="input bg-gray-700" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs text-gray-500 mb-1">Recipient</label>
+                <select id="settle-receiver" class="input"></select>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs text-gray-500 mb-1">Amount</label>
+                <input type="number" id="settle-amt" placeholder="0.00" class="input">
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="closeSettleModal()" class="btn btn-secondary flex-1">Cancel</button>
+                <button onclick="confirmSettle()" class="btn btn-success flex-1">Pay</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN APP -->
     <div id="app-screen" class="flex-1 flex flex-col hidden max-w-lg mx-auto w-full h-full">
         <!-- HEADER -->
@@ -112,105 +140,127 @@
                         <h3 class="section-header mb-1">Total Spent</h3>
                         <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">€0.00</div>
                     </div>
-                    <div class="text-2xl">💸</div>
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <h3 class="section-header mb-1">Total Spent</h3>
+                            <div id="exp-total" class="text-3xl font-mono font-bold text-green-400">€0.00</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openSettleModal()"
+                                class="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white border-none">
+                                🤝 Settle
+                            </button>
+                            <div class="text-2xl">💸</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-2">
+                        <input type="date" id="exp-date" class="input text-gray-400">
+                        <input type="text" id="exp-desc" placeholder="What involved money?" class="input">
+                        <div class="flex gap-2">
+                            <input type="number" id="exp-amt" placeholder="0.00" class="input">
+                            <button id="add-exp-btn" class="btn btn-success">Add</button>
+                        </div>
+                        <div id="edit-controls" class="hidden flex justify-end">
+                            <button type="button" onclick="cancelEdit()"
+                                class="text-xs text-red-400 hover:text-red-300 underline">Cancel Edit</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="space-y-3 mb-2">
-                    <input type="date" id="exp-date" class="input text-gray-400">
-                    <input type="text" id="exp-desc" placeholder="What involved money?" class="input">
-                    <div class="flex gap-2">
-                        <input type="number" id="exp-amt" placeholder="0.00" class="input">
-                        <button id="add-exp-btn" class="btn btn-success">Add</button>
-                    </div>
-                    <div id="edit-controls" class="hidden flex justify-end">
-                        <button type="button" onclick="cancelEdit()"
-                            class="text-xs text-red-400 hover:text-red-300 underline">Cancel Edit</button>
-                    </div>
+                <div class="card mb-2 p-2 flex gap-2">
+                    <input type="text" id="search-input" placeholder="Search..."
+                        class="bg-gray-700 border border-gray-600 text-gray-100 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2">
+                    <select id="filter-type"
+                        class="bg-gray-700 border border-gray-600 text-gray-100 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2">
+                        <option value="all">All</option>
+                        <option value="expense">Expenses</option>
+                        <option value="settlement">Settlements</option>
+                    </select>
                 </div>
+                <div id="expense-list" class="space-y-2"></div>
             </div>
-            <div id="expense-list" class="space-y-2"></div>
-        </div>
 
-        <!-- Firebase Configuration -->
-        <script>
-            window.__firebase_config = JSON.stringify({
-                apiKey: "AIzaSyATX9AewOd8pmUQWkYXYAvb2meH7kGNtbg",
-                authDomain: "karayogam-22.firebaseapp.com",
-                projectId: "karayogam-22",
-                storageBucket: "karayogam-22.firebasestorage.app",
-                messagingSenderId: "38360726672",
-                appId: "1:38360726672:web:d254e8eed733ddf3c9ac15"
-            });
-        </script>
+            <!-- Firebase Configuration -->
+            <script>
+                window.__firebase_config = JSON.stringify({
+                    apiKey: "AIzaSyATX9AewOd8pmUQWkYXYAvb2meH7kGNtbg",
+                    authDomain: "karayogam-22.firebaseapp.com",
+                    projectId: "karayogam-22",
+                    storageBucket: "karayogam-22.firebasestorage.app",
+                    messagingSenderId: "38360726672",
+                    appId: "1:38360726672:web:d254e8eed733ddf3c9ac15"
+                });
+            </script>
 
-        <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-            import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-            import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+            <script type="module">
+                import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+                import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+                import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            const app = initializeApp(JSON.parse(__firebase_config));
-            const auth = getAuth(app);
-            const db = getFirestore(app);
+                const app = initializeApp(JSON.parse(__firebase_config));
+                const auth = getAuth(app);
+                const db = getFirestore(app);
 
-            let currentUser = { id: null, name: null };
-            let tripId = null;
-            let tripData = { locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {} };
+                let currentUser = { id: null, name: null };
+                let tripId = null;
+                let tripData = { locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {} };
 
-            let unsubscribe = null;
-            let userMenuOpen = false;
+                let unsubscribe = null;
+                let userMenuOpen = false;
 
-            const els = {
-                landing: document.getElementById('landing-screen'),
-                login: document.getElementById('login-screen'),
-                app: document.getElementById('app-screen'),
-                userBtn: document.getElementById('user-btn'),
-                userMenu: document.getElementById('user-menu'),
-                userDisplay: document.getElementById('user-display-name'),
-                menuUserName: document.getElementById('menu-user-name'),
-                recentTripsCont: document.getElementById('recent-trips-container'),
-                recentTripsList: document.getElementById('recent-trips-list'),
-                nameIn: document.getElementById('username-input'),
-            };
+                const els = {
+                    landing: document.getElementById('landing-screen'),
+                    login: document.getElementById('login-screen'),
+                    app: document.getElementById('app-screen'),
+                    userBtn: document.getElementById('user-btn'),
+                    userMenu: document.getElementById('user-menu'),
+                    userDisplay: document.getElementById('user-display-name'),
+                    menuUserName: document.getElementById('menu-user-name'),
+                    recentTripsCont: document.getElementById('recent-trips-container'),
+                    recentTripsList: document.getElementById('recent-trips-list'),
+                    nameIn: document.getElementById('username-input'),
+                };
 
-            let editingId = null;
+                let editingId = null;
 
-            async function init() {
-                const urlParams = new URLSearchParams(window.location.search);
-                tripId = urlParams.get('token');
+                async function init() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    tripId = urlParams.get('token');
 
-                // Set default date to today
-                document.getElementById('exp-date').valueAsDate = new Date();
+                    // Set default date to today
+                    document.getElementById('exp-date').valueAsDate = new Date();
 
-                await signInAnonymously(auth);
+                    await signInAnonymously(auth);
 
-                if (tripId) attemptAutoJoin(); else showLanding();
-            }
-
-            async function attemptAutoJoin() {
-                const savedName = localStorage.getItem('trip_user_name');
-                if (savedName) joinTrip(savedName); else showLogin();
-            }
-
-            function showLanding() {
-                els.landing.classList.remove('hidden');
-                els.login.classList.add('hidden');
-                els.app.classList.add('hidden');
-                renderRecentTrips();
-            }
-
-            function renderRecentTrips() {
-                const userName = localStorage.getItem('trip_user_name');
-                if (userName) {
-                    document.getElementById('welcome-msg').innerText = `Welcome back, ${userName}!`;
-                    document.getElementById('welcome-msg').classList.remove('hidden');
+                    if (tripId) attemptAutoJoin(); else showLanding();
                 }
 
-                const recent = JSON.parse(localStorage.getItem('my_trips') || '[]');
-                if (recent.length === 0) {
-                    els.recentTripsCont.classList.add('hidden');
-                } else {
-                    els.recentTripsCont.classList.remove('hidden');
-                    els.recentTripsList.innerHTML = recent.map(t => `
+                async function attemptAutoJoin() {
+                    const savedName = localStorage.getItem('trip_user_name');
+                    if (savedName) joinTrip(savedName); else showLogin();
+                }
+
+                function showLanding() {
+                    els.landing.classList.remove('hidden');
+                    els.login.classList.add('hidden');
+                    els.app.classList.add('hidden');
+                    renderRecentTrips();
+                }
+
+                function renderRecentTrips() {
+                    const userName = localStorage.getItem('trip_user_name');
+                    if (userName) {
+                        document.getElementById('welcome-msg').innerText = `Welcome back, ${userName}!`;
+                        document.getElementById('welcome-msg').classList.remove('hidden');
+                    }
+
+                    const recent = JSON.parse(localStorage.getItem('my_trips') || '[]');
+                    if (recent.length === 0) {
+                        els.recentTripsCont.classList.add('hidden');
+                    } else {
+                        els.recentTripsCont.classList.remove('hidden');
+                        els.recentTripsList.innerHTML = recent.map(t => `
                 <div onclick="window.location.href='?token=${t.id}'" class="list-item gap-3">
                     <div class="w-8 h-8 rounded-full card flex items-center justify-center overflow-hidden shrink-0">
                         <img src="logo.png" alt="Trip" class="w-6 h-6">
@@ -222,154 +272,154 @@
                     <span class="text-gray-500 text-sm shrink-0">➜</span>
                 </div>
             `).join('');
-                }
-            }
-
-            function showLogin() {
-                els.landing.classList.add('hidden');
-                els.login.classList.remove('hidden');
-                els.app.classList.add('hidden');
-                els.nameIn.value = '';
-                els.nameIn.focus();
-            }
-
-            async function joinTrip(nameInput) {
-                const name = nameInput.trim();
-                if (!name) return;
-
-                const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                currentUser = { id, name };
-                localStorage.setItem('trip_user_name', name);
-
-                setupRealtimeListener();
-
-                els.login.classList.add('hidden');
-                els.landing.classList.add('hidden');
-                els.app.classList.remove('hidden');
-
-                updateUserUI();
-
-                addToRecentTrips(tripId, 'Loading...');
-            }
-
-            function updateUserUI() {
-                els.userDisplay.innerText = currentUser.name;
-                els.menuUserName.innerText = currentUser.name;
-            }
-
-            const DB = {
-                async listen(id, callback) {
-                    return onSnapshot(doc(db, 'artifacts', 'group-expenses-v1', 'expenses', id), (snap) => {
-                        callback(snap.exists() ? snap.data() : null);
-                    }, err => {
-                        console.error("Firebase Error:", err);
-                    });
-                },
-
-                async save(id, data) {
-                    await setDoc(doc(db, 'artifacts', 'group-expenses-v1', 'expenses', id), data, { merge: true });
-                }
-            };
-
-            function setupRealtimeListener() {
-                if (unsubscribe) unsubscribe();
-
-                unsubscribe = DB.listen(tripId, (data) => {
-                    if (data) {
-                        tripData = data;
-                        if (!tripData.users) tripData.users = {};
-
-                        if (!tripData.users[currentUser.id]) {
-                            registerUserInTrip();
-                            return;
-                        }
-
-                        updateRecentTripName();
-                        render();
-                    } else {
-                        tripData = {
-                            locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {}, currency: '€'
-                        };
-                        registerUserInTrip();
                     }
-                });
-            }
-
-            function registerUserInTrip() {
-                if (!tripData.users) tripData.users = {};
-                tripData.users[currentUser.id] = { name: currentUser.name, dates: [] };
-                sync();
-            }
-
-            function sync() {
-                DB.save(tripId, tripData);
-            }
-
-            function addToRecentTrips(id, name) {
-                let recent = JSON.parse(localStorage.getItem('my_trips') || '[]');
-                recent = recent.filter(t => t.id !== id);
-                recent.unshift({ id, name });
-                if (recent.length > 5) recent.pop();
-                localStorage.setItem('my_trips', JSON.stringify(recent));
-            }
-
-            function updateRecentTripName() {
-                if (tripData.name) {
-                    addToRecentTrips(tripId, tripData.name);
-                    return;
                 }
-                addToRecentTrips(tripId, `Trip ${tripId.slice(0, 4)}`);
-            }
 
-            function formatMoney(amount) {
-                const currency = tripData.currency || '€';
-                return `${currency}${parseFloat(amount).toFixed(2)}`;
-            }
+                function showLogin() {
+                    els.landing.classList.add('hidden');
+                    els.login.classList.remove('hidden');
+                    els.app.classList.add('hidden');
+                    els.nameIn.value = '';
+                    els.nameIn.focus();
+                }
 
-            function render() {
-                if (!tripData) return;
+                async function joinTrip(nameInput) {
+                    const name = nameInput.trim();
+                    if (!name) return;
 
-                document.getElementById('header-trip-name').innerText = tripData.name || "Group Expenses";
+                    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    currentUser = { id, name };
+                    localStorage.setItem('trip_user_name', name);
 
-                // EXPENSES LOGIC
-                const expenses = tripData.expenses || [];
-                const total = expenses.reduce((sum, e) => sum + parseFloat(e.amt), 0);
-                const users = Object.values(tripData.users);
-                const userCount = users.length || 1;
-                const split = total / userCount;
-                const currency = tripData.currency || '€';
+                    setupRealtimeListener();
 
-                const balances = {};
-                users.forEach(u => balances[u.name] = 0);
+                    els.login.classList.add('hidden');
+                    els.landing.classList.add('hidden');
+                    els.app.classList.remove('hidden');
 
-                expenses.forEach(e => {
-                    if (balances[e.who] !== undefined) balances[e.who] += parseFloat(e.amt);
-                    else balances[e.who] = (balances[e.who] || 0) + parseFloat(e.amt);
-                });
+                    updateUserUI();
 
-                document.getElementById('exp-total').innerText = formatMoney(total);
+                    addToRecentTrips(tripId, 'Loading...');
+                }
 
-                const spendingByUser = {};
-                users.forEach(u => spendingByUser[u.name] = 0);
-                expenses.forEach(e => {
-                    spendingByUser[e.who] = (spendingByUser[e.who] || 0) + parseFloat(e.amt);
-                });
+                function updateUserUI() {
+                    els.userDisplay.innerText = currentUser.name;
+                    els.menuUserName.innerText = currentUser.name;
+                }
 
-                const sortedSpenders = Object.entries(spendingByUser).sort(([, a], [, b]) => b - a);
-                const maxSpent = sortedSpenders.length > 0 ? sortedSpenders[0][1] : 0;
+                const DB = {
+                    async listen(id, callback) {
+                        return onSnapshot(doc(db, 'artifacts', 'group-expenses-v1', 'expenses', id), (snap) => {
+                            callback(snap.exists() ? snap.data() : null);
+                        }, err => {
+                            console.error("Firebase Error:", err);
+                        });
+                    },
 
-                if (maxSpent > 0) {
-                    document.getElementById('cost-graph-container').classList.remove('hidden');
-                    document.getElementById('cost-graph-bars').innerHTML = sortedSpenders.map(([name, amt]) => {
-                        const percent = (amt / maxSpent) * 100;
-                        const isMax = amt === maxSpent;
-                        const isMin = amt === sortedSpenders[sortedSpenders.length - 1][1] && sortedSpenders.length > 1;
+                    async save(id, data) {
+                        await setDoc(doc(db, 'artifacts', 'group-expenses-v1', 'expenses', id), data, { merge: true });
+                    }
+                };
 
-                        let colorClass = "bg-gray-600";
-                        if (isMax) colorClass = "bg-red-500";
-                        else if (isMin) colorClass = "bg-green-500";
+                function setupRealtimeListener() {
+                    if (unsubscribe) unsubscribe();
 
-                        return `
+                    unsubscribe = DB.listen(tripId, (data) => {
+                        if (data) {
+                            tripData = data;
+                            if (!tripData.users) tripData.users = {};
+
+                            if (!tripData.users[currentUser.id]) {
+                                registerUserInTrip();
+                                return;
+                            }
+
+                            updateRecentTripName();
+                            render();
+                        } else {
+                            tripData = {
+                                locations: [], duration: '', users: {}, expenses: [], packing: [], itinerary: {}, currency: '€'
+                            };
+                            registerUserInTrip();
+                        }
+                    });
+                }
+
+                function registerUserInTrip() {
+                    if (!tripData.users) tripData.users = {};
+                    tripData.users[currentUser.id] = { name: currentUser.name, dates: [] };
+                    sync();
+                }
+
+                function sync() {
+                    DB.save(tripId, tripData);
+                }
+
+                function addToRecentTrips(id, name) {
+                    let recent = JSON.parse(localStorage.getItem('my_trips') || '[]');
+                    recent = recent.filter(t => t.id !== id);
+                    recent.unshift({ id, name });
+                    if (recent.length > 5) recent.pop();
+                    localStorage.setItem('my_trips', JSON.stringify(recent));
+                }
+
+                function updateRecentTripName() {
+                    if (tripData.name) {
+                        addToRecentTrips(tripId, tripData.name);
+                        return;
+                    }
+                    addToRecentTrips(tripId, `Trip ${tripId.slice(0, 4)}`);
+                }
+
+                function formatMoney(amount) {
+                    const currency = tripData.currency || '€';
+                    return `${currency}${parseFloat(amount).toFixed(2)}`;
+                }
+
+                function render() {
+                    if (!tripData) return;
+
+                    document.getElementById('header-trip-name').innerText = tripData.name || "Group Expenses";
+
+                    // EXPENSES LOGIC
+                    const expenses = tripData.expenses || [];
+                    const total = expenses.reduce((sum, e) => sum + parseFloat(e.amt), 0);
+                    const users = Object.values(tripData.users);
+                    const userCount = users.length || 1;
+                    const split = total / userCount;
+                    const currency = tripData.currency || '€';
+
+                    const balances = {};
+                    users.forEach(u => balances[u.name] = 0);
+
+                    expenses.forEach(e => {
+                        if (balances[e.who] !== undefined) balances[e.who] += parseFloat(e.amt);
+                        else balances[e.who] = (balances[e.who] || 0) + parseFloat(e.amt);
+                    });
+
+                    document.getElementById('exp-total').innerText = formatMoney(total);
+
+                    const spendingByUser = {};
+                    users.forEach(u => spendingByUser[u.name] = 0);
+                    expenses.forEach(e => {
+                        spendingByUser[e.who] = (spendingByUser[e.who] || 0) + parseFloat(e.amt);
+                    });
+
+                    const sortedSpenders = Object.entries(spendingByUser).sort(([, a], [, b]) => b - a);
+                    const maxSpent = sortedSpenders.length > 0 ? sortedSpenders[0][1] : 0;
+
+                    if (maxSpent > 0) {
+                        document.getElementById('cost-graph-container').classList.remove('hidden');
+                        document.getElementById('cost-graph-bars').innerHTML = sortedSpenders.map(([name, amt]) => {
+                            const percent = (amt / maxSpent) * 100;
+                            const isMax = amt === maxSpent;
+                            const isMin = amt === sortedSpenders[sortedSpenders.length - 1][1] && sortedSpenders.length > 1;
+
+                            let colorClass = "bg-gray-600";
+                            if (isMax) colorClass = "bg-red-500";
+                            else if (isMin) colorClass = "bg-green-500";
+
+                            return `
                     <div class="flex items-center gap-2 text-xs">
                         <div class="w-16 truncate text-right text-gray-400">${name}</div>
                         <div class="flex-1 rounded-full h-2" style="background: rgba(0,0,0,0.4)">
@@ -378,37 +428,37 @@
                         <div class="w-16 text-right font-mono text-gray-300 transform transition-all hover:scale-110">${formatMoney(amt)}</div>
                     </div>
                 `;
-                    }).join('');
-                } else {
-                    document.getElementById('cost-graph-container').classList.add('hidden');
-                }
+                        }).join('');
+                    } else {
+                        document.getElementById('cost-graph-container').classList.add('hidden');
+                    }
 
-                const balanceHtml = users.map(u => {
-                    const paid = balances[u.name] || 0;
-                    const diff = paid - split;
-                    const isOwed = diff > 0.01;
-                    const isOwing = diff < -0.01;
-                    const color = isOwed ? 'text-green-400' : (isOwing ? 'text-red-400' : 'text-gray-400');
-                    const text = isOwed ? `Gets ${formatMoney(Math.abs(diff))}` : (isOwing ? `Owes ${formatMoney(Math.abs(diff))}` : 'Settled');
+                    const balanceHtml = users.map(u => {
+                        const paid = balances[u.name] || 0;
+                        const diff = paid - split;
+                        const isOwed = diff > 0.01;
+                        const isOwing = diff < -0.01;
+                        const color = isOwed ? 'text-green-400' : (isOwing ? 'text-red-400' : 'text-gray-400');
+                        const text = isOwed ? `Gets ${formatMoney(Math.abs(diff))}` : (isOwing ? `Owes ${formatMoney(Math.abs(diff))}` : 'Settled');
 
-                    return `
+                        return `
                 <div class="flex justify-between items-center text-sm py-1" style="border-bottom: 1px solid rgba(255,255,255,0.1)">
                     <span class="text-gray-300">${u.name}</span>
                     <span class="font-mono font-bold ${color}">${text}</span>
                 </div>
             `;
-                }).join('');
+                    }).join('');
 
-                const balanceContainer = `
+                    const balanceContainer = `
             <div class="card mb-4">
                 <h4 class="section-header mb-2">Balances (Split ${users.length})</h4>
                 <div>${balanceHtml}</div>
             </div>
         `;
 
-                const listHtml = expenses.slice().reverse().map(e => {
-                    const dateStr = e.date ? new Date(e.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
-                    return `
+                    const listHtml = expenses.slice().reverse().map(e => {
+                        const dateStr = e.date ? new Date(e.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                        return `
             <div class="card flex justify-between items-center group relative" style="border-left: 2px solid #10b981">
                 <div>
                     <div class="flex items-center gap-2">
@@ -427,169 +477,169 @@
             </div>
         `}).join('');
 
-                document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
-            }
-
-            window.toggleUserMenu = () => {
-                userMenuOpen = !userMenuOpen;
-                els.userMenu.classList.toggle('hidden', !userMenuOpen);
-            };
-
-            window.switchGroup = () => window.location.href = window.location.pathname;
-
-            document.addEventListener('click', (e) => {
-                if (userMenuOpen && !els.userBtn.contains(e.target) && !els.userMenu.contains(e.target)) {
-                    userMenuOpen = false;
-                    els.userMenu.classList.add('hidden');
+                    document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
                 }
-            });
 
-            window.copyTripLink = () => {
-                if (!tripId) return;
-                const url = `${window.location.origin}${window.location.pathname}?token=${tripId}`;
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Join Group Expenses',
-                        text: 'Join my expense group to split costs!',
-                        url: url
-                    }).catch(console.error);
-                } else {
-                    navigator.clipboard.writeText(url).then(() => {
-                        alert("Invite Link Copied!");
-                    });
-                }
-            };
+                window.toggleUserMenu = () => {
+                    userMenuOpen = !userMenuOpen;
+                    els.userMenu.classList.toggle('hidden', !userMenuOpen);
+                };
 
-            window.createNewGroup = () => {
-                const newId = Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('');
-                window.location.href = `?token=${newId}`;
-            };
+                window.switchGroup = () => window.location.href = window.location.pathname;
 
-            window.updateGroupSettings = () => {
-                const currentName = tripData.name || "Group Expenses";
-                const currentCurrency = tripData.currency || "€";
-
-                // Simple prompt sequence for now
-                const newName = prompt("Enter Group Name:", currentName);
-                if (newName !== null) {
-                    const newCurrency = prompt("Enter Currency Symbol (e.g. $, €, £, ₹):", currentCurrency);
-
-                    if (newCurrency !== null) {
-                        tripData.name = newName.trim() || currentName;
-                        tripData.currency = newCurrency.trim() || currentCurrency;
-                        sync();
-                        render();
+                document.addEventListener('click', (e) => {
+                    if (userMenuOpen && !els.userBtn.contains(e.target) && !els.userMenu.contains(e.target)) {
                         userMenuOpen = false;
                         els.userMenu.classList.add('hidden');
                     }
-                }
-            };
+                });
 
-            // Kept for backward compat if needed, but updateGroupSettings subsumes it
-            window.updateGroupName = window.updateGroupSettings;
-
-            window.downloadTripData = () => {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tripData, null, 2));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", "trip_data_" + tripId + ".json");
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-            };
-
-            document.getElementById('login-btn').onclick = () => joinTrip(els.nameIn.value);
-            els.nameIn.onkeypress = (e) => { if (e.key === 'Enter') joinTrip(els.nameIn.value); };
-
-            window.editExpense = (id) => {
-                const expense = tripData.expenses.find(e => e.id === id);
-                if (!expense) return;
-
-                editingId = id;
-
-                document.getElementById('exp-desc').value = expense.what;
-                document.getElementById('exp-amt').value = expense.amt;
-                if (expense.date) {
-                    document.getElementById('exp-date').value = expense.date;
-                } else {
-                    document.getElementById('exp-date').valueAsDate = new Date();
-                }
-
-                document.getElementById('add-exp-btn').innerText = 'Update';
-                document.getElementById('add-exp-btn').classList.replace('btn-success', 'btn-primary');
-                document.getElementById('edit-controls').classList.remove('hidden');
-
-                // Scroll to top to see edit form
-                document.querySelector('.overflow-y-auto').scrollTo({ top: 0, behavior: 'smooth' });
-            };
-
-            window.cancelEdit = () => {
-                editingId = null;
-                document.getElementById('exp-desc').value = '';
-                document.getElementById('exp-amt').value = '';
-                document.getElementById('exp-date').valueAsDate = new Date();
-
-                document.getElementById('add-exp-btn').innerText = 'Add';
-                document.getElementById('add-exp-btn').classList.replace('btn-primary', 'btn-success');
-                document.getElementById('edit-controls').classList.add('hidden');
-            };
-
-            window.deleteExpense = (id) => {
-                if (confirm("Delete this expense?")) {
-                    tripData.expenses = tripData.expenses.filter(e => e.id !== id);
-                    sync();
-                    // If we were editing this one, cancel edit
-                    if (editingId === id) cancelEdit();
-                }
-            };
-
-            document.getElementById('add-exp-btn').onclick = () => {
-                const d = document.getElementById('exp-desc');
-                const a = document.getElementById('exp-amt');
-                const dateInput = document.getElementById('exp-date');
-
-                if (d.value && a.value) {
-                    const desc = d.value.trim();
-                    const amt = parseFloat(a.value);
-                    const date = dateInput.value;
-
-                    if (!tripData.expenses) tripData.expenses = [];
-
-                    if (editingId) {
-                        // UPDATE EXISTING
-                        const idx = tripData.expenses.findIndex(e => e.id === editingId);
-                        if (idx !== -1) {
-                            tripData.expenses[idx] = {
-                                ...tripData.expenses[idx],
-                                what: desc,
-                                amt: amt,
-                                date: date
-                            };
-                        }
+                window.copyTripLink = () => {
+                    if (!tripId) return;
+                    const url = `${window.location.origin}${window.location.pathname}?token=${tripId}`;
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Join Group Expenses',
+                            text: 'Join my expense group to split costs!',
+                            url: url
+                        }).catch(console.error);
                     } else {
-                        // ADD NEW
-                        tripData.expenses.push({
-                            who: currentUser.name,
-                            what: desc,
-                            amt: amt,
-                            date: date,
-                            id: Date.now()
+                        navigator.clipboard.writeText(url).then(() => {
+                            alert("Invite Link Copied!");
                         });
                     }
+                };
 
-                    sync();
-                    cancelEdit(); // Resets form and ID
+                window.createNewGroup = () => {
+                    const newId = Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('');
+                    window.location.href = `?token=${newId}`;
+                };
+
+                window.updateGroupSettings = () => {
+                    const currentName = tripData.name || "Group Expenses";
+                    const currentCurrency = tripData.currency || "€";
+
+                    // Simple prompt sequence for now
+                    const newName = prompt("Enter Group Name:", currentName);
+                    if (newName !== null) {
+                        const newCurrency = prompt("Enter Currency Symbol (e.g. $, €, £, ₹):", currentCurrency);
+
+                        if (newCurrency !== null) {
+                            tripData.name = newName.trim() || currentName;
+                            tripData.currency = newCurrency.trim() || currentCurrency;
+                            sync();
+                            render();
+                            userMenuOpen = false;
+                            els.userMenu.classList.add('hidden');
+                        }
+                    }
+                };
+
+                // Kept for backward compat if needed, but updateGroupSettings subsumes it
+                window.updateGroupName = window.updateGroupSettings;
+
+                window.downloadTripData = () => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tripData, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "trip_data_" + tripId + ".json");
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                };
+
+                document.getElementById('login-btn').onclick = () => joinTrip(els.nameIn.value);
+                els.nameIn.onkeypress = (e) => { if (e.key === 'Enter') joinTrip(els.nameIn.value); };
+
+                window.editExpense = (id) => {
+                    const expense = tripData.expenses.find(e => e.id === id);
+                    if (!expense) return;
+
+                    editingId = id;
+
+                    document.getElementById('exp-desc').value = expense.what;
+                    document.getElementById('exp-amt').value = expense.amt;
+                    if (expense.date) {
+                        document.getElementById('exp-date').value = expense.date;
+                    } else {
+                        document.getElementById('exp-date').valueAsDate = new Date();
+                    }
+
+                    document.getElementById('add-exp-btn').innerText = 'Update';
+                    document.getElementById('add-exp-btn').classList.replace('btn-success', 'btn-primary');
+                    document.getElementById('edit-controls').classList.remove('hidden');
+
+                    // Scroll to top to see edit form
+                    document.querySelector('.overflow-y-auto').scrollTo({ top: 0, behavior: 'smooth' });
+                };
+
+                window.cancelEdit = () => {
+                    editingId = null;
+                    document.getElementById('exp-desc').value = '';
+                    document.getElementById('exp-amt').value = '';
+                    document.getElementById('exp-date').valueAsDate = new Date();
+
+                    document.getElementById('add-exp-btn').innerText = 'Add';
+                    document.getElementById('add-exp-btn').classList.replace('btn-primary', 'btn-success');
+                    document.getElementById('edit-controls').classList.add('hidden');
+                };
+
+                window.deleteExpense = (id) => {
+                    if (confirm("Delete this expense?")) {
+                        tripData.expenses = tripData.expenses.filter(e => e.id !== id);
+                        sync();
+                        // If we were editing this one, cancel edit
+                        if (editingId === id) cancelEdit();
+                    }
+                };
+
+                document.getElementById('add-exp-btn').onclick = () => {
+                    const d = document.getElementById('exp-desc');
+                    const a = document.getElementById('exp-amt');
+                    const dateInput = document.getElementById('exp-date');
+
+                    if (d.value && a.value) {
+                        const desc = d.value.trim();
+                        const amt = parseFloat(a.value);
+                        const date = dateInput.value;
+
+                        if (!tripData.expenses) tripData.expenses = [];
+
+                        if (editingId) {
+                            // UPDATE EXISTING
+                            const idx = tripData.expenses.findIndex(e => e.id === editingId);
+                            if (idx !== -1) {
+                                tripData.expenses[idx] = {
+                                    ...tripData.expenses[idx],
+                                    what: desc,
+                                    amt: amt,
+                                    date: date
+                                };
+                            }
+                        } else {
+                            // ADD NEW
+                            tripData.expenses.push({
+                                who: currentUser.name,
+                                what: desc,
+                                amt: amt,
+                                date: date,
+                                id: Date.now()
+                            });
+                        }
+
+                        sync();
+                        cancelEdit(); // Resets form and ID
+                    }
+                };
+
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
+                    });
                 }
-            };
 
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
-                });
-            }
-
-            init();
-        </script>
+                init();
+            </script>
 </body>
 
 </html>
