@@ -15,300 +15,294 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="h-full w-full overflow-hidden">
-    <div class="bg-gray-900 text-gray-100 h-[100dvh] w-full flex flex-col overflow-hidden">
+<body class="bg-gray-900 text-gray-100 h-[100dvh] w-full flex flex-col overflow-hidden">
 
-        <!-- LANDING SCREEN -->
-        <div id="landing-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 hidden"
-            style="background: rgba(0,0,0,0.6)">
-            <div class="flex flex-col items-center w-full max-w-sm">
-                <img src="logo.png" alt="Trip Helper" class="w-24 h-24 mb-6">
-                <h2 class="text-4xl font-bold mb-10 text-blue-400">Trip Helper</h2>
+    <!-- LANDING SCREEN -->
+    <div id="landing-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 hidden"
+        style="background: rgba(0,0,0,0.6)">
+        <div class="flex flex-col items-center w-full max-w-sm">
+            <img src="logo.png" alt="Trip Helper" class="w-24 h-24 mb-6">
+            <h2 class="text-4xl font-bold mb-10 text-blue-400">Trip Helper</h2>
 
-                <div id="welcome-msg" class="hidden text-gray-400 text-sm mb-4"></div>
+            <div id="welcome-msg" class="hidden text-gray-400 text-sm mb-4"></div>
 
-                <button id="create-trip-btn" class="w-full btn btn-primary btn-lg">
-                    Start New Trip
-                </button>
+            <button id="create-trip-btn" class="w-full btn btn-primary btn-lg">
+                Start New Trip
+            </button>
 
-                <div id="recent-trips-container" class="w-full mt-8 hidden">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="divider flex-1"></div>
-                        <span class="section-header">Recent</span>
-                        <div class="divider flex-1"></div>
-                    </div>
-                    <div id="recent-trips-list" class="space-y-2"></div>
+            <div id="recent-trips-container" class="w-full mt-8 hidden">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="divider flex-1"></div>
+                    <span class="section-header">Recent</span>
+                    <div class="divider flex-1"></div>
                 </div>
+                <div id="recent-trips-list" class="space-y-2"></div>
             </div>
         </div>
+    </div>
 
-        <!-- LOGIN SCREEN -->
-        <div id="login-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-4 hidden"
-            style="background: rgba(0,0,0,0.8)">
-            <div class="modal">
-                <h1 class="text-4xl mb-4 text-center">👋</h1>
-                <h2 class="text-xl font-bold mb-6 text-center">Who are you?</h2>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-4 hidden"
+        style="background: rgba(0,0,0,0.8)">
+        <div class="modal">
+            <h1 class="text-4xl mb-4 text-center">👋</h1>
+            <h2 class="text-xl font-bold mb-6 text-center">Who are you?</h2>
 
-                <input type="text" id="username-input" class="input mb-4 text-center text-lg"
-                    placeholder="Enter your name">
+            <input type="text" id="username-input" class="input mb-4 text-center text-lg" placeholder="Enter your name">
 
-                <button id="login-btn" class="w-full btn btn-primary mb-4">
-                    Join Trip
-                </button>
-                <button onclick="switchTrip()" class="w-full btn btn-secondary btn-sm">
-                    ← Back to Trips
-                </button>
-            </div>
+            <button id="login-btn" class="w-full btn btn-primary mb-4">
+                Join Trip
+            </button>
+            <button onclick="switchTrip()" class="w-full btn btn-secondary btn-sm">
+                ← Back to Trips
+            </button>
         </div>
+    </div>
 
-        <!-- MAIN APP -->
-        <div id="app-screen" class="flex-1 flex flex-col hidden max-w-lg mx-auto w-full h-full">
-            <!-- HEADER -->
-            <header class="p-4 pt-6 pb-2 flex justify-between items-center">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="copyTripLink()">
-                    <div class="w-10 h-10 rounded-xl card flex items-center justify-center overflow-hidden">
-                        <img src="logo.png" alt="Trip Helper" class="w-8 h-8">
-                    </div>
-                    <div class="flex items-center gap-2 group">
-                        <h1 id="header-trip-name" class="font-bold text-base">Trip Helper</h1>
-                        <button onclick="editTripName()"
-                            class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-white text-xs">✎</button>
-                    </div>
+    <!-- MAIN APP -->
+    <div id="app-screen" class="flex-1 flex flex-col hidden max-w-lg mx-auto w-full h-full">
+        <!-- HEADER -->
+        <header class="p-4 pt-6 pb-2 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="copyTripLink()">
+                <div class="w-10 h-10 rounded-xl card flex items-center justify-center overflow-hidden">
+                    <img src="logo.png" alt="Trip Helper" class="w-8 h-8">
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="switchTrip()" class="btn btn-secondary btn-sm">
-                        History
+                <h1 id="header-trip-name" class="font-bold text-base">Trip Helper</h1>
+                <button onclick="editTripName()"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-white text-xs">✎</button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchTrip()" class="btn btn-secondary btn-sm">
+                    History
+                </button>
+                <div class="relative">
+                    <button id="user-btn" onclick="toggleUserMenu()" class="btn btn-sm"
+                        style="background: rgba(59,130,246,0.1); color: #60a5fa;">
+                        <span id="user-display-name">User</span> ▼
                     </button>
-                    <div class="relative">
-                        <button id="user-btn" onclick="toggleUserMenu()" class="btn btn-sm"
-                            style="background: rgba(59,130,246,0.1); color: #60a5fa;">
-                            <span id="user-display-name">User</span> ▼
-                        </button>
-                        <div id="user-menu" class="absolute right-0 top-full mt-2 w-48 modal hidden">
-                            <div class="pb-3 mb-3" style="border-bottom: 1px solid rgba(255,255,255,0.1)">
-                                <p class="section-header mb-1">Logged in as</p>
-                                <p id="menu-user-name" class="font-bold truncate"></p>
-                            </div>
-                            <button onclick="downloadTripData()" class="w-full btn btn-secondary btn-sm mb-2">
-                                💾 Download Data
-                            </button>
-                            <button onclick="logout()" class="w-full btn btn-danger btn-sm mb-2">
-                                🚪 Switch User
-                            </button>
-                            <button onclick="removeMe()" class="w-full btn btn-danger btn-sm">
-                                🗑️ Remove Me from Trip
-                            </button>
+                    <div id="user-menu" class="absolute right-0 top-full mt-2 w-48 modal hidden">
+                        <div class="pb-3 mb-3" style="border-bottom: 1px solid rgba(255,255,255,0.1)">
+                            <p class="section-header mb-1">Logged in as</p>
+                            <p id="menu-user-name" class="font-bold truncate"></p>
                         </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- FINALIZED INFO -->
-            <div id="finalized-info" class="hidden px-4 pb-2">
-                <div class="card text-xs"
-                    style="padding: 0.5rem 0.75rem; background: rgba(251,191,36,0.1); border-color: #fbbf24;">
-                    <div id="finalized-dest" class="hidden mb-1">
-                        <span class="text-amber-400 font-bold">📍 <span id="finalized-dest-text"></span></span>
-                    </div>
-                    <div id="finalized-dates" class="hidden">
-                        <span class="text-amber-400 font-bold">📅 <span id="finalized-dates-text"></span></span>
+                        <button onclick="downloadTripData()" class="w-full btn btn-secondary btn-sm mb-2">
+                            💾 Download Data
+                        </button>
+                        <button onclick="logout()" class="w-full btn btn-danger btn-sm mb-2">
+                            🚪 Switch User
+                        </button>
+                        <button onclick="removeMe()" class="w-full btn btn-danger btn-sm">
+                            🗑️ Remove Me from Trip
+                        </button>
                     </div>
                 </div>
             </div>
+        </header>
 
-            <!-- TABS -->
-            <div class="px-4 mb-2">
-                <div class="card flex p-1 gap-1">
-                    <button id="tab-plan"
-                        class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Plan</button>
-                    <button id="tab-vote"
-                        class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Vote</button>
-                    <button id="tab-itin"
-                        class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Itinerary</button>
-                    <button id="tab-pack"
-                        class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Checklist</button>
-                    <button id="tab-exp"
-                        class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-all">Split cost</button>
+        <!-- FINALIZED INFO -->
+        <div id="finalized-info" class="hidden px-4 pb-2">
+            <div class="card text-xs"
+                style="padding: 0.5rem 0.75rem; background: rgba(251,191,36,0.1); border-color: #fbbf24;">
+                <div id="finalized-dest" class="hidden mb-1">
+                    <span class="text-amber-400 font-bold">📍 <span id="finalized-dest-text"></span></span>
                 </div>
-            </div>
-
-            <!-- SCROLLABLE CONTENT -->
-            <div class="flex-1 overflow-y-auto px-4 pb-32 space-y-4">
-
-                <!-- TAB: PLANNING -->
-                <div id="view-plan" class="space-y-4">
-                    <!-- DESTINATION HEADER -->
-                    <div class="card flex justify-between items-center" style="background: rgba(59,130,246,0.1)">
-                        <div class="flex-1">
-                            <h3 class="section-header text-blue-400 mb-1">Destination</h3>
-                            <div id="plan-dest-display" class="text-2xl font-bold"></div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button id="finalize-dest-btn" onclick="finalizeDestination()" class="hidden btn btn-sm"
-                                style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.75rem; padding: 0.5rem 0.75rem;">
-                                🔒 Lock
-                            </button>
-                            <div id="plan-weather-icon" class="text-5xl"></div>
-                        </div>
-                    </div>
-
-                    <!-- MEMBERS -->
-                    <div class="card">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="section-header flex items-center gap-2">
-                                👥 Squad <span id="member-count"
-                                    class="bg-gray-700 text-gray-300 px-1.5 rounded text-xs">0</span>
-                            </h3>
-                            <button onclick="copyTripLink()" class="btn btn-secondary btn-sm">
-                                Invite +
-                            </button>
-                        </div>
-                        <div id="member-list" class="flex flex-wrap gap-2"></div>
-                    </div>
-
-                    <!-- CALENDAR -->
-                    <div class="card">
-                        <div class="flex justify-between items-end mb-4">
-                            <div>
-                                <h3 class="section-header">📅 Availability</h3>
-                                <div id="calendar-header" class="text-sm font-bold text-blue-200 mt-1"></div>
-                            </div>
-                            <div class="flex gap-3 text-xs items-center">
-                                <span class="flex items-center gap-1 text-gray-400">
-                                    <div class="w-2 h-2 rounded-full bg-green-500"></div> You
-                                </span>
-                                <span class="flex items-center gap-1 text-gray-400">
-                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div> Others
-                                </span>
-                                <span class="flex items-center gap-1 text-gray-400">
-                                    <div class="w-2 h-2 rounded-full bg-amber-500"></div> Best
-                                </span>
-                            </div>
-                        </div>
-                        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 mb-3"></div>
-                        <div class="flex justify-between items-center mb-3">
-                            <div id="best-dates" class="text-xs font-bold text-amber-400"></div>
-                            <button id="finalize-dates-btn" onclick="finalizeDates()" class="hidden btn btn-sm"
-                                style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.75rem; padding: 0.5rem 0.75rem;">
-                                🔒 Lock
-                            </button>
-                        </div>
-                        <div id="person-availability" class="mt-4 card">
-                            <h4 class="section-header mb-3">Availability by Person</h4>
-                            <div id="person-availability-list" class="space-y-2"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB: ITINERARY -->
-                <div id="view-itin" class="hidden space-y-4">
-                    <div id="itin-empty-state"
-                        class="hidden flex flex-col items-center justify-center p-8 text-center card">
-                        <div class="text-4xl mb-4 opacity-50">📅</div>
-                        <h3 class="text-lg font-bold mb-2">No Itinerary Yet</h3>
-                        <p class="text-sm text-gray-400 mb-6">Lock in the best dates to start planning!</p>
-                        <button onclick="createItineraryFromBest()" class="btn btn-success">
-                            ✨ Generate Itinerary
-                        </button>
-                    </div>
-                    <div id="itin-add-best-dates" class="hidden card">
-                        <p class="text-sm text-gray-400 mb-3">New best dates available! Add them to your itinerary:</p>
-                        <button onclick="addMissingBestDates()" class="btn btn-success w-full">
-                            ➕ Add Best Dates
-                        </button>
-                    </div>
-                    <div id="itin-content" class="space-y-4"></div>
-                </div>
-
-                <!-- TAB: PACKING -->
-                <div id="view-pack" class="hidden space-y-4">
-                    <div class="card">
-                        <h3 class="section-header mb-3">✅ Trip Checklist</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="pack-input" placeholder="Add item..." class="input">
-                            <button id="add-pack-btn" class="btn btn-primary"
-                                style="padding: 0.75rem 1.25rem">+</button>
-                        </div>
-                        <div id="packing-list" class="space-y-2"></div>
-                    </div>
-                </div>
-
-                <!-- TAB: VOTE -->
-                <div id="view-vote" class="hidden space-y-4">
-                    <div class="card">
-
-
-                        <div class="mb-6 relative flex gap-2">
-                            <select id="search-day-select"
-                                class="bg-gray-800 border-none text-white text-sm rounded-lg p-3 w-28 focus:ring-2 focus:ring-blue-500"
-                                style="appearance: none; -webkit-appearance: none;">
-                                <option value="0">Unset</option>
-                            </select>
-                            <div class="relative flex-1">
-                                <input type="text" id="dest-input" class="input w-full" placeholder="Search City..."
-                                    autocomplete="off">
-                                <div id="suggestions-list"
-                                    class="absolute top-full left-0 right-0 mt-2 hidden max-h-48 overflow-y-auto z-50"
-                                    style="background: #1f2937; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="location-list" class="space-y-3"></div>
-                    </div>
-                </div>
-
-                <!-- TAB: EXPENSES -->
-                <div id="view-exp" class="hidden space-y-4">
-                    <div class="card flex flex-col items-center justify-center py-12 text-center">
-                        <div class="text-5xl mb-4">💸</div>
-                        <h3 class="text-xl font-bold mb-2">Split Cost App</h3>
-                        <p class="text-gray-400 text-sm mb-6 max-w-xs">
-                            Expenses have moved to a dedicated app for better tracking.
-                        </p>
-                        <button onclick="openExpensesApp()"
-                            class="btn btn-primary btn-lg w-full max-w-xs flex items-center justify-center gap-2">
-                            <span>Open App</span>
-                            <span class="text-lg">➜</span>
-                        </button>
-                    </div>
+                <div id="finalized-dates" class="hidden">
+                    <span class="text-amber-400 font-bold">📅 <span id="finalized-dates-text"></span></span>
                 </div>
             </div>
         </div>
 
-        <!-- ITINERARY MODAL -->
-        <div id="itin-modal" class="hidden modal-overlay">
-            <div class="modal">
-                <h3 id="itin-modal-title" class="text-lg font-bold mb-4">Add Event</h3>
-                <input type="hidden" id="itin-modal-id">
-                <input type="hidden" id="itin-modal-date">
-
-                <label class="section-header mb-1 block">Day</label>
-                <select id="itin-day-select" class="input mb-4">
-                </select>
-
-                <label class="section-header mb-1 block">Activity</label>
-                <input type="text" id="itin-title-input" class="input mb-4" placeholder="e.g. Dinner at Mario's">
-
-                <div class="flex gap-3 mb-4">
-                    <div class="flex-1">
-                        <label class="section-header mb-1 block">Time</label>
-                        <input type="time" id="itin-time-input" class="input">
-                    </div>
-                    <div class="flex-1">
-                        <label class="section-header mb-1 block">Cost (Est)</label>
-                        <input type="number" id="itin-cost-input" class="input" placeholder="€">
-                    </div>
-                </div>
-
-                <div class="flex gap-2 mb-2">
-                    <button onclick="closeItinModal()" class="flex-1 btn btn-secondary">Cancel</button>
-                    <button onclick="saveItinEvent()" class="flex-1 btn btn-success">Save</button>
-                </div>
-                <button id="itin-delete-btn" onclick="deleteItinEvent()" class="w-full btn btn-danger btn-sm hidden">
-                    Delete Event
-                </button>
+        <!-- TABS -->
+        <div class="px-4 mb-2">
+            <div class="card flex p-1 gap-1">
+                <button id="tab-plan"
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Plan</button>
+                <button id="tab-vote"
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Vote</button>
+                <button id="tab-itin"
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Itinerary</button>
+                <button id="tab-pack"
+                    class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-lg transition-all">Checklist</button>
+                <button id="tab-exp" class="flex-1 py-2 text-center text-sm font-bold text-gray-400 rounded-all">Split
+                    cost</button>
             </div>
+        </div>
+
+        <!-- SCROLLABLE CONTENT -->
+        <div class="flex-1 overflow-y-auto px-4 pb-32 space-y-4">
+
+            <!-- TAB: PLANNING -->
+            <div id="view-plan" class="space-y-4">
+                <!-- DESTINATION HEADER -->
+                <div class="card flex justify-between items-center" style="background: rgba(59,130,246,0.1)">
+                    <div class="flex-1">
+                        <h3 class="section-header text-blue-400 mb-1">Destination</h3>
+                        <div id="plan-dest-display" class="text-2xl font-bold"></div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="finalize-dest-btn" onclick="finalizeDestination()" class="hidden btn btn-sm"
+                            style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.75rem; padding: 0.5rem 0.75rem;">
+                            🔒 Lock
+                        </button>
+                        <div id="plan-weather-icon" class="text-5xl"></div>
+                    </div>
+                </div>
+
+                <!-- MEMBERS -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="section-header flex items-center gap-2">
+                            👥 Squad <span id="member-count"
+                                class="bg-gray-700 text-gray-300 px-1.5 rounded text-xs">0</span>
+                        </h3>
+                        <button onclick="copyTripLink()" class="btn btn-secondary btn-sm">
+                            Invite +
+                        </button>
+                    </div>
+                    <div id="member-list" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- CALENDAR -->
+                <div class="card">
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <h3 class="section-header">📅 Availability</h3>
+                            <div id="calendar-header" class="text-sm font-bold text-blue-200 mt-1"></div>
+                        </div>
+                        <div class="flex gap-3 text-xs items-center">
+                            <span class="flex items-center gap-1 text-gray-400">
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div> You
+                            </span>
+                            <span class="flex items-center gap-1 text-gray-400">
+                                <div class="w-2 h-2 rounded-full bg-blue-500"></div> Others
+                            </span>
+                            <span class="flex items-center gap-1 text-gray-400">
+                                <div class="w-2 h-2 rounded-full bg-amber-500"></div> Best
+                            </span>
+                        </div>
+                    </div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 mb-3"></div>
+                    <div class="flex justify-between items-center mb-3">
+                        <div id="best-dates" class="text-xs font-bold text-amber-400"></div>
+                        <button id="finalize-dates-btn" onclick="finalizeDates()" class="hidden btn btn-sm"
+                            style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.75rem; padding: 0.5rem 0.75rem;">
+                            🔒 Lock
+                        </button>
+                    </div>
+                    <div id="person-availability" class="mt-4 card">
+                        <h4 class="section-header mb-3">Availability by Person</h4>
+                        <div id="person-availability-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: ITINERARY -->
+            <div id="view-itin" class="hidden space-y-4">
+                <div id="itin-empty-state"
+                    class="hidden flex flex-col items-center justify-center p-8 text-center card">
+                    <div class="text-4xl mb-4 opacity-50">📅</div>
+                    <h3 class="text-lg font-bold mb-2">No Itinerary Yet</h3>
+                    <p class="text-sm text-gray-400 mb-6">Lock in the best dates to start planning!</p>
+                    <button onclick="createItineraryFromBest()" class="btn btn-success">
+                        ✨ Generate Itinerary
+                    </button>
+                </div>
+                <div id="itin-add-best-dates" class="hidden card">
+                    <p class="text-sm text-gray-400 mb-3">New best dates available! Add them to your itinerary:</p>
+                    <button onclick="addMissingBestDates()" class="btn btn-success w-full">
+                        ➕ Add Best Dates
+                    </button>
+                </div>
+                <div id="itin-content" class="space-y-4"></div>
+            </div>
+
+            <!-- TAB: PACKING -->
+            <div id="view-pack" class="hidden space-y-4">
+                <div class="card">
+                    <h3 class="section-header mb-3">✅ Trip Checklist</h3>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="pack-input" placeholder="Add item..." class="input">
+                        <button id="add-pack-btn" class="btn btn-primary" style="padding: 0.75rem 1.25rem">+</button>
+                    </div>
+                    <div id="packing-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- TAB: VOTE -->
+            <div id="view-vote" class="hidden space-y-4">
+                <div class="card">
+
+
+                    <div class="mb-6 relative flex gap-2">
+                        <select id="search-day-select"
+                            class="bg-gray-800 border-none text-white text-sm rounded-lg p-3 w-28 focus:ring-2 focus:ring-blue-500"
+                            style="appearance: none; -webkit-appearance: none;">
+                            <option value="0">Unset</option>
+                        </select>
+                        <div class="relative flex-1">
+                            <input type="text" id="dest-input" class="input w-full" placeholder="Search City..."
+                                autocomplete="off">
+                            <div id="suggestions-list"
+                                class="absolute top-full left-0 right-0 mt-2 hidden max-h-48 overflow-y-auto z-50"
+                                style="background: #1f2937; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="location-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- TAB: EXPENSES -->
+            <div id="view-exp" class="hidden space-y-4">
+                <div class="card flex flex-col items-center justify-center py-12 text-center">
+                    <div class="text-5xl mb-4">💸</div>
+                    <h3 class="text-xl font-bold mb-2">Split Cost App</h3>
+                    <p class="text-gray-400 text-sm mb-6 max-w-xs">
+                        Expenses have moved to a dedicated app for better tracking.
+                    </p>
+                    <button onclick="openExpensesApp()"
+                        class="btn btn-primary btn-lg w-full max-w-xs flex items-center justify-center gap-2">
+                        <span>Open App</span>
+                        <span class="text-lg">➜</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ITINERARY MODAL -->
+    <div id="itin-modal" class="hidden modal-overlay">
+        <div class="modal">
+            <h3 id="itin-modal-title" class="text-lg font-bold mb-4">Add Event</h3>
+            <input type="hidden" id="itin-modal-id">
+            <input type="hidden" id="itin-modal-date">
+
+            <label class="section-header mb-1 block">Day</label>
+            <select id="itin-day-select" class="input mb-4">
+            </select>
+
+            <label class="section-header mb-1 block">Activity</label>
+            <input type="text" id="itin-title-input" class="input mb-4" placeholder="e.g. Dinner at Mario's">
+
+            <div class="flex gap-3 mb-4">
+                <div class="flex-1">
+                    <label class="section-header mb-1 block">Time</label>
+                    <input type="time" id="itin-time-input" class="input">
+                </div>
+                <div class="flex-1">
+                    <label class="section-header mb-1 block">Cost (Est)</label>
+                    <input type="number" id="itin-cost-input" class="input" placeholder="€">
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-2">
+                <button onclick="closeItinModal()" class="flex-1 btn btn-secondary">Cancel</button>
+                <button onclick="saveItinEvent()" class="flex-1 btn btn-success">Save</button>
+            </div>
+            <button id="itin-delete-btn" onclick="deleteItinEvent()" class="w-full btn btn-danger btn-sm hidden">
+                Delete Event
+            </button>
         </div>
     </div>
     </div>
@@ -406,17 +400,13 @@
             } else {
                 els.recentTripsCont.classList.remove('hidden');
                 els.recentTripsList.innerHTML = recent.map(t => `
-                <div onclick="window.location.href='?token=${t.id}'" class="list-item">
-                    <div class="flex items-center gap-3 flex-1">
-                        <div class="w-8 h-8 rounded-full card flex items-center justify-center overflow-hidden">
-                            <img src="logo.png" alt="Trip" class="w-6 h-6">
-                        </div>
-                        <div>
-                            <span class="font-bold text-sm">${t.name}</span>
-                            <span class="block text-xs text-gray-500">ID: ${t.id.slice(0, 6)}...</span>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-sm">➜</span>
+                <div onclick="window.location.href='?token=${t.id}'" class="list-item gap-3">
+                     <img src="logo.png" alt="Trip" class="w-6 h-6 shrink-0">
+                     <div class="flex-1 min-w-0">
+                         <span class="font-bold text-sm block truncate">${t.name}</span>
+                         <span class="block text-xs text-gray-500">ID: ${t.id.slice(0, 6)}...</span>
+                     </div>
+                     <span class="text-gray-500 text-sm shrink-0">➜</span>
                 </div>
             `).join('');
             }
