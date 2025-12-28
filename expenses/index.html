@@ -27,9 +27,13 @@
 
                 <div id="welcome-msg" class="hidden text-gray-400 text-sm mb-4"></div>
 
-                <div class="text-gray-500 text-sm mb-8 text-center">
-                    Please open this app via an invite link.
+                <div class="text-gray-500 text-sm mb-4 text-center">
+                    Please open this app via an invite link or
                 </div>
+
+                <button onclick="createNewGroup()" class="btn btn-primary w-full mb-4">
+                    Create New Group
+                </button>
 
                 <div id="recent-trips-container" class="w-full mt-8 hidden">
                     <div class="flex items-center gap-4 mb-4">
@@ -434,6 +438,12 @@
                     alert("Invite Link Copied!");
                 });
             }
+        };
+
+        window.createNewGroup = () => {
+            // Generate a random ID (8 chars)
+            const newId = Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('');
+            window.location.href = `?token=${newId}`;
         };
 
         window.downloadTripData = () => {
