@@ -69,7 +69,23 @@ body {
 .app-icon {
     font-size: 56px;
     margin-bottom: 16px;
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+    /* specific height to contain the icon */
+}
+
+.app-icon img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s ease;
+}
+
+.app-card:hover .app-icon img {
+    transform: scale(1.1);
 }
 
 .app-card h3 {
