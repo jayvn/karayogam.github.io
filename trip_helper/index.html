@@ -8,7 +8,7 @@
     <title>Trip Helper</title>
     <meta name="theme-color" content="#111827">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="https://fav.farm/✈️">
+    <link rel="icon" href="logo.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,7 +22,7 @@
         <div id="landing-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 hidden"
             style="background: rgba(0,0,0,0.6)">
             <div class="flex flex-col items-center w-full max-w-sm">
-                <div class="text-7xl mb-6">✈️</div>
+                <img src="logo.png" alt="Trip Helper" class="w-24 h-24 mb-6">
                 <h2 class="text-4xl font-bold mb-10 text-blue-400">Trip Helper</h2>
 
                 <div id="welcome-msg" class="hidden text-gray-400 text-sm mb-4"></div>
@@ -66,8 +66,8 @@
             <!-- HEADER -->
             <header class="p-4 pt-6 pb-2 flex justify-between items-center">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="copyTripLink()">
-                    <div class="w-10 h-10 rounded-xl card flex items-center justify-center">
-                        <span class="text-xl">✈️</span>
+                    <div class="w-10 h-10 rounded-xl card flex items-center justify-center overflow-hidden">
+                        <img src="logo.png" alt="Trip Helper" class="w-8 h-8">
                     </div>
                     <div class="flex items-center gap-2 group">
                         <h1 id="header-trip-name" class="font-bold text-base">Trip Helper</h1>
@@ -416,7 +416,9 @@
             els.recentTripsList.innerHTML = recent.map(t => `
                 <div onclick="window.location.href='?token=${t.id}'" class="list-item">
                     <div class="flex items-center gap-3 flex-1">
-                        <div class="w-8 h-8 rounded-full card flex items-center justify-center text-xs">✈️</div>
+                        <div class="w-8 h-8 rounded-full card flex items-center justify-center overflow-hidden">
+                            <img src="logo.png" alt="Trip" class="w-6 h-6">
+                        </div>
                         <div>
                             <span class="font-bold text-sm">${t.name}</span>
                             <span class="block text-xs text-gray-500">ID: ${t.id.slice(0, 6)}...</span>
