@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,13 +23,53 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: radial-gradient(circle at 50% 50%, #1a365d 0%, #0a192f 100%); overflow-x: hidden; }
-        .snow-flake { position: fixed; top: -10px; color: white; user-select: none; z-index: 0; pointer-events: none; animation: fall linear infinite; }
-        @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
-        .easter-egg { animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s forwards; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
-        details[open] > summary span { transform: rotate(90deg); }
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a365d 0%, #0a192f 100%);
+            overflow-x: hidden;
+        }
+
+        .snow-flake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            user-select: none;
+            z-index: 0;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(360deg);
+            }
+        }
+
+        .easter-egg {
+            animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        details[open]>summary span {
+            transform: rotate(90deg);
+        }
     </style>
 
     <!-- Firebase Configuration -->
@@ -56,7 +97,7 @@
 
         let state = { members: [], pairs: [], isReady: false, creator: null };
         let user = null;
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', 'globalState');
+        const docRef = doc(db, 'artifacts', appId, 'sessions');
         const santaEmoji = "🎅🏽";
 
         const sync = (newData) => { if (user) setDoc(docRef, newData); };
@@ -199,7 +240,7 @@
         };
 
         window.onload = async () => {
-            for(let i=0; i<30; i++) {
+            for (let i = 0; i < 30; i++) {
                 const f = document.createElement('div');
                 f.className = 'snow-flake'; f.innerHTML = '❄';
                 f.style.left = Math.random() * 100 + 'vw';
@@ -222,25 +263,29 @@
         };
     </script>
 </head>
+
 <body class="min-h-screen p-4 flex flex-col items-center">
-    <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-md rounded-3xl shadow-2xl border-2 border-red-600/50 p-8 z-10">
+    <div
+        class="w-full max-w-md bg-slate-900/80 backdrop-blur-md rounded-3xl shadow-2xl border-2 border-red-600/50 p-8 z-10">
         <div id="userGreeting" class="text-center text-green-400 font-bold text-sm mb-2 h-4"></div>
         <div class="text-center mb-6">
-            <div class="flex justify-center mb-2 text-6xl">🎅🏽</div>
+            <div class="mb-2 text-6xl">🎅🏽</div>
             <h1 class="text-4xl font-black text-white mb-1 drop-shadow-lg">SECRET SANTA</h1>
             <p class="text-red-500 font-bold uppercase tracking-widest text-xs">Moosach Edition 🦌</p>
         </div>
 
-        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
-            <p class="text-white/70 text-[11px] leading-relaxed text-center">
-                <span class="text-yellow-400 font-bold">INSTRUCTIONS:</span><br>
-                Add everyone's name below. Once the group is complete, the Admin must enter the PIN in the Control Panel to lock the list and Match the Santas.
-            </p>
-        </div>
+        <p
+            class="bg-white/5 rounded-xl p-4 mb-6 border border-white/10 text-white/70 text-[11px] leading-relaxed text-center">
+            <span class="text-yellow-400 font-bold">INSTRUCTIONS:</span><br>
+            Add everyone's name below. Once the group is complete, the Admin must enter the PIN in the Control Panel
+            to lock the list and Match the Santas.
+        </p>
 
         <div id="inputArea" class="flex gap-2 mb-6">
-            <input id="nameIn" type="text" placeholder="Add your name" class="flex-1 bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white outline-none focus:border-red-500">
-            <button onclick="addMember()" class="bg-red-600 text-white px-6 rounded-xl font-black shadow-lg hover:bg-red-500 transition-colors">ADD</button>
+            <input id="nameIn" type="text" placeholder="Add your name"
+                class="flex-1 bg-white/5 border-2 border-white/10 p-3 rounded-xl text-white outline-none focus:border-red-500">
+            <button onclick="addMember()"
+                class="bg-red-600 text-white px-6 rounded-xl font-black shadow-lg hover:bg-red-500 transition-colors">ADD</button>
         </div>
 
         <div id="list" class="mb-8 max-h-40 overflow-y-auto pr-2 custom-scrollbar"></div>
@@ -252,22 +297,32 @@
         </div>
 
         <details class="mt-12 pt-6 border-t border-white/5">
-            <summary class="text-[10px] text-white/20 text-center uppercase tracking-widest cursor-pointer hover:text-white/40 transition-colors list-none flex items-center justify-center gap-2">
+            <summary
+                class="text-[10px] text-white/20 text-center uppercase tracking-widest cursor-pointer hover:text-white/40 transition-colors list-none flex items-center justify-center gap-2">
                 <span class="inline-block transition-transform" style="font-size: 8px;">▶</span>
                 Admin Control Panel
             </summary>
             <div class="space-y-4 mt-4">
-                <input id="adminPin" type="password" placeholder="Access PIN" class="w-full bg-black/40 border border-white/10 p-2 rounded-lg text-white text-center text-sm outline-none focus:border-blue-900">
+                <input id="adminPin" type="password" placeholder="Access PIN"
+                    class="w-full bg-black/40 border border-white/10 p-2 rounded-lg text-white text-center text-sm outline-none focus:border-blue-900">
 
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="adminReadyBtn" onclick="setReady()" class="bg-blue-600/80 hover:bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Lock List 🔒</button>
-                    <button id="adminDrawBtn" onclick="draw()" class="bg-green-700/80 hover:bg-green-700 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all" style="display:none">Match Santa 🎲</button>
+                    <button id="adminReadyBtn" onclick="setReady()"
+                        class="bg-blue-600/80 hover:bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all"
+                        style="display:none">Lock List 🔒</button>
+                    <button id="adminDrawBtn" onclick="draw()"
+                        class="bg-green-700/80 hover:bg-green-700 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-all"
+                        style="display:none">Match Santa 🎲</button>
                 </div>
 
-                <button onclick="clearAll()" class="w-full bg-red-950/20 text-red-500/30 hover:text-red-500/60 py-2 rounded-lg text-[9px] uppercase tracking-[0.2em] transition-colors border border-red-900/10">Destroy Session Data 💀</button>
+                <button onclick="clearAll()"
+                    class="w-full bg-red-950/20 text-red-500/30 hover:text-red-500/60 py-2 rounded-lg text-[9px] uppercase tracking-[0.2em] transition-colors border border-red-900/10">Destroy
+                    Session Data 💀</button>
             </div>
         </details>
     </div>
-    <footer class="mt-8 text-white/50 text-xs text-center font-medium max-w-xs">Made by Jay , pakshe Jay ee paripadikkilla (monster)</footer>
+    <footer class="mt-8 text-white/50 text-xs text-center font-medium max-w-xs">Made by Jay , pakshe Jay ee
+        paripadikkilla (monster)</footer>
 </body>
+
 </html>
