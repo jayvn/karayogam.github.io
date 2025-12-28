@@ -23,12 +23,12 @@
             style="background: rgba(0,0,0,0.6)">
             <div class="flex flex-col items-center w-full max-w-sm">
                 <img src="logo.png" alt="Trip Helper" class="w-24 h-24 mb-6">
-                <h2 class="text-4xl font-bold mb-10 text-green-400">Trip Expenses</h2>
+                <h2 class="text-4xl font-bold mb-10 text-green-400">Group Expenses</h2>
 
                 <div id="welcome-msg" class="hidden text-gray-400 text-sm mb-4"></div>
 
                 <div class="text-gray-500 text-sm mb-8 text-center">
-                    Please open this app from the main Trip Helper app<br>or use an invite link.
+                    Please open this app via an invite link.
                 </div>
 
                 <div id="recent-trips-container" class="w-full mt-8 hidden">
@@ -53,7 +53,7 @@
                     placeholder="Enter your name">
 
                 <button id="login-btn" class="w-full btn btn-primary mb-4">
-                    Join Trip
+                    Join Group
                 </button>
             </div>
         </div>
@@ -67,10 +67,13 @@
                         <img src="logo.png" alt="Trip Helper" class="w-8 h-8">
                     </div>
                     <div class="flex items-center gap-2 group">
-                        <h1 id="header-trip-name" class="font-bold text-base">Trip Expenses</h1>
+                        <h1 id="header-trip-name" class="font-bold text-base">Group Expenses</h1>
                     </div>
                 </div>
                 <div class="flex gap-2">
+                    <button onclick="switchGroup()" class="btn btn-secondary btn-sm">
+                        My Groups
+                    </button>
                     <div class="relative">
                         <button id="user-btn" onclick="toggleUserMenu()" class="btn btn-sm"
                             style="background: rgba(59,130,246,0.1); color: #60a5fa;">
@@ -83,9 +86,6 @@
                             </div>
                             <button onclick="downloadTripData()" class="w-full btn btn-secondary btn-sm mb-2">
                                 💾 Download Data
-                            </button>
-                            <button onclick="logout()" class="w-full btn btn-danger btn-sm">
-                                🚪 Switch User
                             </button>
                         </div>
                     </div>
@@ -311,7 +311,7 @@
         function render() {
             if (!tripData) return;
 
-            document.getElementById('header-trip-name').innerText = tripData.name || "Trip Expenses";
+            document.getElementById('header-trip-name').innerText = tripData.name || "Group Expenses";
 
             // EXPENSES LOGIC
             const expenses = tripData.expenses || [];
@@ -400,12 +400,14 @@
             document.getElementById('expense-list').innerHTML = balanceContainer + listHtml;
         }
 
-        window.logout = () => { localStorage.removeItem('trip_user_name'); location.reload(); };
+
 
         window.toggleUserMenu = () => {
             userMenuOpen = !userMenuOpen;
             els.userMenu.classList.toggle('hidden', !userMenuOpen);
         };
+
+        window.switchGroup = () => window.location.href = window.location.pathname;
 
         document.addEventListener('click', (e) => {
             if (userMenuOpen && !els.userBtn.contains(e.target) && !els.userMenu.contains(e.target)) {
@@ -416,7 +418,7 @@
 
         window.copyTripLink = () => {
             navigator.clipboard.writeText(window.location.href).then(() => {
-                alert("Trip Link Copied!");
+                alert("Link Copied!");
             });
         };
 
