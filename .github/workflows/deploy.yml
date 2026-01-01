@@ -36,6 +36,7 @@ jobs:
           cp -r secret-santa deploy/ || true
           cp -r trip_helper deploy/ || true
           cp -r expenses deploy/ || true
+          cp -r matrix_draw deploy/ || true
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/

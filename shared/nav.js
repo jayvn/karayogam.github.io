@@ -20,7 +20,8 @@
             { name: 'Shopping List', path: '/shopping/', icon: '🛒' },
             { name: '3D Colorizer', path: '/3d_colorizer/', icon: '🎨' },
             { name: 'Secret Santa', path: '/secret-santa/', icon: '🎅🏽' },
-            { name: 'Trip Planner', path: '/trip_helper/', icon: '✈️' }
+            { name: 'Trip Planner', path: '/trip_helper/', icon: '✈️' },
+            { name: 'Matrix Code Gen', path: '/matrix_draw/', icon: '🟩' }
         ],
         moreLinks: [
             { name: 'Events', path: '/events', icon: '📅' }
