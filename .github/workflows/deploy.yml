@@ -18,25 +18,12 @@ jobs:
 
       - name: Prepare deployment directory
         run: |
-          # Create a deployment directory with the site structure
+          # Create deployment directory and copy everything
           mkdir -p deploy
+          cp -r . deploy/
 
-          # Copy main site files
-          cp -r images deploy/ || true
-          cp index.html style.css script.js CNAME deploy/ || true
-          cp -r events deploy/ || true
-          cp -r shared deploy/ || true
-          cp -r _templates deploy/ || true
-
-          # Copy all apps
-          cp -r choreo deploy/ || true
-          cp -r anils-library deploy/ || true
-
-
-          cp -r secret-santa deploy/ || true
-          cp -r trip_helper deploy/ || true
-          cp -r expenses deploy/ || true
-          cp -r matrix_draw deploy/ || true
+          # Remove files/folders that shouldn't be deployed
+          rm -rf deploy/.git deploy/.github
 
           echo "✅ Deployment directory prepared"
           ls -la deploy/
