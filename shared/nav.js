@@ -21,7 +21,8 @@
             { name: '3D Colorizer', path: '/3d_colorizer/', icon: '🎨' },
             { name: 'Secret Santa', path: '/secret-santa/', icon: '🎅🏽' },
             { name: 'Trip Planner', path: '/trip_helper/', icon: '✈️' },
-            { name: 'Matrix Code Gen', path: '/matrix_draw/', icon: '🟩' }
+            { name: 'Matrix Code Gen', path: '/matrix_draw/', icon: '🟩' },
+            { name: 'Poll Barber', path: '/poll/', icon: '✂️' }
         ],
         moreLinks: [
             { name: 'Events', path: '/events', icon: '📅' }

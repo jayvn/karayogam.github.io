@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✂️ Poll Barber</title>
+<link rel="stylesheet" href="/shared/nav.css">
+<style>
+  :root {
+    --bg-deep: #0a0514;
+    --neon-pink: #ff007a;
+    --neon-cyan: #00e5ff;
+    --neon-green: #39ff14;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle at center, #2a081d 0%, var(--bg-deep) 80%);
+    background-attachment: fixed;
+    color: #fff;
+    text-align: center;
+    overflow-x: hidden;
+  }
+
+  /* OVERLAYS */
+  .overlay {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10, 5, 20, 0.97); padding: 20px;
+  }
+  .overlay.hidden { display: none; }
+
+  .card {
+    background: rgba(25, 15, 35, 0.98); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15); padding: 30px;
+    width: 100%; max-width: 400px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .card h2 { margin: 0; text-transform: uppercase; }
+
+  /* INPUTS & BUTTONS */
+  .inp {
+    padding: 12px; border-radius: 8px; border: 1px solid var(--neon-cyan);
+    background: rgba(0,0,0,0.5); color: white; font-size: 1rem; width: 100%;
+  }
+  .inp::placeholder { color: #555; }
+
+  .btn {
+    padding: 12px; border: none; border-radius: 8px;
+    cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.2s; width: 100%;
+  }
+  .btn-cyan { background: var(--neon-cyan); color: #000; }
+  .btn-cyan:hover { background: white; box-shadow: 0 0 15px white; }
+  .btn-pink { background: var(--neon-pink); color: white; }
+  .btn-pink:hover { background: white; color: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); }
+  .btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #aaa; }
+  .btn-ghost:hover { border-color: white; color: white; }
+
+  .divider { display: flex; align-items: center; gap: 10px; color: #444; font-size: 0.85rem; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #333; }
+
+  /* MAIN APP */
+  #app { display: none; padding-bottom: 80px; }
+
+  /* STICKY HEADER */
+  .sticky-header {
+    position: sticky; top: 0;
+    background: rgba(10, 5, 20, 0.98);
+    padding: 12px 20px; border-bottom: 2px solid var(--neon-cyan); z-index: 100;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .sticky-header h2 { margin: 0; font-size: 1rem; color: var(--neon-cyan); flex: 1; text-align: left; }
+  .header-actions { display: flex; gap: 8px; }
+  .chip {
+    font-size: 0.8rem; padding: 5px 10px; border-radius: 20px;
+    border: 1px solid; cursor: pointer; white-space: nowrap;
+  }
+  .chip-cyan { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+  .chip-pink { border-color: var(--neon-pink); color: var(--neon-pink); }
+  .chip:hover { background: rgba(255,255,255,0.1); }
+
+  /* SECTIONS */
+  .section {
+    padding: 30px 20px; margin: 30px auto; max-width: 800px;
+    background: rgba(25, 15, 35, 0.85); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1); transition: transform 0.3s;
+  }
+  .section:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+
+  h1 { text-transform: uppercase; margin: 0 0 8px; color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); font-size: 1.4rem; }
+  p { margin: 0; color: #aaa; font-size: 0.9rem; }
+
+  /* POLL OPTIONS */
+  .poll-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px; margin-top: 20px;
+  }
+
+  .poll-btn {
+    background: rgba(0,0,0,0.6); border: 2px solid var(--neon-pink);
+    color: white; padding: 18px; border-radius: 15px; cursor: pointer;
+    display: flex; flex-direction: column; transition: 0.2s; text-align: left;
+    user-select: none;
+  }
+  .poll-btn:hover { background: rgba(255, 0, 122, 0.12); box-shadow: 0 0 20px var(--neon-pink); transform: scale(1.02); }
+  .poll-btn.voted { border-color: var(--neon-green); background: rgba(57, 255, 20, 0.08); }
+  .poll-btn.voted:hover { box-shadow: 0 0 20px var(--neon-green); }
+
+  .opt-title { font-size: 1.05rem; font-weight: bold; margin-bottom: 6px; }
+  .opt-desc { font-size: 0.88rem; color: #bbb; margin-bottom: 10px; flex-grow: 1; line-height: 1.4; }
+
+  .opt-link {
+    color: var(--neon-cyan); text-decoration: none; font-size: 0.82rem;
+    background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 8px;
+    border: 1px solid var(--neon-cyan); align-self: flex-start; margin-bottom: 10px;
+  }
+  .opt-link:hover { color: #000; background: var(--neon-cyan); }
+
+  .progress-bar { height: 6px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 5px; margin-top: 8px; }
+  .progress-fill { height: 100%; background: var(--neon-green); transition: width 0.4s; box-shadow: 0 0 8px var(--neon-green); border-radius: 5px; }
+  .voters-label { font-size: 0.72rem; color: #888; margin-top: 5px; line-height: 1.3; }
+  .vote-badge { font-size: 0.78rem; color: var(--neon-green); margin-top: 4px; font-weight: bold; }
+
+  /* ADD OPTION */
+  .add-option-box {
+    margin-top: 20px; display: flex; flex-direction: column; gap: 8px;
+    background: rgba(0,0,0,0.4); padding: 18px; border-radius: 15px;
+    border: 1px dashed var(--neon-cyan);
+  }
+  .add-option-box h3 { margin: 0 0 5px; color: var(--neon-cyan); font-size: 0.95rem; text-transform: uppercase; }
+
+  /* CREATE POLL */
+  .create-section {
+    border: 1px dashed var(--neon-pink); padding: 30px 20px;
+    margin: 30px auto; max-width: 800px;
+    background: rgba(25, 15, 35, 0.85); border-radius: 20px;
+  }
+  .create-section h2 { text-transform: uppercase; margin: 0 0 8px; color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); }
+
+  /* PARTICLES */
+  .physics-emoji { position: fixed; font-size: 2rem; pointer-events: none; z-index: 9999; will-change: transform; }
+
+  /* EMPTY STATE */
+  .empty-state { color: #555; font-size: 0.9rem; padding: 20px; }
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div class="overlay hidden" id="landing">
+  <div class="card">
+    <h2 style="color: var(--neon-pink)">✂️ Poll Barber</h2>
+    <p style="color: #aaa; font-size: 0.88rem">Real-time polls with friends</p>
+    <button class="btn btn-cyan" onclick="createRoom()">🌟 Create New Poll Room</button>
+    <div class="divider">or join existing</div>
+    <input class="inp" id="join-token" placeholder="Enter room code" maxlength="20">
+    <button class="btn btn-ghost" onclick="joinRoom()">Join Room</button>
+  </div>
+</div>
+
+<!-- NAME ENTRY -->
+<div class="overlay hidden" id="name-overlay">
+  <div class="card">
+    <h2 style="color: var(--neon-cyan)">👋 Who are you?</h2>
+    <p style="color: #aaa; font-size: 0.88rem">Your name appears next to votes</p>
+    <input class="inp" id="name-input" placeholder="Enter your name" maxlength="30" autofocus>
+    <button class="btn btn-cyan" onclick="submitName()">Enter</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="sticky-header">
+    <h2 id="room-title">✨ POLLS</h2>
+    <div class="header-actions">
+      <span class="chip chip-cyan" onclick="shareRoom()">📤 Share</span>
+      <span class="chip chip-pink" id="user-label"></span>
+    </div>
+  </div>
+
+  <div id="polls-container"></div>
+
+  <div class="create-section">
+    <h2>🌟 New Poll</h2>
+    <p style="margin-bottom: 15px">Create a new question for everyone to vote on</p>
+    <input type="text" class="inp" id="new-poll-title" placeholder="What do you want to vote on?">
+    <button class="btn btn-pink" style="margin-top: 10px" onclick="createPoll()">Create Poll</button>
+  </div>
+</div>
+
+<script>
+  window.__firebase_config = JSON.stringify({
+    apiKey: "AIzaSyATX9AewOd8pmUQWkYXYAvb2meH7kGNtbg",
+    authDomain: "karayogam-22.firebaseapp.com",
+    projectId: "karayogam-22",
+    storageBucket: "karayogam-22.firebasestorage.app",
+    messagingSenderId: "38360726672",
+    appId: "1:38360726672:web:d254e8eed733ddf3c9ac15"
+  });
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const fbApp = initializeApp(JSON.parse(window.__firebase_config));
+  const auth = getAuth(fbApp);
+  const db = getFirestore(fbApp);
+
+  let roomId = null;
+  let userName = null;
+  let state = { title: 'Polls', polls: [] };
+
+  await signInAnonymously(auth);
+
+  const params = new URLSearchParams(location.search);
+  const tokenFromUrl = params.get('token');
+
+  if (tokenFromUrl) {
+    roomId = tokenFromUrl;
+    const saved = localStorage.getItem('poll_user_name');
+    if (saved) { userName = saved; startApp(); }
+    else showNameOverlay();
+  } else {
+    show('landing');
+    document.getElementById('join-token').addEventListener('keydown', e => e.key === 'Enter' && joinRoom());
+  }
+
+  document.getElementById('name-input').addEventListener('keydown', e => e.key === 'Enter' && submitName());
+  document.getElementById('new-poll-title').addEventListener('keydown', e => e.key === 'Enter' && createPoll());
+
+  // --- NAV HELPERS ---
+  function show(id) {
+    ['landing', 'name-overlay', 'app'].forEach(x => {
+      const el = document.getElementById(x);
+      if (x === 'app') el.style.display = x === id ? 'block' : 'none';
+      else el.classList.toggle('hidden', x !== id);
+    });
+  }
+
+  function showNameOverlay() {
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('name-overlay').classList.remove('hidden');
+    setTimeout(() => document.getElementById('name-input').focus(), 100);
+  }
+
+  // --- ROOM ACTIONS (exposed to onclick) ---
+  window.createRoom = async () => {
+    roomId = Math.random().toString(36).slice(2, 8);
+    history.replaceState({}, '', `?token=${roomId}`);
+    const saved = localStorage.getItem('poll_user_name');
+    if (saved) { userName = saved; await initRoom(); startApp(); }
+    else showNameOverlay();
+  };
+
+  window.joinRoom = () => {
+    const token = document.getElementById('join-token').value.trim();
+    if (!token) return;
+    roomId = token;
+    history.replaceState({}, '', `?token=${roomId}`);
+    const saved = localStorage.getItem('poll_user_name');
+    if (saved) { userName = saved; startApp(); }
+    else showNameOverlay();
+  };
+
+  window.submitName = () => {
+    const n = document.getElementById('name-input').value.trim();
+    if (!n) return;
+    userName = n;
+    localStorage.setItem('poll_user_name', n);
+    startApp();
+  };
+
+  // --- FIRESTORE ---
+  function roomRef() { return doc(db, 'artifacts', 'polls-v1', roomId); }
+
+  async function save(data) {
+    state = data;
+    await setDoc(roomRef(), data);
+  }
+
+  async function initRoom() {
+    await setDoc(roomRef(), state, { merge: true });
+  }
+
+  function startApp() {
+    show('app');
+    document.getElementById('user-label').textContent = '👤 ' + userName;
+    onSnapshot(roomRef(), snap => {
+      if (snap.exists()) state = snap.data();
+      render();
+    });
+  }
+
+  // --- RENDER ---
+  function render() {
+    document.getElementById('room-title').textContent = '✨ ' + (state.title || 'POLLS').toUpperCase();
+    const container = document.getElementById('polls-container');
+    container.innerHTML = '';
+
+    (state.polls || []).forEach((poll, pi) => {
+      const opts = poll.options || [];
+      const maxVotes = Math.max(...opts.map(o => (o.voters || []).length), 1);
+
+      const section = document.createElement('div');
+      section.className = 'section';
+
+      const optionsHTML = opts.length
+        ? opts.map((opt, oi) => {
+            const voters = opt.voters || [];
+            const voted = voters.includes(userName);
+            const pct = Math.round((voters.length / maxVotes) * 100);
+            return `
+              <div class="poll-btn ${voted ? 'voted' : ''}" onclick="toggleVote(${pi}, ${oi}, event)">
+                <div class="opt-title">${opt.title}</div>
+                ${opt.desc ? `<div class="opt-desc">${opt.desc}</div>` : ''}
+                ${opt.link ? `<a href="${opt.link}" class="opt-link" target="_blank" onclick="event.stopPropagation()">🔗 View Link</a>` : ''}
+                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                <div class="voters-label">${voters.length} vote${voters.length !== 1 ? 's' : ''}${voters.length ? ' · ' + voters.join(', ') : ''}</div>
+                ${voted ? '<div class="vote-badge">✓ You voted</div>' : ''}
+              </div>`;
+          }).join('')
+        : '<div class="empty-state">No options yet — add one below!</div>';
+
+      section.innerHTML = `
+        <h1>${poll.title}</h1>
+        <div class="poll-grid">${optionsHTML}</div>
+        <div class="add-option-box">
+          <h3>➕ Add Option</h3>
+          <input type="text" class="inp add-title" placeholder="Title *">
+          <input type="text" class="inp add-desc" placeholder="Description (optional)">
+          <input type="url" class="inp add-link" placeholder="Link URL (optional)">
+          <button class="btn btn-cyan" style="margin-top:4px" onclick="addOption(${pi}, this)">Add Option</button>
+        </div>`;
+
+      // Enter key on last input submits
+      const addBox = section.querySelector('.add-option-box');
+      addBox.querySelector('.add-link').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addOption(pi, addBox.querySelector('button'));
+      });
+      addBox.querySelector('.add-title').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addOption(pi, addBox.querySelector('button'));
+      });
+
+      container.appendChild(section);
+    });
+  }
+
+  // --- POLL ACTIONS ---
+  window.toggleVote = async (pi, oi, e) => {
+    const voters = [...(state.polls[pi].options[oi].voters || [])];
+    const idx = voters.indexOf(userName);
+    if (idx === -1) { voters.push(userName); spawnParticles(e); }
+    else voters.splice(idx, 1);
+    state.polls[pi].options[oi].voters = voters;
+    await save(state);
+  };
+
+  window.addOption = async (pi, btn) => {
+    const box = btn.closest('.add-option-box');
+    const title = box.querySelector('.add-title').value.trim();
+    const desc = box.querySelector('.add-desc').value.trim();
+    let link = box.querySelector('.add-link').value.trim();
+    if (!title) { box.querySelector('.add-title').focus(); return; }
+    if (link && !link.startsWith('http')) link = 'https://' + link;
+    state.polls[pi].options = [...(state.polls[pi].options || []), { title, desc, link, voters: [] }];
+    await save(state);
+  };
+
+  window.createPoll = async () => {
+    const inp = document.getElementById('new-poll-title');
+    const title = inp.value.trim();
+    if (!title) { inp.focus(); return; }
+    state.polls = [...(state.polls || []), { title, options: [] }];
+    await save(state);
+    inp.value = '';
+    setTimeout(() => {
+      const sections = document.querySelectorAll('#polls-container .section');
+      sections[sections.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  };
+
+  window.shareRoom = () => {
+    const url = `${location.origin}${location.pathname}?token=${roomId}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => alert('✅ Link copied!\n\n' + url));
+    } else {
+      prompt('Share this link:', url);
+    }
+  };
+
+  // --- PARTICLES ---
+  function spawnParticles(e) {
+    const emojis = ['✨', '🔥', '⚡', '🚀', '🎉', '💯'];
+    const startX = e?.clientX ?? window.innerWidth / 2;
+    const startY = e?.clientY ?? window.innerHeight / 2;
+    for (let i = 0; i < 8; i++) {
+      const el = document.createElement('div');
+      el.className = 'physics-emoji';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = startX + 'px';
+      el.style.top = startY + 'px';
+      document.body.appendChild(el);
+      let vx = (Math.random() - 0.5) * 20, vy = (Math.random() - 0.8) * 20, cx = 0, cy = 0, rot = 0;
+      const animate = () => {
+        vy += 1; cx += vx; cy += vy; rot += 10;
+        el.style.transform = `translate3d(calc(-50% + ${cx}px), calc(-50% + ${cy}px), 0) rotate(${rot}deg)`;
+        if ((startY + cy) < window.innerHeight + 50) requestAnimationFrame(animate);
+        else el.remove();
+      };
+      requestAnimationFrame(animate);
+    }
+  }
+</script>
+
+<script src="/shared/nav.js"></script>
+</body>
+</html>
