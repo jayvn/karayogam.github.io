@@ -276,7 +276,7 @@
   };
 
   // --- FIRESTORE ---
-  function roomRef() { return doc(db, 'artifacts', 'polls-v1', roomId); }
+  function roomRef() { return doc(db, 'polls-v1', roomId); }
 
   async function save(data) {
     state = data;
