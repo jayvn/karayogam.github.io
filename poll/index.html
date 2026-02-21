@@ -222,12 +222,22 @@
 
   if (tokenFromUrl) {
     roomId = tokenFromUrl;
+    localStorage.setItem('poll_room_id', roomId);
     const saved = localStorage.getItem('poll_user_name');
     if (saved) { userName = saved; startApp(); }
     else showNameOverlay();
   } else {
-    show('landing');
-    document.getElementById('join-token').addEventListener('keydown', e => e.key === 'Enter' && joinRoom());
+    const savedRoom = localStorage.getItem('poll_room_id');
+    const savedName = localStorage.getItem('poll_user_name');
+    if (savedRoom && savedName) {
+      roomId = savedRoom;
+      userName = savedName;
+      history.replaceState({}, '', `?token=${roomId}`);
+      startApp();
+    } else {
+      show('landing');
+      document.getElementById('join-token').addEventListener('keydown', e => e.key === 'Enter' && joinRoom());
+    }
   }
 
   document.getElementById('name-input').addEventListener('keydown', e => e.key === 'Enter' && submitName());
@@ -251,6 +261,7 @@
   // --- ROOM ACTIONS (exposed to onclick) ---
   window.createRoom = async () => {
     roomId = Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('poll_room_id', roomId);
     history.replaceState({}, '', `?token=${roomId}`);
     const saved = localStorage.getItem('poll_user_name');
     if (saved) { userName = saved; await initRoom(); startApp(); }
@@ -261,6 +272,7 @@
     const token = document.getElementById('join-token').value.trim();
     if (!token) return;
     roomId = token;
+    localStorage.setItem('poll_room_id', roomId);
     history.replaceState({}, '', `?token=${roomId}`);
     const saved = localStorage.getItem('poll_user_name');
     if (saved) { userName = saved; startApp(); }
