@@ -942,261 +942,301 @@
     <datalist id="userDl"></datalist>
   </div>
   <script src="/shared/nav.js"></script>
-  <script>
-    (() => {
-      const KEY = 'mgroove_v3', body = document.body;
-      const $ = id => document.getElementById(id);
-      const mk = (t, c) => { const e = document.createElement(t); if (c) e.className = c; return e };
-      const esc = s => { const d = mk('div'); d.textContent = s; return d.innerHTML };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-      const blank = () => ({ profile: { alias: '', location: '', paypal: '' }, isAdmin: false, adminPin: null, songs: [], costumes: [], slots: [], expenses: [], past: [], users: {}, myVotes: [] });
-      let S; try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || '{}') } } catch { S = blank() }
-      if (!S.myVotes) S.myVotes = []; if (!S.users) S.users = {}; if (!S.expenses) S.expenses = [];
-      const save = () => localStorage.setItem(KEY, JSON.stringify(S));
-      const me = () => S.profile.alias || 'Anon';
-      const canMod = w => S.isAdmin || me() === w;
-      const iVoted = id => S.myVotes.includes(id);
-      const addMyVote = id => { if (!iVoted(id)) S.myVotes.push(id) };
-      const rmMyVote = id => { S.myVotes = S.myVotes.filter(x => x !== id) };
+    const fbApp = initializeApp(JSON.parse(window.__firebase_config));
+    const fbAuth = getAuth(fbApp);
+    const fbDb = getFirestore(fbApp);
+    const docRef = doc(fbDb, 'artifacts', 'mgroove-v1', 'default');
+    let fbReady = false;
+    const SHARED_KEYS = ['songs', 'costumes', 'slots', 'expenses', 'past', 'users'];
 
-      $('hAlias').textContent = me();
-      // Admin never auto-restores — must re-enter PIN each session
-      S.isAdmin = false; $('admTog').checked = false; save();
-      $('admTog').onchange = e => {
-        if (e.target.checked) {
-          if (!S.adminPin) {
-            promptPin('🔒 Set Admin PIN', 'Create a PIN to protect admin mode:', pin => {
-              if (!pin || pin.length < 3) { e.target.checked = false; return }
-              S.adminPin = pin; S.isAdmin = true; body.classList.add('admin'); $('admTog').checked = true; save(); renderDash()
-            });
-          } else {
-            promptPin('🔒 Enter Admin PIN', '', pin => {
-              if (pin === S.adminPin) { S.isAdmin = true; body.classList.add('admin'); $('admTog').checked = true; save(); renderDash() }
-              else { $('admTog').checked = false; alert('Wrong PIN') }
-            });
-          }
-          e.target.checked = false;
-        } else { S.isAdmin = false; body.classList.remove('admin'); save(); renderDash() }
-      };
-      function promptPin(title, subtitle, cb) {
-        const o = mk('div', 'mo'); o.innerHTML = '<div class="md"><h3>' + title + '</h3>' + (subtitle ? '<p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.8rem">' + subtitle + '</p>' : '') + '<div class="f"><input type="password" id="pinIn" placeholder="PIN…" style="width:100%;letter-spacing:4px;text-align:center;font-size:1.1rem"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div></div>';
-        body.appendChild(o); o.querySelector('#pinIn').focus();
-        const cl = () => o.remove(); o.onclick = e => { if (e.target === o) cl() }; o.querySelector('#pinC').onclick = cl;
-        o.querySelector('#pinOk').onclick = () => { const v = o.querySelector('#pinIn').value; cl(); cb(v) };
-        o.querySelector('#pinIn').onkeydown = e => { if (e.key === 'Enter') { const v = o.querySelector('#pinIn').value; cl(); cb(v) } };
-      }
+    const LOCAL_KEY = 'mgroove_local', body = document.body;
+    const $ = id => document.getElementById(id);
+    const mk = (t, c) => { const e = document.createElement(t); if (c) e.className = c; return e };
+    const esc = s => { const d = mk('div'); d.textContent = s; return d.innerHTML };
 
-      function syncU() { const a = me(); if (a !== 'Anon') S.users[a] = { location: S.profile.location || '', paypal: S.profile.paypal || '' } }
-      syncU();
-      function updDl() { const d = $('userDl'); d.innerHTML = ''; Object.keys(S.users).forEach(u => { const o = mk('option'); o.value = u; d.appendChild(o) }) }
-      updDl();
+    const blankShared = () => ({ songs: [], costumes: [], slots: [], expenses: [], past: [], users: {} });
+    const blankLocal = () => ({ profile: { alias: '', location: '', paypal: '' }, myVotes: [] });
+    let localState; try { localState = { ...blankLocal(), ...JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}') } } catch { localState = blankLocal() }
+    if (!localState.myVotes) localState.myVotes = [];
+    let S = { ...blankShared(), ...localState, isAdmin: false };
+    const saveLocal = () => localStorage.setItem(LOCAL_KEY, JSON.stringify({ profile: S.profile, myVotes: S.myVotes }));
+    const saveShared = () => { if (!fbReady) return; const data = {}; SHARED_KEYS.forEach(k => data[k] = S[k]); setDoc(docRef, data, { merge: true }) };
+    const save = () => { saveLocal(); saveShared() };
+    const me = () => S.profile.alias || 'Anon';
+    const canMod = w => S.isAdmin || me() === w;
+    const iVoted = id => S.myVotes.includes(id);
+    const addMyVote = id => { if (!iVoted(id)) S.myVotes.push(id) };
+    const rmMyVote = id => { S.myVotes = S.myVotes.filter(x => x !== id) };
 
-      // Profile
-      function openProf() {
-        const o = mk('div', 'mo');
-        o.innerHTML = '<div class="md"><h3>👤 Your Profile</h3><div class="f"><label>Alias</label><input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Name…"></div><div class="f"><label>📍 Location</label><input id="pL" value="' + esc(S.profile.location) + '" placeholder="City…"></div><div class="f"><label>💳 PayPal</label><input id="pP" value="' + esc(S.profile.paypal) + '" placeholder="email or paypal.me/…"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
-        body.appendChild(o); o.querySelector('#pA').focus();
-        const cl = () => o.remove();
-        o.onclick = e => { if (e.target === o) cl() };
-        o.querySelector('#pC').onclick = cl;
-        o.querySelector('#pS').onclick = () => {
-          const newAlias = o.querySelector('#pA').value.trim();
-          const oldAlias = S.profile.alias;
-          // Check collision: alias exists in users and isn't our old name
-          if (newAlias && newAlias !== oldAlias && S.users[newAlias]) {
-            const warn = mk('div', 'f'); warn.innerHTML = '<div style="color:var(--danger);font-size:0.82rem;padding:0.5rem;background:rgba(239,68,68,.1);border-radius:6px">⚠️ "<strong>' + esc(newAlias) + '</strong>" is already taken. Please choose a different alias.</div>';
-            const existing = o.querySelector('.collision-warn'); if (existing) existing.remove();
-            warn.className = 'collision-warn'; o.querySelector('.md').insertBefore(warn, o.querySelector('.acts')); return
-          }
-          S.profile.alias = newAlias; S.profile.location = o.querySelector('#pL').value.trim(); S.profile.paypal = o.querySelector('#pP').value.trim();
-          // Remove old user entry if renamed
-          if (oldAlias && oldAlias !== newAlias && S.users[oldAlias]) { delete S.users[oldAlias] }
-          syncU(); save(); $('hAlias').textContent = me(); updDl(); cl(); fullRender()
-        };
-      }
-      $('profBtn').onclick = openProf;
-      $('exportBtn').onclick = () => { const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }); const a = mk('a'); a.href = URL.createObjectURL(blob); a.download = 'mgroove-backup-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); URL.revokeObjectURL(a.href) };
-      if (!S.profile.alias) setTimeout(openProf, 300);
-
-      // Confirm
-      function cDlg(msg) { return new Promise(r => { const o = mk('div', 'mo'); o.innerHTML = '<div class="md"><p style="margin-bottom:1.1rem">' + msg + '</p><div class="acts"><button class="btn" id="cN">Cancel</button><button class="btn btn-add" id="cY">OK</button></div></div>'; body.appendChild(o); o.querySelector('#cY').onclick = () => { o.remove(); r(true) }; o.querySelector('#cN').onclick = () => { o.remove(); r(false) }; o.onclick = e => { if (e.target === o) { o.remove(); r(false) } } }) }
-      function lbox(src) { const l = mk('div', 'lb'); l.innerHTML = '<img src="' + src + '">'; l.onclick = () => l.remove(); body.appendChild(l) }
-      function xLink(t) { const m = t.match(/(https?:\/\/[^\s]+)/); return m ? m[1] : null }
-      function isImg(u) { return /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(u) }
-
-      // Nav
-      const views = {}; document.querySelectorAll('main[id^="v"]').forEach(el => { views[el.id.slice(1).toLowerCase()] = el });
-      function go(k) { Object.values(views).forEach(v => v.classList.add('hidden')); views[k].classList.remove('hidden'); document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.v === k)); if (k === 'finance') { renderFin(); renderChips() } if (k === 'home') renderDash() }
-      document.querySelectorAll('#nav button').forEach(b => b.onclick = () => go(b.dataset.v));
-
-      // Empty
-      function togE(t) {
-        const em = { songs: 'songE', costumes: 'cosE', slots: 'slE', past: 'pastE' }, lm = { songs: 'songL', costumes: 'cosL', slots: 'slL', past: 'pastL' };
-        const e = $(em[t]), l = $(lm[t]); if (!e || !l) return;
-        e.classList.toggle('hidden', t === 'costumes' ? l.querySelectorAll('.card:not(.fh)').length > 0 : l.children.length > 0);
-      }
-
-      // Edit
-      function openEd(item, type, cb) {
-        const o = mk('div', 'mo'); let f = '';
-        if (type === 'song') f = '<div class="f"><label>Song</label><input id="eT" value="' + esc(item.text) + '"></div>';
-        else if (type === 'costume') f = '<div class="f"><label>Idea/Link</label><input id="eT" value="' + esc(item.text) + '"></div><div class="f"><label>Gender</label><select id="eG" style="width:100%"><option value="unisex"' + (item.gender === 'unisex' ? ' selected' : '') + '>⚥ Unisex</option><option value="male"' + (item.gender === 'male' ? ' selected' : '') + '>♂ Male</option><option value="female"' + (item.gender === 'female' ? ' selected' : '') + '>♀ Female</option></select></div>';
-        else { const dt = item.datetime ? new Date(item.datetime).toISOString().slice(0, 16) : ''; f = '<div class="f"><label>Date & Time</label><input type="datetime-local" id="eDt" value="' + dt + '" style="width:100%;color-scheme:dark"></div><div class="f"><label>Location</label><input id="eLo" value="' + esc(item.location || '') + '"></div><div class="f"><label>Cost €</label><input type="number" id="eCo" value="' + (item.cost || 0) + '" min="0" step="0.01"></div><div class="f"><label>Paid by</label><input id="ePa" value="' + esc(item.payer || '') + '" list="userDl"></div>' }
-        o.innerHTML = '<div class="md"><h3>✏️ Edit</h3>' + f + '<div class="acts"><button class="btn" id="eC">Cancel</button><button class="btn btn-add" id="eS">Save</button></div></div>';
-        body.appendChild(o); const cl = () => o.remove(); o.onclick = e => { if (e.target === o) cl() }; o.querySelector('#eC').onclick = cl;
-        o.querySelector('#eS').onclick = () => {
-          if (type === 'song') item.text = o.querySelector('#eT').value.trim() || item.text;
-          else if (type === 'costume') { item.text = o.querySelector('#eT').value.trim() || item.text; item.gender = o.querySelector('#eG').value }
-          else { item.datetime = o.querySelector('#eDt').value || item.datetime; item.location = o.querySelector('#eLo').value.trim(); item.cost = parseFloat(o.querySelector('#eCo').value) || 0; item.payer = o.querySelector('#ePa').value.trim() }
-          save(); cl(); cb()
-        };
-      }
-
-      // Render card
-      function rCard(item, type, listEl) {
-        const card = mk('div', 'card' + (item.finalized ? ' final' : ''));
-        card.dataset.id = item.id; if (type === 'costume') card.dataset.gender = item.gender || 'unisex';
-        function build() {
-          card.innerHTML = ''; if (type === 'costume') card.dataset.gender = item.gender || 'unisex';
-          card.className = 'card' + (item.finalized ? ' final' : '');
-          const ic = { song: '🎶', costume: '👗', slot: '📅' }[type], link = xLink(item.text || '');
-          let tH = '';
-          if (type === 'slot') { const dt = item.datetime ? new Date(item.datetime) : null; const ds = dt ? dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'No date'; tH = ic + ' <strong>' + ds + '</strong>'; if (item.location) tH += ' · 📍 ' + esc(item.location) }
-          else if (link) { const c = (item.text || '').replace(link, '').trim(); tH = ic + ' ' + (c ? esc(c) + ' ' : '') + '<a href="' + link + '" target="_blank">' + (link.length > 45 ? link.slice(0, 45) + '…' : link) + '</a>' }
-          else tH = ic + ' ' + esc(item.text || '');
-          let meta = '<span class="card-meta">by ' + esc(item.addedBy || '?') + '</span>';
-          if (type === 'slot' && item.cost > 0) meta += ' <span class="card-meta">· 💰 €' + (+item.cost).toFixed(2) + (item.payer ? ' (' + esc(item.payer) + ')' : '') + '</span>';
-          if (type === 'costume' && item.gender) meta += ' <span class="g-badge ' + item.gender + '">' + item.gender + '</span>';
-          const top = mk('div', 'card-top'), bd = mk('div', 'card-body');
-          bd.innerHTML = tH + '<div>' + meta + '</div>';
-          const imgSrc = item.imageData || (type === 'costume' && link && isImg(link) ? link : null);
-          if (type === 'costume' && imgSrc) { const im = mk('img', 'costume-thumb'); im.src = imgSrc; im.onclick = () => lbox(imgSrc); bd.appendChild(im) }
-          const btns = mk('div', 'card-btns');
-          if (canMod(item.addedBy) && !item.finalized) { const eb = mk('button', 'btn btn-icon'); eb.textContent = '✏️'; eb.onclick = () => openEd(item, type, build); btns.appendChild(eb) }
-          if (canMod(item.addedBy)) { const db = mk('button', 'btn btn-icon del'); db.textContent = '✕'; db.onclick = async () => { if (!(await cDlg('Delete this item?'))) return; const a = S[type + 's'], i = a.findIndex(x => x.id === item.id); if (i !== -1) a.splice(i, 1); const ei = S.expenses.findIndex(e => e.sourceId === item.id); if (ei !== -1) S.expenses.splice(ei, 1); card.remove(); togE(type + 's'); save() }; btns.appendChild(db) }
-          top.appendChild(bd); top.appendChild(btns); card.appendChild(top);
-          const acts = mk('div', 'card-actions');
-          if (!item.finalized) { const vb = mk('button', 'btn btn-sm btn-vote' + (iVoted(item.id) ? ' voted' : '')); vb.textContent = '👍 ' + (item.votes || 0); vb.onclick = () => { if (iVoted(item.id)) { item.votes = Math.max(0, (item.votes || 0) - 1); rmMyVote(item.id) } else { item.votes = (item.votes || 0) + 1; addMyVote(item.id) } vb.textContent = '👍 ' + item.votes; vb.classList.toggle('voted', iVoted(item.id)); save() }; acts.appendChild(vb) }
-          let attDiv;
-          if (type === 'slot') { const att = new Set(item.attendees || []); const ab = mk('button', 'btn btn-sm btn-attend' + (att.has(me()) ? ' going' : '')); ab.textContent = '🙋 Going (' + att.size + ')'; ab.disabled = !!item.finalized; ab.onclick = () => { const n = me(); att.has(n) ? att.delete(n) : att.add(n); item.attendees = [...att]; ab.textContent = '🙋 Going (' + att.size + ')'; ab.classList.toggle('going', att.has(n)); attDiv.textContent = att.size ? '→ ' + [...att].join(', ') : ''; save() }; acts.appendChild(ab); attDiv = mk('div', 'att-list'); attDiv.textContent = att.size ? '→ ' + [...att].join(', ') : '' }
-          const fb = mk('button', 'btn btn-sm btn-final ao' + (item.finalized ? ' finalized' : '')); fb.textContent = item.finalized ? '⏪ Undo' : '🎯 Finalize';
-          fb.onclick = () => { if (item.finalized) { item.finalized = false; const ei = S.expenses.findIndex(e => e.sourceId === item.id); if (ei !== -1) S.expenses.splice(ei, 1) } else { item.finalized = true; if (type === 'slot' && item.cost > 0 && !S.expenses.find(e => e.sourceId === item.id)) S.expenses.push({ sourceId: item.id, title: (item.location || 'Session') + (item.datetime ? ' ' + new Date(item.datetime).toLocaleDateString() : ''), cost: +item.cost, payer: item.payer || 'Group Fund', attendees: [...(item.attendees || [])] }); if (type !== 'slot') { const a = S[type + 's'], i = a.findIndex(x => x.id === item.id); if (i !== -1) a.splice(i, 1); S.past.push({ ...item, type, archivedAt: Date.now() }); save(); card.remove(); togE(type + 's'); return } } save(); build() };
-          acts.appendChild(fb);
-          if (type === 'slot' && item.finalized) { const arb = mk('button', 'btn btn-sm ao'); arb.textContent = '🕰️ Archive'; arb.onclick = async () => { if (!(await cDlg('Archive?'))) return; const i = S.slots.findIndex(x => x.id === item.id); if (i !== -1) S.slots.splice(i, 1); S.past.push({ ...item, type: 'slot', archivedAt: Date.now() }); save(); card.remove(); togE('slots') }; acts.appendChild(arb) }
-          card.appendChild(acts); if (attDiv) card.appendChild(attDiv);
-        }
-        build(); listEl.appendChild(card);
-      }
-
-      // Add
-      function addI(type, data) { const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), addedBy: me(), votes: 0, finalized: false, ...data }; S[type + 's'].push(item); save(); rCard(item, type, $({ song: 'songL', costume: 'cosL', slot: 'slL' }[type])); togE(type + 's'); return item }
-      const doSong = () => { const v = $('songIn').value.trim(); if (!v) return; addI('song', { text: v }); $('songIn').value = '' };
-      $('addSong').onclick = doSong; $('songIn').onkeydown = e => { if (e.key === 'Enter') doSong() };
-
-      let pendImg = null;
-      const doCos = () => { const v = $('cosIn').value.trim(); if (!v && !pendImg) return; addI('costume', { text: v || 'Image costume', gender: $('cosG').value, imageData: pendImg || null }); $('cosIn').value = ''; clrI(); applyCF() };
-      $('addCos').onclick = doCos; $('cosIn').onkeydown = e => { if (e.key === 'Enter') doCos() };
-      function setI(d) { pendImg = d; $('cosPrev').src = d; $('cosPrev').classList.remove('hidden'); $('cosClr').style.display = 'block' }
-      function clrI() { pendImg = null; $('cosPrev').classList.add('hidden'); $('cosPrev').src = ''; $('cosClr').style.display = 'none' }
-      $('cosClr').onclick = e => { e.stopPropagation(); clrI() };
-      function rdImg(f) { if (!f || !f.type.startsWith('image/')) return; const r = new FileReader(); r.onload = e => setI(e.target.result); r.readAsDataURL(f) }
-      const dz = $('cosDz'); dz.onclick = e => { if (e.target.tagName !== 'BUTTON') $('cosFile').click() }; $('cosFile').onchange = e => { if (e.target.files[0]) rdImg(e.target.files[0]) };
-      dz.ondragover = e => { e.preventDefault(); dz.classList.add('over') }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files[0]) rdImg(e.dataTransfer.files[0]) };
-      document.addEventListener('paste', e => { if ($('vCostumes').classList.contains('hidden')) return; for (const it of e.clipboardData.items) if (it.type.startsWith('image/')) { rdImg(it.getAsFile()); break } });
-
-      let cosF = 'all';
-      function applyCF() { document.querySelectorAll('#cosL .card').forEach(c => { const h = cosF !== 'all' && c.dataset.gender !== cosF; c.classList.toggle('fh', h); c.style.display = h ? 'none' : '' }); togE('costumes') }
-      document.querySelectorAll('#cosTabs .tab').forEach(b => { b.onclick = () => { document.querySelectorAll('#cosTabs .tab').forEach(x => x.classList.remove('active')); b.classList.add('active'); cosF = b.dataset.f; applyCF() } });
-
-      const doSlot = () => { const dt = $('slDt').value, loc = $('slLoc').value.trim(); if (!dt && !loc) return; addI('slot', { datetime: dt, location: loc, cost: parseFloat($('slCost').value) || 0, payer: $('slPayer').value.trim(), attendees: [] }); $('slDt').value = ''; $('slLoc').value = ''; $('slCost').value = ''; $('slPayer').value = '' };
-      $('addSl').onclick = doSlot;[$('slLoc'), $('slPayer')].forEach(el => el.onkeydown = e => { if (e.key === 'Enter') doSlot() });
-      const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
-      $('slDt').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
-      // Finance chips
-      let expSplit = new Set();
-      function renderChips() { const c = $('exChips'); c.innerHTML = ''; Object.keys(S.users).forEach(u => { const ch = mk('div', 'chip' + (expSplit.has(u) ? ' on' : '')); ch.textContent = u; ch.onclick = () => { expSplit.has(u) ? expSplit.delete(u) : expSplit.add(u); ch.classList.toggle('on', expSplit.has(u)) }; c.appendChild(ch) }) }
-      function doAddExp() {
-        const desc = $('exDesc').value.trim(), amt = parseFloat($('exAmt').value), payer = $('exPayer').value.trim() || me(); if (!desc || !amt || amt <= 0) return;
-        // Auto-include payer in split
-        if (S.users[payer] && !expSplit.has(payer)) expSplit.add(payer);
-        S.expenses.push({ sourceId: 'm-' + Date.now(), title: desc, cost: amt, payer: payer, attendees: [...expSplit] }); save(); $('exDesc').value = ''; $('exAmt').value = ''; $('exPayer').value = ''; expSplit.clear(); renderFin(); renderChips()
-      }
-      $('addExp').onclick = doAddExp; $('exDesc').onkeydown = e => { if (e.key === 'Enter') doAddExp() };
-      // Auto-select payer chip when payer field changes
-      $('exPayer').addEventListener('change', () => { const p = $('exPayer').value.trim(); if (p && S.users[p] && !expSplit.has(p)) { expSplit.add(p); renderChips() } });
-
-      function renderFin() {
-        const ch = $('finCh'), li = $('expL'), sl = $('settleL'); ch.innerHTML = ''; li.innerHTML = ''; sl.innerHTML = '';
-        if (!S.expenses.length) { $('finE').classList.remove('hidden'); $('expHdr').classList.add('hidden'); $('settleS').classList.add('hidden'); return }
-        $('finE').classList.add('hidden'); $('expHdr').classList.remove('hidden');
-        const stats = {};
-        S.expenses.forEach((e, idx) => { const d = mk('div', 'exp-card'); d.style.display = 'flex'; d.style.justifyContent = 'space-between'; d.style.alignItems = 'center'; d.style.gap = '0.4rem'; const txt = mk('span'); txt.textContent = e.title + ' — €' + e.cost.toFixed(2) + ' by ' + e.payer + ' · Split: ' + (e.attendees.length ? e.attendees.join(', ') : 'nobody'); d.appendChild(txt); if (S.isAdmin) { const db = mk('button', 'btn btn-icon del'); db.textContent = '✕'; db.style.flexShrink = '0'; db.onclick = async () => { if (!(await cDlg('Delete this expense?'))) return; S.expenses.splice(idx, 1); save(); renderFin() }; d.appendChild(db) } li.appendChild(d); if (!stats[e.payer]) stats[e.payer] = { paid: 0, owes: 0 }; stats[e.payer].paid += e.cost; if (e.attendees.length) { const sh = e.cost / e.attendees.length; e.attendees.forEach(a => { if (!stats[a]) stats[a] = { paid: 0, owes: 0 }; stats[a].owes += sh }) } });
-        const entries = Object.entries(stats).map(([n, d]) => ({ name: n, net: d.paid - d.owes })).sort((a, b) => b.net - a.net);
-        const mx = Math.max(...entries.map(e => Math.abs(e.net)), 1);
-        entries.forEach(({ name, net }) => { const pct = (Math.abs(net) / mx) * 100, pos = net >= 0, u = S.users[name]; let pp = ''; if (u && u.paypal) { const p = u.paypal, h = p.startsWith('http') ? p : 'https://paypal.me/' + p.replace('@', ''); pp = ' <a class="pp-link" href="' + h + '" target="_blank">PayPal ↗</a>' } const loc = u && u.location ? ' <span style="font-size:.73rem;color:var(--text-dim)">(' + esc(u.location) + ')</span>' : ''; const item = mk('div', 'bar-i'); item.innerHTML = '<div class="bar-h"><span>' + esc(name) + loc + '</span><span style="color:var(--' + (pos ? 'teal' : 'pink') + ')">' + (pos ? 'Gets' : 'Owes') + ' €' + Math.abs(net).toFixed(2) + pp + '</span></div><div class="bar-t"><div class="bar-f ' + (pos ? 'pos' : 'neg') + '" style="width:' + pct + '%"></div></div>'; ch.appendChild(item) });
-        // Settle-up
-        const tx = settle(entries);
-        if (tx.length) { $('settleS').classList.remove('hidden'); tx.forEach(t => { const c = mk('div', 'settle-card'); c.innerHTML = '<strong>' + esc(t.from) + '</strong><span class="ar">→</span><strong>' + esc(t.to) + '</strong>: €' + t.amount.toFixed(2); sl.appendChild(c) }) } else $('settleS').classList.add('hidden');
-      }
-      function settle(entries) { const db = [], cr = []; entries.forEach(e => { if (e.net < -0.01) db.push({ n: e.name, a: -e.net }); else if (e.net > 0.01) cr.push({ n: e.name, a: e.net }) }); db.sort((a, b) => b.a - a.a); cr.sort((a, b) => b.a - a.a); const tx = []; let i = 0, j = 0; while (i < db.length && j < cr.length) { const a = Math.min(db[i].a, cr[j].a); if (a > 0.01) tx.push({ from: db[i].n, to: cr[j].n, amount: a }); db[i].a -= a; cr[j].a -= a; if (db[i].a < 0.01) i++; if (cr[j].a < 0.01) j++ } return tx }
-
-      // Past
-      function rPast(item) { const ic = { song: '🎶', costume: '👗', slot: '📅' }[item.type] || '📌'; const card = mk('div', 'card final'); let txt = ''; if (item.type === 'slot') { const dt = item.datetime ? new Date(item.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : ''; txt = ic + ' ' + dt + (item.location ? ' · ' + esc(item.location) : '') } else txt = ic + ' ' + esc(item.text || ''); card.innerHTML = '<div class="card-top"><div class="card-body">' + txt + '<div class="card-meta">Archived ' + new Date(item.archivedAt).toLocaleDateString() + '</div></div></div>'; $('pastL').appendChild(card) }
-
-      // Dashboard
-      function renderDash() {
-        const dv = $('dashVotes'), dr = $('dashRsvp'), dc = $('dashRecent'); dv.innerHTML = ''; dr.innerHTML = ''; dc.innerHTML = '';
-        const all = [...S.songs.map(s => ({ ...s, _t: 'song' })), ...S.costumes.map(c => ({ ...c, _t: 'costume' })), ...S.slots.map(s => ({ ...s, _t: 'slot' }))];
-        const unv = all.filter(i => !i.finalized && !iVoted(i.id));
-        dv.innerHTML = '<h3>🗳️ Pending Votes (' + unv.length + ')</h3><div class="dash-hint">All votes are anonymous — only totals are visible</div>';
-        if (!unv.length) dv.innerHTML += '<div class="dash-em">✅ You\'ve voted on everything!</div>';
-        else unv.slice(0, 6).forEach(item => {
-          const ic = { song: '🎶', costume: '👗', slot: '📅' }[item._t];
-          let lb = ''; if (item._t === 'slot') { const dt = item.datetime ? new Date(item.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Slot'; lb = dt + (item.location ? ' · ' + item.location : '') } else lb = item.text || ''; if (lb.length > 50) lb = lb.slice(0, 50) + '…';
-          const d = mk('div', 'dash-i'); const txDiv = mk('div', 'tx'); txDiv.innerHTML = esc(lb) + '<br><small>' + ic + ' · ' + (item.votes || 0) + ' votes</small>';
-          const vb = mk('button', 'btn btn-sm btn-vote'); vb.textContent = '👍'; vb.onclick = e => { e.stopPropagation(); item.votes = (item.votes || 0) + 1; addMyVote(item.id); save(); renderDash() };
-          d.appendChild(mk('span', 'ic')).textContent = ic; d.appendChild(txDiv); d.appendChild(vb);
-          d.onclick = () => go({ song: 'songs', costume: 'costumes', slot: 'slots' }[item._t]); dv.appendChild(d)
+    $('hAlias').textContent = me();
+    // Admin never auto-restores — must re-enter PIN each session
+    S.isAdmin = false; $('admTog').checked = false; saveLocal();
+    const ADMIN_PIN = '0000';
+    $('admTog').onchange = e => {
+      if (e.target.checked) {
+        promptPin('🔒 Enter Admin PIN', '', pin => {
+          if (pin === ADMIN_PIN) { S.isAdmin = true; body.classList.add('admin'); $('admTog').checked = true; saveLocal(); renderDash() }
+          else { $('admTog').checked = false; alert('Wrong PIN') }
         });
-        if (unv.length > 6) dv.innerHTML += '<div class="dash-em">…and ' + (unv.length - 6) + ' more</div>';
+        e.target.checked = false;
+      } else { S.isAdmin = false; body.classList.remove('admin'); saveLocal(); renderDash() }
+    };
+    function promptPin(title, subtitle, cb) {
+      const o = mk('div', 'mo'); o.innerHTML = '<div class="md"><h3>' + title + '</h3>' + (subtitle ? '<p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.8rem">' + subtitle + '</p>' : '') + '<div class="f"><input type="password" id="pinIn" placeholder="PIN…" style="width:100%;letter-spacing:4px;text-align:center;font-size:1.1rem"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div></div>';
+      body.appendChild(o); o.querySelector('#pinIn').focus();
+      const cl = () => o.remove(); o.onclick = e => { if (e.target === o) cl() }; o.querySelector('#pinC').onclick = cl;
+      o.querySelector('#pinOk').onclick = () => { const v = o.querySelector('#pinIn').value; cl(); cb(v) };
+      o.querySelector('#pinIn').onkeydown = e => { if (e.key === 'Enter') { const v = o.querySelector('#pinIn').value; cl(); cb(v) } };
+    }
 
-        const unr = S.slots.filter(s => !s.finalized && !(s.attendees || []).includes(me()));
-        dr.innerHTML = '<h3>📅 RSVP Needed (' + unr.length + ')</h3>';
-        if (!unr.length) dr.innerHTML += '<div class="dash-em">✅ All caught up!</div>';
-        else unr.forEach(s => { const dt = s.datetime ? new Date(s.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'TBD'; const d = mk('div', 'dash-i'); const txDiv = mk('div', 'tx'); txDiv.innerHTML = dt + (s.location ? ' · ' + esc(s.location) : '') + '<br><small>' + (s.attendees || []).length + ' going</small>'; const ab = mk('button', 'btn btn-sm btn-attend'); ab.textContent = '🙋'; ab.onclick = e => { e.stopPropagation(); if (!s.attendees) s.attendees = []; if (!s.attendees.includes(me())) s.attendees.push(me()); save(); renderDash() }; d.appendChild(mk('span', 'ic')).textContent = '📅'; d.appendChild(txDiv); d.appendChild(ab); d.onclick = () => go('slots'); dr.appendChild(d) });
+    function syncU() { const a = me(); if (a !== 'Anon') S.users[a] = { location: S.profile.location || '', paypal: S.profile.paypal || '' } }
+    syncU();
+    function updDl() { const d = $('userDl'); d.innerHTML = ''; Object.keys(S.users).forEach(u => { const o = mk('option'); o.value = u; d.appendChild(o) }) }
+    updDl();
 
-        const recent = all.sort((a, b) => { const pa = parseInt(a.id, 36), pb = parseInt(b.id, 36); return pb - pa }).slice(0, 5);
-        dc.innerHTML = '<h3>🆕 Recent</h3>';
-        if (!recent.length) dc.innerHTML += '<div class="dash-em">Nothing yet!</div>';
-        else recent.forEach(item => { const ic = { song: '🎶', costume: '👗', slot: '📅' }[item._t]; let lb = ''; if (item._t === 'slot') { const dt = item.datetime ? new Date(item.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Slot'; lb = dt + (item.location ? ' · ' + item.location : '') } else lb = (item.text || '').slice(0, 50); const d = mk('div', 'dash-i'); d.style.borderLeftColor = 'var(--surface3)'; const txDiv = mk('div', 'tx'); txDiv.innerHTML = esc(lb) + '<br><small>by ' + esc(item.addedBy || '?') + ' · ' + (item.votes || 0) + ' votes</small>'; d.appendChild(mk('span', 'ic')).textContent = ic; d.appendChild(txDiv); d.onclick = () => go({ song: 'songs', costume: 'costumes', slot: 'slots' }[item._t]); dc.appendChild(d) });
-
-        // Nav dots
-        document.querySelectorAll('#nav button .bdot').forEach(d => d.remove());
-        if (S.songs.some(s => !s.finalized && !iVoted(s.id))) document.querySelector('[data-v="songs"]').appendChild(mk('span', 'bdot'));
-        if (S.costumes.some(c => !c.finalized && !iVoted(c.id))) document.querySelector('[data-v="costumes"]').appendChild(mk('span', 'bdot'));
-        if (S.slots.some(s => !s.finalized && (!iVoted(s.id) || !(s.attendees || []).includes(me())))) document.querySelector('[data-v="slots"]').appendChild(mk('span', 'bdot'));
-
-        // Admin: user list
-        const du = $('dashUsers'); du.innerHTML = '';
-        if (S.isAdmin) {
-          const uKeys = Object.keys(S.users);
-          du.innerHTML = '<h3>👥 Registered Users (' + uKeys.length + ')</h3>';
-          if (!uKeys.length) du.innerHTML += '<div class="dash-em">No users yet</div>';
-          else uKeys.sort().forEach(name => {
-            const u = S.users[name];
-            const r = mk('div', 'user-row');
-            r.innerHTML = '<div><strong>' + esc(name) + '</strong> <span class="ur-meta">' + (u.location || 'no location') + '</span></div><div class="ur-meta">' + (u.paypal || 'no PayPal') + '</div>';
-            du.appendChild(r);
-          });
+    // Profile
+    function openProf() {
+      const o = mk('div', 'mo');
+      o.innerHTML = '<div class="md"><h3>👤 Your Profile</h3><div class="f"><label>Alias</label><input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Name…"></div><div class="f"><label>📍 Location</label><input id="pL" value="' + esc(S.profile.location) + '" placeholder="City…"></div><div class="f"><label>💳 PayPal</label><input id="pP" value="' + esc(S.profile.paypal) + '" placeholder="email or paypal.me/…"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
+      body.appendChild(o); o.querySelector('#pA').focus();
+      const cl = () => o.remove();
+      o.onclick = e => { if (e.target === o) cl() };
+      o.querySelector('#pC').onclick = cl;
+      o.querySelector('#pS').onclick = () => {
+        const newAlias = o.querySelector('#pA').value.trim();
+        const oldAlias = S.profile.alias;
+        // Check collision: alias exists in users and isn't our old name
+        if (newAlias && newAlias !== oldAlias && S.users[newAlias]) {
+          const warn = mk('div', 'f'); warn.innerHTML = '<div style="color:var(--danger);font-size:0.82rem;padding:0.5rem;background:rgba(239,68,68,.1);border-radius:6px">⚠️ "<strong>' + esc(newAlias) + '</strong>" is already taken. Please choose a different alias.</div>';
+          const existing = o.querySelector('.collision-warn'); if (existing) existing.remove();
+          warn.className = 'collision-warn'; o.querySelector('.md').insertBefore(warn, o.querySelector('.acts')); return
         }
+        S.profile.alias = newAlias; S.profile.location = o.querySelector('#pL').value.trim(); S.profile.paypal = o.querySelector('#pP').value.trim();
+        // Remove old user entry if renamed
+        if (oldAlias && oldAlias !== newAlias && S.users[oldAlias]) { delete S.users[oldAlias] }
+        syncU(); save(); $('hAlias').textContent = me(); updDl(); cl(); fullRender()
+      };
+    }
+    $('profBtn').onclick = openProf;
+    $('exportBtn').onclick = () => { const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }); const a = mk('a'); a.href = URL.createObjectURL(blob); a.download = 'mgroove-backup-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); URL.revokeObjectURL(a.href) };
+    if (!S.profile.alias) setTimeout(openProf, 300);
+
+    // Confirm
+    function cDlg(msg) { return new Promise(r => { const o = mk('div', 'mo'); o.innerHTML = '<div class="md"><p style="margin-bottom:1.1rem">' + msg + '</p><div class="acts"><button class="btn" id="cN">Cancel</button><button class="btn btn-add" id="cY">OK</button></div></div>'; body.appendChild(o); o.querySelector('#cY').onclick = () => { o.remove(); r(true) }; o.querySelector('#cN').onclick = () => { o.remove(); r(false) }; o.onclick = e => { if (e.target === o) { o.remove(); r(false) } } }) }
+    function lbox(src) { const l = mk('div', 'lb'); l.innerHTML = '<img src="' + src + '">'; l.onclick = () => l.remove(); body.appendChild(l) }
+    function xLink(t) { const m = t.match(/(https?:\/\/[^\s]+)/); return m ? m[1] : null }
+    function isImg(u) { return /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(u) }
+
+    // Nav
+    const views = {}; document.querySelectorAll('main[id^="v"]').forEach(el => { views[el.id.slice(1).toLowerCase()] = el });
+    function go(k) { Object.values(views).forEach(v => v.classList.add('hidden')); views[k].classList.remove('hidden'); document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.v === k)); if (k === 'finance') { renderFin(); renderChips() } if (k === 'home') renderDash() }
+    document.querySelectorAll('#nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+
+    // Empty
+    function togE(t) {
+      const em = { songs: 'songE', costumes: 'cosE', slots: 'slE', past: 'pastE' }, lm = { songs: 'songL', costumes: 'cosL', slots: 'slL', past: 'pastL' };
+      const e = $(em[t]), l = $(lm[t]); if (!e || !l) return;
+      e.classList.toggle('hidden', t === 'costumes' ? l.querySelectorAll('.card:not(.fh)').length > 0 : l.children.length > 0);
+    }
+
+    // Edit
+    function openEd(item, type, cb) {
+      const o = mk('div', 'mo'); let f = '';
+      if (type === 'song') f = '<div class="f"><label>Song</label><input id="eT" value="' + esc(item.text) + '"></div>';
+      else if (type === 'costume') f = '<div class="f"><label>Idea/Link</label><input id="eT" value="' + esc(item.text) + '"></div><div class="f"><label>Gender</label><select id="eG" style="width:100%"><option value="unisex"' + (item.gender === 'unisex' ? ' selected' : '') + '>⚥ Unisex</option><option value="male"' + (item.gender === 'male' ? ' selected' : '') + '>♂ Male</option><option value="female"' + (item.gender === 'female' ? ' selected' : '') + '>♀ Female</option></select></div>';
+      else { const dt = item.datetime ? new Date(item.datetime).toISOString().slice(0, 16) : ''; f = '<div class="f"><label>Date & Time</label><input type="datetime-local" id="eDt" value="' + dt + '" style="width:100%;color-scheme:dark"></div><div class="f"><label>Location</label><input id="eLo" value="' + esc(item.location || '') + '"></div><div class="f"><label>Cost €</label><input type="number" id="eCo" value="' + (item.cost || 0) + '" min="0" step="0.01"></div><div class="f"><label>Paid by</label><input id="ePa" value="' + esc(item.payer || '') + '" list="userDl"></div>' }
+      o.innerHTML = '<div class="md"><h3>✏️ Edit</h3>' + f + '<div class="acts"><button class="btn" id="eC">Cancel</button><button class="btn btn-add" id="eS">Save</button></div></div>';
+      body.appendChild(o); const cl = () => o.remove(); o.onclick = e => { if (e.target === o) cl() }; o.querySelector('#eC').onclick = cl;
+      o.querySelector('#eS').onclick = () => {
+        if (type === 'song') item.text = o.querySelector('#eT').value.trim() || item.text;
+        else if (type === 'costume') { item.text = o.querySelector('#eT').value.trim() || item.text; item.gender = o.querySelector('#eG').value }
+        else { item.datetime = o.querySelector('#eDt').value || item.datetime; item.location = o.querySelector('#eLo').value.trim(); item.cost = parseFloat(o.querySelector('#eCo').value) || 0; item.payer = o.querySelector('#ePa').value.trim() }
+        save(); cl(); cb()
+      };
+    }
+
+    // Render card
+    function rCard(item, type, listEl) {
+      const card = mk('div', 'card' + (item.finalized ? ' final' : ''));
+      card.dataset.id = item.id; if (type === 'costume') card.dataset.gender = item.gender || 'unisex';
+      function build() {
+        card.innerHTML = ''; if (type === 'costume') card.dataset.gender = item.gender || 'unisex';
+        card.className = 'card' + (item.finalized ? ' final' : '');
+        const ic = { song: '🎶', costume: '👗', slot: '📅' }[type], link = xLink(item.text || '');
+        let tH = '';
+        if (type === 'slot') { const dt = item.datetime ? new Date(item.datetime) : null; const ds = dt ? dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'No date'; tH = ic + ' <strong>' + ds + '</strong>'; if (item.location) tH += ' · 📍 ' + esc(item.location) }
+        else if (link) { const c = (item.text || '').replace(link, '').trim(); tH = ic + ' ' + (c ? esc(c) + ' ' : '') + '<a href="' + link + '" target="_blank">' + (link.length > 45 ? link.slice(0, 45) + '…' : link) + '</a>' }
+        else tH = ic + ' ' + esc(item.text || '');
+        let meta = '<span class="card-meta">by ' + esc(item.addedBy || '?') + '</span>';
+        if (type === 'slot' && item.cost > 0) meta += ' <span class="card-meta">· 💰 €' + (+item.cost).toFixed(2) + (item.payer ? ' (' + esc(item.payer) + ')' : '') + '</span>';
+        if (type === 'costume' && item.gender) meta += ' <span class="g-badge ' + item.gender + '">' + item.gender + '</span>';
+        const top = mk('div', 'card-top'), bd = mk('div', 'card-body');
+        bd.innerHTML = tH + '<div>' + meta + '</div>';
+        const imgSrc = item.imageData || (type === 'costume' && link && isImg(link) ? link : null);
+        if (type === 'costume' && imgSrc) { const im = mk('img', 'costume-thumb'); im.src = imgSrc; im.onclick = () => lbox(imgSrc); bd.appendChild(im) }
+        const btns = mk('div', 'card-btns');
+        if (canMod(item.addedBy) && !item.finalized) { const eb = mk('button', 'btn btn-icon'); eb.textContent = '✏️'; eb.onclick = () => openEd(item, type, build); btns.appendChild(eb) }
+        if (canMod(item.addedBy)) { const db = mk('button', 'btn btn-icon del'); db.textContent = '✕'; db.onclick = async () => { if (!(await cDlg('Delete this item?'))) return; const a = S[type + 's'], i = a.findIndex(x => x.id === item.id); if (i !== -1) a.splice(i, 1); const ei = S.expenses.findIndex(e => e.sourceId === item.id); if (ei !== -1) S.expenses.splice(ei, 1); card.remove(); togE(type + 's'); save() }; btns.appendChild(db) }
+        top.appendChild(bd); top.appendChild(btns); card.appendChild(top);
+        const acts = mk('div', 'card-actions');
+        if (!item.finalized) { const vb = mk('button', 'btn btn-sm btn-vote' + (iVoted(item.id) ? ' voted' : '')); vb.textContent = '👍 ' + (item.votes || 0); vb.onclick = () => { if (iVoted(item.id)) { item.votes = Math.max(0, (item.votes || 0) - 1); rmMyVote(item.id) } else { item.votes = (item.votes || 0) + 1; addMyVote(item.id) } vb.textContent = '👍 ' + item.votes; vb.classList.toggle('voted', iVoted(item.id)); save() }; acts.appendChild(vb) }
+        let attDiv;
+        if (type === 'slot') { const att = new Set(item.attendees || []); const ab = mk('button', 'btn btn-sm btn-attend' + (att.has(me()) ? ' going' : '')); ab.textContent = '🙋 Going (' + att.size + ')'; ab.disabled = !!item.finalized; ab.onclick = () => { const n = me(); att.has(n) ? att.delete(n) : att.add(n); item.attendees = [...att]; ab.textContent = '🙋 Going (' + att.size + ')'; ab.classList.toggle('going', att.has(n)); attDiv.textContent = att.size ? '→ ' + [...att].join(', ') : ''; save() }; acts.appendChild(ab); attDiv = mk('div', 'att-list'); attDiv.textContent = att.size ? '→ ' + [...att].join(', ') : '' }
+        const fb = mk('button', 'btn btn-sm btn-final ao' + (item.finalized ? ' finalized' : '')); fb.textContent = item.finalized ? '⏪ Undo' : '🎯 Finalize';
+        fb.onclick = () => { if (item.finalized) { item.finalized = false; const ei = S.expenses.findIndex(e => e.sourceId === item.id); if (ei !== -1) S.expenses.splice(ei, 1) } else { item.finalized = true; if (type === 'slot' && item.cost > 0 && !S.expenses.find(e => e.sourceId === item.id)) S.expenses.push({ sourceId: item.id, title: (item.location || 'Session') + (item.datetime ? ' ' + new Date(item.datetime).toLocaleDateString() : ''), cost: +item.cost, payer: item.payer || 'Group Fund', attendees: [...(item.attendees || [])] }); if (type !== 'slot') { const a = S[type + 's'], i = a.findIndex(x => x.id === item.id); if (i !== -1) a.splice(i, 1); S.past.push({ ...item, type, archivedAt: Date.now() }); save(); card.remove(); togE(type + 's'); return } } save(); build() };
+        acts.appendChild(fb);
+        if (type === 'slot' && item.finalized) { const arb = mk('button', 'btn btn-sm ao'); arb.textContent = '🕰️ Archive'; arb.onclick = async () => { if (!(await cDlg('Archive?'))) return; const i = S.slots.findIndex(x => x.id === item.id); if (i !== -1) S.slots.splice(i, 1); S.past.push({ ...item, type: 'slot', archivedAt: Date.now() }); save(); card.remove(); togE('slots') }; acts.appendChild(arb) }
+        card.appendChild(acts); if (attDiv) card.appendChild(attDiv);
       }
+      build(); listEl.appendChild(card);
+    }
 
-      function fullRender() { ['songL', 'cosL', 'slL', 'pastL'].forEach(id => $(id).innerHTML = ''); S.songs.forEach(s => rCard(s, 'song', $('songL'))); S.costumes.forEach(c => rCard(c, 'costume', $('cosL'))); S.slots.forEach(s => rCard(s, 'slot', $('slL'))); S.past.forEach(p => rPast(p));['songs', 'costumes', 'slots', 'past'].forEach(togE); applyCF(); renderDash(); updDl() }
+    // Add
+    function addI(type, data) { const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), addedBy: me(), votes: 0, finalized: false, ...data }; S[type + 's'].push(item); save(); rCard(item, type, $({ song: 'songL', costume: 'cosL', slot: 'slL' }[type])); togE(type + 's'); return item }
+    const doSong = () => { const v = $('songIn').value.trim(); if (!v) return; addI('song', { text: v }); $('songIn').value = '' };
+    $('addSong').onclick = doSong; $('songIn').onkeydown = e => { if (e.key === 'Enter') doSong() };
+
+    let pendImg = null;
+    const doCos = () => { const v = $('cosIn').value.trim(); if (!v && !pendImg) return; addI('costume', { text: v || 'Image costume', gender: $('cosG').value, imageData: pendImg || null }); $('cosIn').value = ''; clrI(); applyCF() };
+    $('addCos').onclick = doCos; $('cosIn').onkeydown = e => { if (e.key === 'Enter') doCos() };
+    function setI(d) { pendImg = d; $('cosPrev').src = d; $('cosPrev').classList.remove('hidden'); $('cosClr').style.display = 'block' }
+    function clrI() { pendImg = null; $('cosPrev').classList.add('hidden'); $('cosPrev').src = ''; $('cosClr').style.display = 'none' }
+    $('cosClr').onclick = e => { e.stopPropagation(); clrI() };
+    function rdImg(f) { if (!f || !f.type.startsWith('image/')) return; const r = new FileReader(); r.onload = e => setI(e.target.result); r.readAsDataURL(f) }
+    const dz = $('cosDz'); dz.onclick = e => { if (e.target.tagName !== 'BUTTON') $('cosFile').click() }; $('cosFile').onchange = e => { if (e.target.files[0]) rdImg(e.target.files[0]) };
+    dz.ondragover = e => { e.preventDefault(); dz.classList.add('over') }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files[0]) rdImg(e.dataTransfer.files[0]) };
+    document.addEventListener('paste', e => { if ($('vCostumes').classList.contains('hidden')) return; for (const it of e.clipboardData.items) if (it.type.startsWith('image/')) { rdImg(it.getAsFile()); break } });
+
+    let cosF = 'all';
+    function applyCF() { document.querySelectorAll('#cosL .card').forEach(c => { const h = cosF !== 'all' && c.dataset.gender !== cosF; c.classList.toggle('fh', h); c.style.display = h ? 'none' : '' }); togE('costumes') }
+    document.querySelectorAll('#cosTabs .tab').forEach(b => { b.onclick = () => { document.querySelectorAll('#cosTabs .tab').forEach(x => x.classList.remove('active')); b.classList.add('active'); cosF = b.dataset.f; applyCF() } });
+
+    const doSlot = () => { const dt = $('slDt').value, loc = $('slLoc').value.trim(); if (!dt && !loc) return; addI('slot', { datetime: dt, location: loc, cost: parseFloat($('slCost').value) || 0, payer: $('slPayer').value.trim(), attendees: [] }); $('slDt').value = ''; $('slLoc').value = ''; $('slCost').value = ''; $('slPayer').value = '' };
+    $('addSl').onclick = doSlot;[$('slLoc'), $('slPayer')].forEach(el => el.onkeydown = e => { if (e.key === 'Enter') doSlot() });
+    const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
+    $('slDt').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+    // Finance chips
+    let expSplit = new Set();
+    function renderChips() { const c = $('exChips'); c.innerHTML = ''; Object.keys(S.users).forEach(u => { const ch = mk('div', 'chip' + (expSplit.has(u) ? ' on' : '')); ch.textContent = u; ch.onclick = () => { expSplit.has(u) ? expSplit.delete(u) : expSplit.add(u); ch.classList.toggle('on', expSplit.has(u)) }; c.appendChild(ch) }) }
+    function doAddExp() {
+      const desc = $('exDesc').value.trim(), amt = parseFloat($('exAmt').value), payer = $('exPayer').value.trim() || me(); if (!desc || !amt || amt <= 0) return;
+      // Auto-include payer in split
+      if (S.users[payer] && !expSplit.has(payer)) expSplit.add(payer);
+      S.expenses.push({ sourceId: 'm-' + Date.now(), title: desc, cost: amt, payer: payer, attendees: [...expSplit] }); save(); $('exDesc').value = ''; $('exAmt').value = ''; $('exPayer').value = ''; expSplit.clear(); renderFin(); renderChips()
+    }
+    $('addExp').onclick = doAddExp; $('exDesc').onkeydown = e => { if (e.key === 'Enter') doAddExp() };
+    // Auto-select payer chip when payer field changes
+    $('exPayer').addEventListener('change', () => { const p = $('exPayer').value.trim(); if (p && S.users[p] && !expSplit.has(p)) { expSplit.add(p); renderChips() } });
+
+    function renderFin() {
+      const ch = $('finCh'), li = $('expL'), sl = $('settleL'); ch.innerHTML = ''; li.innerHTML = ''; sl.innerHTML = '';
+      if (!S.expenses.length) { $('finE').classList.remove('hidden'); $('expHdr').classList.add('hidden'); $('settleS').classList.add('hidden'); return }
+      $('finE').classList.add('hidden'); $('expHdr').classList.remove('hidden');
+      const stats = {};
+      S.expenses.forEach((e, idx) => { const d = mk('div', 'exp-card'); d.style.display = 'flex'; d.style.justifyContent = 'space-between'; d.style.alignItems = 'center'; d.style.gap = '0.4rem'; const txt = mk('span'); txt.textContent = e.title + ' — €' + e.cost.toFixed(2) + ' by ' + e.payer + ' · Split: ' + (e.attendees.length ? e.attendees.join(', ') : 'nobody'); d.appendChild(txt); if (S.isAdmin) { const db = mk('button', 'btn btn-icon del'); db.textContent = '✕'; db.style.flexShrink = '0'; db.onclick = async () => { if (!(await cDlg('Delete this expense?'))) return; S.expenses.splice(idx, 1); save(); renderFin() }; d.appendChild(db) } li.appendChild(d); if (!stats[e.payer]) stats[e.payer] = { paid: 0, owes: 0 }; stats[e.payer].paid += e.cost; if (e.attendees.length) { const sh = e.cost / e.attendees.length; e.attendees.forEach(a => { if (!stats[a]) stats[a] = { paid: 0, owes: 0 }; stats[a].owes += sh }) } });
+      const entries = Object.entries(stats).map(([n, d]) => ({ name: n, net: d.paid - d.owes })).sort((a, b) => b.net - a.net);
+      const mx = Math.max(...entries.map(e => Math.abs(e.net)), 1);
+      entries.forEach(({ name, net }) => { const pct = (Math.abs(net) / mx) * 100, pos = net >= 0, u = S.users[name]; let pp = ''; if (u && u.paypal) { const p = u.paypal, h = p.startsWith('http') ? p : 'https://paypal.me/' + p.replace('@', ''); pp = ' <a class="pp-link" href="' + h + '" target="_blank">PayPal ↗</a>' } const loc = u && u.location ? ' <span style="font-size:.73rem;color:var(--text-dim)">(' + esc(u.location) + ')</span>' : ''; const item = mk('div', 'bar-i'); item.innerHTML = '<div class="bar-h"><span>' + esc(name) + loc + '</span><span style="color:var(--' + (pos ? 'teal' : 'pink') + ')">' + (pos ? 'Gets' : 'Owes') + ' €' + Math.abs(net).toFixed(2) + pp + '</span></div><div class="bar-t"><div class="bar-f ' + (pos ? 'pos' : 'neg') + '" style="width:' + pct + '%"></div></div>'; ch.appendChild(item) });
+      // Settle-up
+      const tx = settle(entries);
+      if (tx.length) { $('settleS').classList.remove('hidden'); tx.forEach(t => { const c = mk('div', 'settle-card'); c.innerHTML = '<strong>' + esc(t.from) + '</strong><span class="ar">→</span><strong>' + esc(t.to) + '</strong>: €' + t.amount.toFixed(2); sl.appendChild(c) }) } else $('settleS').classList.add('hidden');
+    }
+    function settle(entries) { const db = [], cr = []; entries.forEach(e => { if (e.net < -0.01) db.push({ n: e.name, a: -e.net }); else if (e.net > 0.01) cr.push({ n: e.name, a: e.net }) }); db.sort((a, b) => b.a - a.a); cr.sort((a, b) => b.a - a.a); const tx = []; let i = 0, j = 0; while (i < db.length && j < cr.length) { const a = Math.min(db[i].a, cr[j].a); if (a > 0.01) tx.push({ from: db[i].n, to: cr[j].n, amount: a }); db[i].a -= a; cr[j].a -= a; if (db[i].a < 0.01) i++; if (cr[j].a < 0.01) j++ } return tx }
+
+    // Past
+    function rPast(item) { const ic = { song: '🎶', costume: '👗', slot: '📅' }[item.type] || '📌'; const card = mk('div', 'card final'); let txt = ''; if (item.type === 'slot') { const dt = item.datetime ? new Date(item.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : ''; txt = ic + ' ' + dt + (item.location ? ' · ' + esc(item.location) : '') } else txt = ic + ' ' + esc(item.text || ''); card.innerHTML = '<div class="card-top"><div class="card-body">' + txt + '<div class="card-meta">Archived ' + new Date(item.archivedAt).toLocaleDateString() + '</div></div></div>'; $('pastL').appendChild(card) }
+
+    // Dashboard
+    function renderDash() {
+      const dv = $('dashVotes'), dr = $('dashRsvp'), dc = $('dashRecent'); dv.innerHTML = ''; dr.innerHTML = ''; dc.innerHTML = '';
+      const all = [...S.songs.map(s => ({ ...s, _t: 'song' })), ...S.costumes.map(c => ({ ...c, _t: 'costume' })), ...S.slots.map(s => ({ ...s, _t: 'slot' }))];
+      const unv = all.filter(i => !i.finalized && !iVoted(i.id));
+      dv.innerHTML = '<h3>🗳️ Pending Votes (' + unv.length + ')</h3><div class="dash-hint">All votes are anonymous — only totals are visible</div>';
+      if (!unv.length) dv.innerHTML += '<div class="dash-em">✅ You\'ve voted on everything!</div>';
+      else unv.slice(0, 6).forEach(item => {
+        const ic = { song: '🎶', costume: '👗', slot: '📅' }[item._t];
+        let lb = ''; if (item._t === 'slot') { const dt = item.datetime ? new Date(item.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Slot'; lb = dt + (item.location ? ' · ' + item.location : '') } else lb = item.text || ''; if (lb.length > 50) lb = lb.slice(0, 50) + '…';
+        const d = mk('div', 'dash-i'); const txDiv = mk('div', 'tx'); txDiv.innerHTML = esc(lb) + '<br><small>' + ic + ' · ' + (item.votes || 0) + ' votes</small>';
+        const vb = mk('button', 'btn btn-sm btn-vote'); vb.textContent = '👍'; vb.onclick = e => { e.stopPropagation(); item.votes = (item.votes || 0) + 1; addMyVote(item.id); save(); renderDash() };
+        d.appendChild(mk('span', 'ic')).textContent = ic; d.appendChild(txDiv); d.appendChild(vb);
+        d.onclick = () => go({ song: 'songs', costume: 'costumes', slot: 'slots' }[item._t]); dv.appendChild(d)
+      });
+      if (unv.length > 6) dv.innerHTML += '<div class="dash-em">…and ' + (unv.length - 6) + ' more</div>';
+
+      const unr = S.slots.filter(s => !s.finalized && !(s.attendees || []).includes(me()));
+      dr.innerHTML = '<h3>📅 RSVP Needed (' + unr.length + ')</h3>';
+      if (!unr.length) dr.innerHTML += '<div class="dash-em">✅ All caught up!</div>';
+      else unr.forEach(s => { const dt = s.datetime ? new Date(s.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'TBD'; const d = mk('div', 'dash-i'); const txDiv = mk('div', 'tx'); txDiv.innerHTML = dt + (s.location ? ' · ' + esc(s.location) : '') + '<br><small>' + (s.attendees || []).length + ' going</small>'; const ab = mk('button', 'btn btn-sm btn-attend'); ab.textContent = '🙋'; ab.onclick = e => { e.stopPropagation(); if (!s.attendees) s.attendees = []; if (!s.attendees.includes(me())) s.attendees.push(me()); save(); renderDash() }; d.appendChild(mk('span', 'ic')).textContent = '📅'; d.appendChild(txDiv); d.appendChild(ab); d.onclick = () => go('slots'); dr.appendChild(d) });
+
+      const recent = all.sort((a, b) => { const pa = parseInt(a.id, 36), pb = parseInt(b.id, 36); return pb - pa }).slice(0, 5);
+      dc.innerHTML = '<h3>🆕 Recent</h3>';
+      if (!recent.length) dc.innerHTML += '<div class="dash-em">Nothing yet!</div>';
+      else recent.forEach(item => { const ic = { song: '🎶', costume: '👗', slot: '📅' }[item._t]; let lb = ''; if (item._t === 'slot') { const dt = item.datetime ? new Date(item.datetime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Slot'; lb = dt + (item.location ? ' · ' + item.location : '') } else lb = (item.text || '').slice(0, 50); const d = mk('div', 'dash-i'); d.style.borderLeftColor = 'var(--surface3)'; const txDiv = mk('div', 'tx'); txDiv.innerHTML = esc(lb) + '<br><small>by ' + esc(item.addedBy || '?') + ' · ' + (item.votes || 0) + ' votes</small>'; d.appendChild(mk('span', 'ic')).textContent = ic; d.appendChild(txDiv); d.onclick = () => go({ song: 'songs', costume: 'costumes', slot: 'slots' }[item._t]); dc.appendChild(d) });
+
+      // Nav dots
+      document.querySelectorAll('#nav button .bdot').forEach(d => d.remove());
+      if (S.songs.some(s => !s.finalized && !iVoted(s.id))) document.querySelector('[data-v="songs"]').appendChild(mk('span', 'bdot'));
+      if (S.costumes.some(c => !c.finalized && !iVoted(c.id))) document.querySelector('[data-v="costumes"]').appendChild(mk('span', 'bdot'));
+      if (S.slots.some(s => !s.finalized && (!iVoted(s.id) || !(s.attendees || []).includes(me())))) document.querySelector('[data-v="slots"]').appendChild(mk('span', 'bdot'));
+
+      // Admin: user list
+      const du = $('dashUsers'); du.innerHTML = '';
+      if (S.isAdmin) {
+        const uKeys = Object.keys(S.users);
+        du.innerHTML = '<h3>👥 Registered Users (' + uKeys.length + ')</h3>';
+        if (!uKeys.length) du.innerHTML += '<div class="dash-em">No users yet</div>';
+        else uKeys.sort().forEach(name => {
+          const u = S.users[name];
+          const r = mk('div', 'user-row');
+          r.innerHTML = '<div><strong>' + esc(name) + '</strong> <span class="ur-meta">' + (u.location || 'no location') + '</span></div><div class="ur-meta">' + (u.paypal || 'no PayPal') + '</div>';
+          du.appendChild(r);
+        });
+      }
+    }
+
+    function fullRender() { ['songL', 'cosL', 'slL', 'pastL'].forEach(id => $(id).innerHTML = ''); S.songs.forEach(s => rCard(s, 'song', $('songL'))); S.costumes.forEach(c => rCard(c, 'costume', $('cosL'))); S.slots.forEach(s => rCard(s, 'slot', $('slL'))); S.past.forEach(p => rPast(p));['songs', 'costumes', 'slots', 'past'].forEach(togE); applyCF(); renderDash(); updDl() }
+    fullRender();
+
+    // Firebase: auth + real-time sync
+    await signInAnonymously(fbAuth);
+    fbReady = true;
+
+    // One-time migration from old localStorage
+    const OLD_KEY = 'mgroove_v3';
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      try {
+        const old = JSON.parse(oldData);
+        const migrated = {};
+        SHARED_KEYS.forEach(k => { if (old[k]) migrated[k] = old[k] });
+        if (Object.keys(migrated).some(k => Array.isArray(migrated[k]) ? migrated[k].length > 0 : Object.keys(migrated[k] || {}).length > 0)) {
+          await setDoc(docRef, migrated, { merge: true });
+        }
+        if (old.profile) { S.profile = old.profile; $('hAlias').textContent = me() }
+        if (old.myVotes) S.myVotes = old.myVotes;
+        saveLocal();
+        localStorage.removeItem(OLD_KEY);
+      } catch (e) { console.warn('Migration failed:', e) }
+    }
+
+    onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        SHARED_KEYS.forEach(k => { if (data[k] !== undefined) S[k] = data[k] });
+      }
+      if (!S.users) S.users = {};
+      if (!S.expenses) S.expenses = [];
+      syncU();
       fullRender();
+    });
 
-      if ('serviceWorker' in navigator) navigator.serviceWorker.register('/mgroove/sw.js');
-    })();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/mgroove/sw.js');
   </script>
 </body>
 
