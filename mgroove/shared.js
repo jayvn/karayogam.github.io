@@ -82,7 +82,7 @@ export function promptPin(title, cb) {
   const m = modal(
     "<h3>" +
       title +
-      '</h3><div class="f"><input type="password" id="pinIn" placeholder="PIN…" style="width:100%;letter-spacing:4px;text-align:center;font-size:1.1rem"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div>',
+      '</h3><div class="f"><input type="password" id="pinIn" placeholder="PIN…" class="pin-input"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div>',
   );
   m.q("#pinIn").focus();
   const done = () => {
@@ -100,7 +100,7 @@ export function promptPin(title, cb) {
 export function cDlg(msg) {
   return new Promise((r) => {
     const m = modal(
-      '<p style="margin-bottom:1.1rem">' +
+      '<p class="dlg-msg">' +
         msg +
         '</p><div class="acts"><button class="btn" id="cN">Cancel</button><button class="btn btn-add" id="cY">OK</button></div>',
     );

@@ -33,77 +33,7 @@
         appId: "1:798989930424:web:7f324e5153cabc5d90494d",
       });
     </script>
-    <style>
-      .fin h2 {
-        font-family: "Space Mono", monospace;
-        font-size: 0.95rem;
-        color: var(--gold);
-        margin-bottom: 0.9rem;
-      }
-      .fin h3 {
-        font-size: 0.85rem;
-        color: var(--text-dim);
-        margin: 1.1rem 0 0.65rem;
-      }
-      .bar-i {
-        margin-bottom: 0.9rem;
-      }
-      .bar-h {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        margin-bottom: 3px;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.2rem;
-      }
-      .bar-t {
-        background: var(--input-bg);
-        border-radius: 4px;
-        height: 16px;
-        overflow: hidden;
-      }
-      .bar-f {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.4s;
-      }
-      .bar-f.pos {
-        background: var(--teal);
-      }
-      .bar-f.neg {
-        background: var(--pink);
-      }
-      .pp-link {
-        font-size: 0.76rem;
-        color: var(--teal);
-        text-decoration: none;
-        margin-left: 0.25rem;
-      }
-      .pp-link:hover {
-        text-decoration: underline;
-      }
-      .exp-card {
-        font-size: 0.8rem;
-        color: var(--text-dim);
-        padding: 0.5rem 0.7rem;
-        background: var(--surface);
-        border-radius: 6px;
-        margin-bottom: 0.3rem;
-      }
-      .settle-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 0.6rem 0.8rem;
-        margin-bottom: 0.3rem;
-        font-size: 0.86rem;
-      }
-      .settle-card .ar {
-        color: var(--gold);
-        margin: 0 0.3rem;
-      }
-    </style>
+
   </head>
 
   <body>
@@ -118,25 +48,9 @@
         </div>
       </header>
       <div class="fin">
-        <h2>📊 Finances</h2>
-        <div
-          style="
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border);
-          "
-        >
-          <div
-            style="
-              font-size: 0.8rem;
-              color: var(--text-dim);
-              margin-bottom: 0.45rem;
-            "
-          >
-            ➕ Add Expense
-          </div>
+        <h2 class="sec-title">📊 Finances</h2>
+        <div class="add-box">
+          <div class="add-box-label">➕ Add Expense</div>
           <div class="irow">
             <input id="exDesc" placeholder="What for…" />
             <input
@@ -145,34 +59,26 @@
               placeholder="€"
               min="0"
               step="0.01"
-              style="flex: 0 0 80px"
+              class="w-fix-sm"
             />
           </div>
           <div class="irow">
             <input id="exPayer" placeholder="Paid by…" list="userDl" />
             <button class="btn btn-add" id="addExp">Add</button>
           </div>
-          <div
-            style="
-              font-size: 0.76rem;
-              color: var(--text-dim);
-              margin-bottom: 0.25rem;
-            "
-          >
-            Split among:
-          </div>
+          <div class="add-box-label">Split among:</div>
           <div class="chips" id="exChips"></div>
         </div>
         <div id="finCh"></div>
         <div id="settleS" class="hidden">
-          <h3>💸 Settle Up</h3>
+          <h3 class="sec-sub">💸 Settle Up</h3>
           <div id="settleL"></div>
         </div>
         <div id="finE" class="empty">
           <div class="icon">💸</div>
           No expenses yet
         </div>
-        <h3 id="expHdr" class="hidden">All Expenses</h3>
+        <h3 id="expHdr" class="sec-sub hidden">All Expenses</h3>
         <div id="expL"></div>
       </div>
       <datalist id="userDl"></datalist>
@@ -260,8 +166,6 @@
         const stats = {};
         S.expenses.forEach((e, idx) => {
           const d = mk("div", "exp-card");
-          d.style.cssText =
-            "display:flex;justify-content:space-between;align-items:center;gap:0.4rem";
           const txt = mk("span");
           txt.textContent =
             e.title +
@@ -275,7 +179,6 @@
           if (S.isAdmin) {
             const db = mk("button", "btn btn-icon del");
             db.textContent = "✕";
-            db.style.flexShrink = "0";
             db.onclick = async () => {
               if (!(await cDlg("Delete this expense?"))) return;
               S.expenses.splice(idx, 1);
@@ -317,7 +220,7 @@
           }
           const loc =
             u && u.location
-              ? ' <span style="font-size:.73rem;color:var(--text-dim)">(' +
+              ? ' <span class="loc-hint">(' +
                 esc(u.location) +
                 ")</span>"
               : "";
@@ -326,9 +229,9 @@
             '<div class="bar-h"><span>' +
             esc(name) +
             loc +
-            '</span><span style="color:var(--' +
-            (pos ? "teal" : "pink") +
-            ')">' +
+            '</span><span class="' +
+            (pos ? "c-teal" : "c-pink") +
+            '">' +
             (pos ? "Gets" : "Owes") +
             " €" +
             Math.abs(net).toFixed(2) +
