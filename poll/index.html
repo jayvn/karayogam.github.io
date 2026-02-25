@@ -143,6 +143,49 @@
   /* PARTICLES */
   .physics-emoji { position: fixed; font-size: 2rem; pointer-events: none; z-index: 9999; will-change: transform; }
 
+  /* MISC VOTES */
+  .misc-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px; margin-top: 20px;
+  }
+  .misc-item {
+    background: rgba(0,0,0,0.6); border: 2px solid #8b5cf6;
+    border-radius: 15px; padding: 14px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 8px; transition: 0.2s;
+    user-select: none; position: relative;
+  }
+  .misc-item:hover { background: rgba(139, 92, 246, 0.12); box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
+  .misc-item.voted { border-color: var(--neon-green); background: rgba(57, 255, 20, 0.08); }
+  .misc-item img {
+    width: 100%; border-radius: 10px; object-fit: cover; max-height: 200px;
+  }
+  .misc-text { font-size: 0.95rem; word-break: break-word; }
+  .misc-votes-count {
+    font-size: 0.75rem; color: #888; margin-top: auto;
+  }
+  .misc-vote-badge { font-size: 0.78rem; color: var(--neon-green); font-weight: bold; }
+  .misc-add-box {
+    margin-top: 20px; display: flex; flex-direction: column; gap: 8px;
+    background: rgba(0,0,0,0.4); padding: 18px; border-radius: 15px;
+    border: 1px dashed #8b5cf6;
+  }
+  .misc-add-box h3 { margin: 0 0 5px; color: #8b5cf6; font-size: 0.95rem; text-transform: uppercase; }
+  .misc-type-toggle {
+    display: flex; gap: 8px;
+  }
+  .misc-type-btn {
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #555;
+    background: transparent; color: #aaa; cursor: pointer; font-size: 0.85rem;
+    transition: 0.2s;
+  }
+  .misc-type-btn.active { border-color: #8b5cf6; color: #8b5cf6; background: rgba(139,92,246,0.15); }
+  .misc-img-preview { max-width: 100%; max-height: 150px; border-radius: 8px; display: none; }
+  .misc-delete {
+    position: absolute; top: 6px; right: 8px; font-size: 0.7rem;
+    color: #666; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+  }
+  .misc-delete:hover { color: #ff4444; background: rgba(255,0,0,0.1); }
+
   /* EMPTY STATE */
   .empty-state { color: #555; font-size: 0.9rem; padding: 20px; }
 </style>
@@ -182,6 +225,23 @@
   </div>
 
   <div id="polls-container"></div>
+
+  <div id="misc-section" class="section" style="border-color: rgba(139,92,246,0.3)">
+    <h1 style="color: #8b5cf6; text-shadow: 0 0 15px #8b5cf6">🎲 Misc Votes</h1>
+    <p style="margin-bottom: 10px">Quick votes on anything — text or images</p>
+    <div id="misc-grid" class="misc-grid"></div>
+    <div class="misc-add-box">
+      <h3>➕ Add Item</h3>
+      <div class="misc-type-toggle">
+        <button class="misc-type-btn active" onclick="setMiscType('text', this)">📝 Text</button>
+        <button class="misc-type-btn" onclick="setMiscType('image', this)">🖼️ Image</button>
+      </div>
+      <input type="text" class="inp" id="misc-text-input" placeholder="Enter text...">
+      <input type="url" class="inp" id="misc-image-input" placeholder="Image URL..." style="display:none">
+      <img class="misc-img-preview" id="misc-img-preview">
+      <button class="btn btn-cyan" onclick="addMiscItem()">Add</button>
+    </div>
+  </div>
 
   <div class="create-section">
     <h2>🌟 New Poll</h2>
@@ -360,6 +420,29 @@
 
       container.appendChild(section);
     });
+
+    // Render misc votes
+    const miscGrid = document.getElementById('misc-grid');
+    const miscItems = state.misc || [];
+    if (!miscItems.length) {
+      miscGrid.innerHTML = '<div class="empty-state">No items yet — add text or images below!</div>';
+    } else {
+      miscGrid.innerHTML = miscItems.map((item, i) => {
+        const voters = item.voters || [];
+        const voted = voters.includes(userName);
+        return `
+          <div class="misc-item ${voted ? 'voted' : ''}" onclick="toggleMiscVote(${i}, event)">
+            <span class="misc-delete" onclick="deleteMiscItem(${i}, event)">✕</span>
+            ${item.type === 'image'
+              ? `<img src="${item.content}" alt="misc" onerror="this.style.display='none'">`
+              : `<div class="misc-text">${item.content}</div>`}
+            <div class="misc-votes-count">
+              ${voters.length} vote${voters.length !== 1 ? 's' : ''}${voters.length ? ' · ' + voters.join(', ') : ''}
+            </div>
+            ${voted ? '<div class="misc-vote-badge">✓ You voted</div>' : ''}
+          </div>`;
+      }).join('');
+    }
   }
 
   // --- POLL ACTIONS ---
@@ -403,6 +486,60 @@
     } else {
       prompt('Share this link:', url);
     }
+  };
+
+  // --- MISC VOTES ---
+  let miscType = 'text';
+
+  window.setMiscType = (type, btn) => {
+    miscType = type;
+    btn.closest('.misc-type-toggle').querySelectorAll('.misc-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('misc-text-input').style.display = type === 'text' ? '' : 'none';
+    document.getElementById('misc-image-input').style.display = type === 'image' ? '' : 'none';
+    document.getElementById('misc-img-preview').style.display = 'none';
+  };
+
+  document.getElementById('misc-image-input').addEventListener('input', e => {
+    const preview = document.getElementById('misc-img-preview');
+    const url = e.target.value.trim();
+    if (url) { preview.src = url; preview.style.display = 'block'; }
+    else preview.style.display = 'none';
+  });
+
+  document.getElementById('misc-text-input').addEventListener('keydown', e => e.key === 'Enter' && addMiscItem());
+  document.getElementById('misc-image-input').addEventListener('keydown', e => e.key === 'Enter' && addMiscItem());
+
+  window.addMiscItem = async () => {
+    let content;
+    if (miscType === 'text') {
+      content = document.getElementById('misc-text-input').value.trim();
+      if (!content) return document.getElementById('misc-text-input').focus();
+      document.getElementById('misc-text-input').value = '';
+    } else {
+      content = document.getElementById('misc-image-input').value.trim();
+      if (!content) return document.getElementById('misc-image-input').focus();
+      if (!content.startsWith('http')) content = 'https://' + content;
+      document.getElementById('misc-image-input').value = '';
+      document.getElementById('misc-img-preview').style.display = 'none';
+    }
+    state.misc = [...(state.misc || []), { type: miscType, content, voters: [], by: userName }];
+    await save(state);
+  };
+
+  window.toggleMiscVote = async (i, e) => {
+    const voters = [...(state.misc[i].voters || [])];
+    const idx = voters.indexOf(userName);
+    if (idx === -1) { voters.push(userName); spawnParticles(e); }
+    else voters.splice(idx, 1);
+    state.misc[i].voters = voters;
+    await save(state);
+  };
+
+  window.deleteMiscItem = async (i, e) => {
+    e.stopPropagation();
+    state.misc.splice(i, 1);
+    await save(state);
   };
 
   // --- PARTICLES ---
