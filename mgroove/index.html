@@ -950,7 +950,7 @@
     const fbApp = initializeApp(JSON.parse(window.__firebase_config));
     const fbAuth = getAuth(fbApp);
     const fbDb = getFirestore(fbApp);
-    const docRef = doc(fbDb, 'artifacts', 'mgroove-v1', 'default');
+    const docRef = doc(fbDb, 'mgroove', 'v1');
     let fbReady = false;
     const SHARED_KEYS = ['songs', 'costumes', 'slots', 'expenses', 'past', 'users'];
 

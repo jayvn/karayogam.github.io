@@ -119,6 +119,8 @@ GitHub Actions auto-deploys on push to main branch. No build step needed - pure 
 📖 **Documentation:** [_templates/README.md](_templates/README.md)
 
 ## Latest Updates
+**Firestore paths must have even segments** (collection/document pairs) — odd segments like `artifacts/mgroove-v1/default` (3) cause `Invalid document reference` errors; use flat 2-segment paths like `mgroove/v1`.
+
 **Trip Planner Fix**: Resolved Firebase permission errors by refactoring the Firestore path to `artifacts/trip-planner-v1/...`.
 This matches the working pattern from Secret Santa, enabling real-time sync and anonymous auth.
 Users can now share trip tokens via URL for instant collaboration.
