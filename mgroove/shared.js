@@ -16,7 +16,7 @@ const fbDb = getFirestore(fbApp);
 const docRef = doc(fbDb, "mgroove", "v1");
 let fbReady = false;
 
-const SHARED_KEYS = ["songs", "costumes", "slots", "expenses", "past", "users"];
+const SHARED_KEYS = ["songs", "costumes", "slots", "expenses", "past", "users", "misc"];
 const LOCAL_KEY = "mgroove_local";
 const ADMIN_PIN = "0000";
 
@@ -44,6 +44,7 @@ export const S = {
   expenses: [],
   past: [],
   users: {},
+  misc: [],
   ...localState,
   isAdmin: false,
 };

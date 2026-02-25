@@ -117,8 +117,8 @@ GitHub Actions auto-deploys on push to `master` branch. No build step needed - p
 - See `_templates/` for quick-start templates
 - PWA support: add manifest.json + service worker (sw.js)
 
+* Auto commit  code 
 ---
-
 📖 **Documentation:** [_templates/README.md](_templates/README.md)
 
 ## Firebase Notes

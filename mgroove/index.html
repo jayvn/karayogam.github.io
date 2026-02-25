@@ -58,6 +58,7 @@
         <button data-v="costumes">👗 Costumes</button>
         <button data-v="slots">📅 Slots</button>
         <button data-v="past">🕰️ Past</button>
+        <button data-v="misc">🗳️ Misc</button>
       </nav>
       <main id="vHome">
         <div class="dash-s" id="dashVotes"></div>
@@ -138,6 +139,17 @@
           Nothing archived
         </div>
       </main>
+      <main id="vMisc" class="hidden">
+        <div class="irow">
+          <input id="miscIn" placeholder="📝 Vote topic…" />
+          <button class="btn btn-add" id="addMisc">＋</button>
+        </div>
+        <div id="miscL"></div>
+        <div id="miscE" class="empty">
+          <div class="icon">🗳️</div>
+          No misc votes yet
+        </div>
+      </main>
       <datalist id="userDl"></datalist>
     </div>
 
@@ -158,8 +170,8 @@
         updDl,
       } from "/mgroove/shared.js";
 
-      const IC = { song: "🎶", costume: "👗", slot: "📅" };
-      const TAB = { song: "songs", costume: "costumes", slot: "slots" };
+      const IC = { song: "🎶", costume: "👗", slot: "📅", misc: "🗳️" };
+      const TAB = { song: "songs", costume: "costumes", slot: "slots", misc: "misc" };
       const canMod = (w) => S.isAdmin || me() === w;
       const myVotes = () => S.users[me()]?.votes ?? [];
       const iVoted = (id) => myVotes().includes(id);
@@ -453,7 +465,7 @@
             db.textContent = "✕";
             db.onclick = async () => {
               if (!(await cDlg("Delete this item?"))) return;
-              const a = S[type + "s"],
+              const a = S[type === "misc" ? "misc" : type + "s"],
                 i = a.findIndex((x) => x.id === item.id);
               if (i !== -1) a.splice(i, 1);
               const ei = S.expenses.findIndex((e) => e.sourceId === item.id);
@@ -541,7 +553,7 @@
                   attendees: [...(item.attendees ?? [])],
                 });
               if (type !== "slot") {
-                const a = S[type + "s"],
+                const a = S[type === "misc" ? "misc" : type + "s"],
                   i = a.findIndex((x) => x.id === item.id);
                 if (i !== -1) a.splice(i, 1);
                 S.past.push({ ...item, type, archivedAt: Date.now() });
@@ -585,12 +597,13 @@
           finalized: false,
           ...data,
         };
-        S[type + "s"].push(item);
+        const listKey = type === "misc" ? "misc" : type + "s";
+        S[listKey].push(item);
         save();
         rCard(
           item,
           type,
-          $({ song: "songL", costume: "cosL", slot: "slL" }[type]),
+          $({ song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[type]),
         );
       }
 
@@ -722,6 +735,16 @@
         .toISOString()
         .slice(0, 16);
 
+      // Misc
+      const doMisc = () => {
+        const v = $("miscIn").value.trim();
+        if (!v) return;
+        addI("misc", { text: v });
+        $("miscIn").value = "";
+      };
+      $("addMisc").onclick = doMisc;
+      $("miscIn").onkeydown = (e) => { if (e.key === "Enter") doMisc(); };
+
       // Past
       function rPast(item) {
         const ic = IC[item.type] || "📌",
@@ -755,6 +778,7 @@
           ...S.songs.map((s) => ({ ...s, _t: "song" })),
           ...S.costumes.map((c) => ({ ...c, _t: "costume" })),
           ...S.slots.map((s) => ({ ...s, _t: "slot" })),
+          ...(S.misc || []).map((m) => ({ ...m, _t: "misc" })),
         ];
 
         // Pending votes
@@ -883,6 +907,10 @@
           document
             .querySelector('[data-v="slots"]')
             .appendChild(mk("span", "bdot"));
+        if ((S.misc || []).some((m) => !m.finalized && !iVoted(m.id)))
+          document
+            .querySelector('[data-v="misc"]')
+            .appendChild(mk("span", "bdot"));
 
         // Admin: user list
         const du = $("dashUsers");
@@ -910,13 +938,14 @@
       }
 
       function fullRender() {
-        ["songL", "cosL", "slL", "pastL"].forEach(
+        ["songL", "cosL", "slL", "pastL", "miscL"].forEach(
           (id) => ($(id).innerHTML = ""),
         );
         S.songs.forEach((s) => rCard(s, "song", $("songL")));
         S.costumes.forEach((c) => rCard(c, "costume", $("cosL")));
         S.slots.forEach((s) => rCard(s, "slot", $("slL")));
         S.past.forEach((p) => rPast(p));
+        (S.misc || []).forEach((m) => rCard(m, "misc", $("miscL")));
         applyCF();
         renderDash();
         updDl();

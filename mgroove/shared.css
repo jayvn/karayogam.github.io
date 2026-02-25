@@ -871,14 +871,16 @@ nav {
 #songL:has(.card) ~ #songE,
 #cosL:has(.card:not(.fh)) ~ #cosE,
 #slL:has(.card) ~ #slE,
-#pastL:has(.card) ~ #pastE {
+#pastL:has(.card) ~ #pastE,
+#miscL:has(.card) ~ #miscE {
   display: none;
 }
 
 #songL:not(:has(.card)) ~ #songE,
 #cosL:not(:has(.card:not(.fh))) ~ #cosE,
 #slL:not(:has(.card)) ~ #slE,
-#pastL:not(:has(.card)) ~ #pastE {
+#pastL:not(:has(.card)) ~ #pastE,
+#miscL:not(:has(.card)) ~ #miscE {
   display: block;
 }
 
