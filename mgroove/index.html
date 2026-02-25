@@ -18,11 +18,11 @@
     <link rel="icon" type="image/png" href="/mgroove/icon.png" />
     <link rel="apple-touch-icon" href="/mgroove/icon.png" />
     <link rel="manifest" href="/mgroove/manifest.json" />
-
     <link
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/mgroove/shared.css" />
     <script>
       window.__firebase_config = JSON.stringify({
         apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8",
@@ -35,86 +35,10 @@
     </script>
     <style>
       :root {
-        --bg: #0c0818;
-        --surface: #16112a;
-        --surface2: #1f1840;
-        --surface3: #2a2050;
-        --gold: #f0c040;
-        --gold-dim: #8a6e20;
-        --pink: #e8365d;
-        --pink-dim: #9e2540;
-        --teal: #2dd4a8;
-        --teal-dim: #1a8066;
-        --text: #ece4f5;
-        --text-dim: #7a6d92;
-        --danger: #ef4444;
-        --border: #32265a;
-        --input-bg: #100c1e;
         --male: #5b8def;
         --female: #e8365d;
         --unisex: #a78bfa;
-        --glass: rgba(22, 17, 42, 0.75);
         --glow-teal: 0 0 20px rgba(45, 212, 168, 0.15);
-      }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: "Outfit", sans-serif;
-        min-height: 100vh;
-        font-size: 15px;
-        line-height: 1.5;
-      }
-
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        opacity: 0.025;
-        pointer-events: none;
-        z-index: 9999;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      }
-
-      .shell {
-        max-width: 660px;
-        margin: 0 auto;
-        padding: 1rem;
-      }
-
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1rem;
-        background: var(--glass);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      .logo {
-        font-family: "Space Mono", monospace;
-        font-weight: 700;
-        font-size: 1.05rem;
-        color: var(--gold);
-      }
-
-      .hdr-r {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: wrap;
       }
 
       .prof-btn {
@@ -131,30 +55,14 @@
         font-size: 0.83rem;
         transition: border-color 0.2s;
       }
-
       .prof-btn:hover {
         border-color: var(--gold-dim);
       }
-
       .prof-btn .al {
         max-width: 90px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-      }
-
-      .adm-l {
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        font-size: 0.8rem;
-        color: var(--text-dim);
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .adm-l input {
-        accent-color: var(--gold);
       }
 
       nav {
@@ -166,7 +74,6 @@
         padding: 3px;
         overflow-x: auto;
       }
-
       nav button {
         flex: 1;
         min-width: 0;
@@ -183,12 +90,10 @@
         white-space: nowrap;
         position: relative;
       }
-
       nav button:hover {
         color: var(--text);
         background: var(--surface2);
       }
-
       nav button.active {
         background: var(--gold);
         color: var(--bg);
@@ -205,149 +110,35 @@
         right: 5px;
       }
 
-      .irow {
-        display: flex;
-        gap: 0.45rem;
-        margin-bottom: 0.7rem;
-        flex-wrap: wrap;
-      }
-
-      input,
-      select {
-        background: var(--input-bg);
-        color: var(--text);
-        border: 1px solid var(--border);
-        padding: 0.5rem 0.7rem;
-        border-radius: 8px;
-        font-family: "Outfit", sans-serif;
-        font-size: 0.88rem;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-
-      input:focus,
-      select:focus {
-        border-color: var(--gold);
-      }
-
-      input::placeholder {
-        color: var(--text-dim);
-      }
-
-      .irow input,
-      .irow select {
-        flex: 1;
-        min-width: 0;
-      }
-
       input[type="datetime-local"] {
         color-scheme: dark;
         min-width: 175px;
-      }
-
-      input[type="number"] {
-        -moz-appearance: textfield;
-      }
-
-      select {
-        cursor: pointer;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        border: 1px solid var(--border);
-        background: transparent;
-        color: var(--text);
-        padding: 0.4rem 0.7rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-family: "Outfit", sans-serif;
-        font-size: 0.8rem;
-        font-weight: 500;
-        transition: all 0.15s;
-        white-space: nowrap;
-        user-select: none;
-      }
-
-      .btn:hover {
-        background: var(--surface2);
-        border-color: var(--gold-dim);
-      }
-
-      .btn:active {
-        transform: scale(0.97);
-      }
-
-      .btn:disabled {
-        opacity: 0.35;
-        pointer-events: none;
-      }
-
-      .btn-add {
-        background: var(--pink);
-        color: #fff;
-        border: none;
-        font-weight: 600;
-        flex-shrink: 0;
-      }
-
-      .btn-add:hover {
-        background: var(--pink-dim);
-      }
-
-      .btn-sm {
-        padding: 0.28rem 0.5rem;
-        font-size: 0.76rem;
       }
 
       .btn-vote {
         border-color: var(--gold-dim);
         color: var(--gold);
       }
-
       .btn-vote.voted {
         background: var(--gold);
         color: var(--bg);
       }
-
       .btn-attend {
         border-color: var(--teal-dim);
         color: var(--teal);
       }
-
       .btn-attend.going {
         background: var(--teal);
         color: var(--bg);
       }
-
       .btn-final {
         border-color: var(--pink-dim);
         color: var(--pink);
       }
-
       .btn-final.finalized {
         background: var(--teal);
         color: var(--bg);
         border-color: var(--teal);
-      }
-
-      .btn-icon {
-        border-color: transparent;
-        color: var(--text-dim);
-        padding: 0.25rem 0.4rem;
-      }
-
-      .btn-icon:hover {
-        color: var(--text);
-        background: var(--surface3);
-      }
-
-      .btn-icon.del:hover {
-        color: var(--danger);
-        background: rgba(239, 68, 68, 0.1);
       }
 
       .card {
@@ -359,11 +150,9 @@
         animation: cardIn 0.22s ease-out;
         transition: box-shadow 0.2s;
       }
-
       .card:hover {
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
       }
-
       .card.final {
         border-left-color: var(--teal);
         background: linear-gradient(
@@ -373,49 +162,41 @@
         );
         box-shadow: var(--glow-teal);
       }
-
       .card-top {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 0.4rem;
       }
-
       .card-body {
         flex: 1;
         min-width: 0;
       }
-
       .card-body a {
         color: var(--teal);
         text-decoration: none;
         word-break: break-all;
       }
-
       .card-body a:hover {
         text-decoration: underline;
       }
-
       .card-meta {
         font-size: 0.76rem;
         color: var(--text-dim);
         margin-top: 1px;
         display: inline;
       }
-
       .card-actions {
         display: flex;
         gap: 0.3rem;
         flex-wrap: wrap;
         margin-top: 0.4rem;
       }
-
       .card-btns {
         display: flex;
         gap: 2px;
         flex-shrink: 0;
       }
-
       .att-list {
         font-size: 0.76rem;
         color: var(--teal);
@@ -433,7 +214,6 @@
         cursor: pointer;
         transition: border-color 0.2s;
       }
-
       .costume-thumb:hover {
         border-color: var(--gold-dim);
       }
@@ -448,17 +228,14 @@
         letter-spacing: 0.4px;
         margin-left: 0.25rem;
       }
-
       .g-badge.male {
         background: rgba(91, 141, 239, 0.12);
         color: var(--male);
       }
-
       .g-badge.female {
         background: rgba(232, 54, 93, 0.12);
         color: var(--female);
       }
-
       .g-badge.unisex {
         background: rgba(167, 139, 250, 0.12);
         color: var(--unisex);
@@ -469,7 +246,6 @@
           opacity: 0;
           transform: translateY(-5px);
         }
-
         to {
           opacity: 1;
           transform: translateY(0);
@@ -481,7 +257,6 @@
         gap: 4px;
         margin-bottom: 0.9rem;
       }
-
       .tab {
         background: var(--surface2);
         border: 1px solid transparent;
@@ -494,11 +269,9 @@
         font-weight: 500;
         transition: all 0.15s;
       }
-
       .tab:hover {
         color: var(--text);
       }
-
       .tab.active {
         border-color: var(--gold);
         color: var(--gold);
@@ -517,18 +290,15 @@
         margin-bottom: 0.9rem;
         position: relative;
       }
-
       .dz:hover,
       .dz.over {
         border-color: var(--gold);
         color: var(--gold);
         background: rgba(240, 192, 64, 0.02);
       }
-
       .dz input[type="file"] {
         display: none;
       }
-
       .dz .prev {
         max-width: 100%;
         max-height: 130px;
@@ -537,7 +307,6 @@
         display: block;
         margin-inline: auto;
       }
-
       .dz .clr {
         position: absolute;
         top: 6px;
@@ -558,21 +327,18 @@
       .dash-s {
         margin-bottom: 1.4rem;
       }
-
       .dash-s h3 {
         font-family: "Space Mono", monospace;
         font-size: 0.86rem;
         color: var(--gold);
         margin-bottom: 0.5rem;
       }
-
       .dash-hint {
         font-size: 0.76rem;
         color: var(--text-dim);
         margin-bottom: 0.45rem;
         font-style: italic;
       }
-
       .dash-i {
         display: flex;
         align-items: center;
@@ -585,83 +351,26 @@
         transition: background 0.15s;
         border-left: 3px solid var(--pink);
       }
-
       .dash-i:hover {
         background: var(--surface2);
       }
-
       .dash-i .ic {
         font-size: 1rem;
         flex-shrink: 0;
       }
-
       .dash-i .tx {
         flex: 1;
         min-width: 0;
         font-size: 0.88rem;
       }
-
       .dash-i .tx small {
         color: var(--text-dim);
         font-size: 0.76rem;
       }
-
       .dash-em {
         color: var(--text-dim);
         font-size: 0.86rem;
         padding: 0.4rem 0;
-      }
-
-      .mo {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        animation: fi 0.15s;
-      }
-
-      .md {
-        background: var(--surface2);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.4rem;
-        max-width: 400px;
-        width: 92%;
-      }
-
-      .md h3 {
-        font-family: "Space Mono", monospace;
-        color: var(--gold);
-        font-size: 0.92rem;
-        margin-bottom: 0.9rem;
-      }
-
-      .md .f {
-        margin-bottom: 0.8rem;
-      }
-
-      .md .f label {
-        display: block;
-        font-size: 0.78rem;
-        color: var(--text-dim);
-        margin-bottom: 0.25rem;
-      }
-
-      .md .f input,
-      .md .f select {
-        width: 100%;
-      }
-
-      .md .acts {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: flex-end;
-        margin-top: 1.1rem;
       }
 
       .lb {
@@ -675,33 +384,10 @@
         cursor: pointer;
         animation: fi 0.15s;
       }
-
       .lb img {
         max-width: 94vw;
         max-height: 92vh;
         border-radius: 8px;
-      }
-
-      @keyframes fi {
-        from {
-          opacity: 0;
-        }
-
-        to {
-          opacity: 1;
-        }
-      }
-
-      .empty {
-        text-align: center;
-        padding: 2.2rem 1rem;
-        color: var(--text-dim);
-        font-size: 0.9rem;
-      }
-
-      .empty .icon {
-        font-size: 1.8rem;
-        margin-bottom: 0.4rem;
       }
 
       .user-row {
@@ -716,49 +402,9 @@
         gap: 0.4rem;
         flex-wrap: wrap;
       }
-
       .user-row .ur-meta {
         font-size: 0.76rem;
         color: var(--text-dim);
-      }
-
-      .hidden {
-        display: none !important;
-      }
-
-      body:not(.admin) .ao {
-        display: none !important;
-      }
-
-      .nav-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        color: var(--gold);
-        text-decoration: none;
-        font-size: 0.83rem;
-        padding: 0.35rem 0.65rem;
-        background: var(--input-bg);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        transition: border-color 0.2s;
-      }
-
-      .nav-link:hover {
-        border-color: var(--gold-dim);
-      }
-
-      ::-webkit-scrollbar {
-        width: 5px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: 3px;
       }
     </style>
   </head>
@@ -795,10 +441,8 @@
       </main>
       <main id="vSongs" class="hidden">
         <div class="irow">
-          <input
-            id="songIn"
-            placeholder="🔗 YT / Spotify link or song name…"
-          /><button class="btn btn-add" id="addSong">＋</button>
+          <input id="songIn" placeholder="🔗 YT / Spotify link or song name…" />
+          <button class="btn btn-add" id="addSong">＋</button>
         </div>
         <div id="songL"></div>
         <div id="songE" class="empty">
@@ -812,29 +456,25 @@
             id="cosIn"
             placeholder="🔗 Image link or idea…"
             style="flex: 2"
-          /><select id="cosG" style="flex: 0 0 95px">
+          />
+          <select id="cosG" style="flex: 0 0 95px">
             <option value="unisex">⚥ Unisex</option>
             <option value="male">♂ Male</option>
-            <option value="female">♀ Female</option></select
-          ><button class="btn btn-add" id="addCos">＋</button>
+            <option value="female">♀ Female</option>
+          </select>
+          <button class="btn btn-add" id="addCos">＋</button>
         </div>
         <div class="dz" id="cosDz">
-          📷 Drop, paste, or <strong>click</strong> to attach image<input
-            type="file"
-            accept="image/*"
-            id="cosFile"
-          /><img class="prev hidden" id="cosPrev" /><button
-            class="clr"
-            id="cosClr"
-          >
-            ✕
-          </button>
+          📷 Drop, paste, or <strong>click</strong> to attach image
+          <input type="file" accept="image/*" id="cosFile" />
+          <img class="prev hidden" id="cosPrev" />
+          <button class="clr" id="cosClr">✕</button>
         </div>
         <div class="tabs" id="cosTabs">
-          <button class="tab active" data-f="all">All</button
-          ><button class="tab" data-f="male">♂ Male</button
-          ><button class="tab" data-f="female">♀ Female</button
-          ><button class="tab" data-f="unisex">⚥ Unisex</button>
+          <button class="tab active" data-f="all">All</button>
+          <button class="tab" data-f="male">♂ Male</button>
+          <button class="tab" data-f="female">♀ Female</button>
+          <button class="tab" data-f="unisex">⚥ Unisex</button>
         </div>
         <div id="cosL"></div>
         <div id="cosE" class="empty">
@@ -844,10 +484,8 @@
       </main>
       <main id="vSlots" class="hidden">
         <div class="irow">
-          <input type="datetime-local" id="slDt" /><input
-            id="slLoc"
-            placeholder="📍 Location…"
-          />
+          <input type="datetime-local" id="slDt" />
+          <input id="slLoc" placeholder="📍 Location…" />
         </div>
         <div class="irow">
           <input
@@ -857,12 +495,9 @@
             min="0"
             step="0.01"
             style="flex: 0 0 95px"
-          /><input id="slPayer" placeholder="Paid by…" list="userDl" /><button
-            class="btn btn-add"
-            id="addSl"
-          >
-            ＋ Slot
-          </button>
+          />
+          <input id="slPayer" placeholder="Paid by…" list="userDl" />
+          <button class="btn btn-add" id="addSl">＋ Slot</button>
         </div>
         <div id="slL"></div>
         <div id="slE" class="empty">
@@ -881,302 +516,63 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
       import {
-        getAuth,
-        signInAnonymously,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        setDoc,
-        onSnapshot,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        $,
+        mk,
+        esc,
+        S,
+        save,
+        saveLocal,
+        me,
+        modal,
+        cDlg,
+        initAdmin,
+        initFirebase,
+        syncU,
+        updDl,
+      } from "/mgroove/shared.js";
 
-      const fbApp = initializeApp(JSON.parse(window.__firebase_config));
-      const fbAuth = getAuth(fbApp);
-      const fbDb = getFirestore(fbApp);
-      const docRef = doc(fbDb, "mgroove", "v1");
-      let fbReady = false;
-      const SHARED_KEYS = [
-        "songs",
-        "costumes",
-        "slots",
-        "expenses",
-        "past",
-        "users",
-      ];
-
-      const LOCAL_KEY = "mgroove_local",
-        body = document.body;
-      const $ = (id) => document.getElementById(id);
-      const mk = (t, c) => {
-        const e = document.createElement(t);
-        if (c) e.className = c;
-        return e;
-      };
-      const esc = (s) => {
-        const d = mk("div");
-        d.textContent = s;
-        return d.innerHTML;
-      };
-
-      const blankShared = () => ({
-        songs: [],
-        costumes: [],
-        slots: [],
-        expenses: [],
-        past: [],
-        users: {},
-      });
-      const blankLocal = () => ({
-        profile: { alias: "", location: "", paypal: "" },
-      });
-      let localState;
-      try {
-        localState = {
-          ...blankLocal(),
-          ...JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
-        };
-      } catch {
-        localState = blankLocal();
-      }
-      let S = { ...blankShared(), ...localState, isAdmin: false };
-      const saveLocal = () =>
-        localStorage.setItem(
-          LOCAL_KEY,
-          JSON.stringify({ profile: S.profile }),
-        );
-      const saveShared = () => {
-        if (!fbReady) return;
-        const data = {};
-        SHARED_KEYS.forEach((k) => (data[k] = S[k]));
-        setDoc(docRef, data, { merge: true });
-      };
-      const save = () => {
-        saveLocal();
-        saveShared();
-      };
-      const me = () => S.profile.alias || "Anon";
+      const IC = { song: "🎶", costume: "👗", slot: "📅" };
+      const TAB = { song: "songs", costume: "costumes", slot: "slots" };
       const canMod = (w) => S.isAdmin || me() === w;
       const myVotes = () => (S.users[me()] && S.users[me()].votes) || [];
       const iVoted = (id) => myVotes().includes(id);
-      const addMyVote = (id) => {
-        if (me() === "Anon") return;
-        if (!S.users[me()]) return;
+      function addMyVote(id) {
+        if (me() === "Anon" || !S.users[me()]) return;
         if (!S.users[me()].votes) S.users[me()].votes = [];
         if (!iVoted(id)) S.users[me()].votes.push(id);
-      };
-      const rmMyVote = (id) => {
+      }
+      function rmMyVote(id) {
         if (!S.users[me()] || !S.users[me()].votes) return;
         S.users[me()].votes = S.users[me()].votes.filter((x) => x !== id);
-      };
+      }
 
-      $("hAlias").textContent = me();
-      S.isAdmin = false;
-      $("admTog").checked = false;
-      saveLocal();
-      const ADMIN_PIN = "0000";
-      $("admTog").onchange = (e) => {
-        if (e.target.checked) {
-          promptPin("🔒 Enter Admin PIN", "", (pin) => {
-            if (pin === ADMIN_PIN) {
-              S.isAdmin = true;
-              body.classList.add("admin");
-              $("admTog").checked = true;
-              saveLocal();
-              renderDash();
-            } else {
-              $("admTog").checked = false;
-              alert("Wrong PIN");
-            }
-          });
-          e.target.checked = false;
-        } else {
-          S.isAdmin = false;
-          body.classList.remove("admin");
-          saveLocal();
-          renderDash();
+      function fmtDate(dt, opts) {
+        return dt ? new Date(dt).toLocaleDateString("en-GB", opts) : "";
+      }
+      const SHORT_DATE = { weekday: "short", day: "numeric", month: "short" };
+      const LONG_DATE = { ...SHORT_DATE, hour: "2-digit", minute: "2-digit" };
+
+      function itemLabel(item) {
+        if (item._t === "slot") {
+          const ds = fmtDate(item.datetime, SHORT_DATE) || "Slot";
+          return ds + (item.location ? " · " + item.location : "");
         }
-      };
-      function promptPin(title, subtitle, cb) {
-        const o = mk("div", "mo");
-        o.innerHTML =
-          '<div class="md"><h3>' +
-          title +
-          "</h3>" +
-          (subtitle
-            ? '<p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.8rem">' +
-              subtitle +
-              "</p>"
-            : "") +
-          '<div class="f"><input type="password" id="pinIn" placeholder="PIN…" style="width:100%;letter-spacing:4px;text-align:center;font-size:1.1rem"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div></div>';
-        body.appendChild(o);
-        o.querySelector("#pinIn").focus();
-        const cl = () => o.remove();
-        o.onclick = (e) => {
-          if (e.target === o) cl();
-        };
-        o.querySelector("#pinC").onclick = cl;
-        o.querySelector("#pinOk").onclick = () => {
-          const v = o.querySelector("#pinIn").value;
-          cl();
-          cb(v);
-        };
-        o.querySelector("#pinIn").onkeydown = (e) => {
-          if (e.key === "Enter") {
-            const v = o.querySelector("#pinIn").value;
-            cl();
-            cb(v);
-          }
-        };
+        return item.text || "";
       }
 
-      function syncU() {
-        const a = me();
-        if (a !== "Anon")
-          S.users[a] = {
-            ...S.users[a],
-            location: S.profile.location || "",
-            paypal: S.profile.paypal || "",
-          };
-      }
-      syncU();
-      function updDl() {
-        const d = $("userDl");
-        d.innerHTML = "";
-        Object.keys(S.users).forEach((u) => {
-          const o = mk("option");
-          o.value = u;
-          d.appendChild(o);
-        });
-      }
-      updDl();
-
-      function renameUser(oldName, newName) {
-        // Migrate user entry (votes, location, paypal)
-        if (S.users[oldName]) {
-          S.users[newName] = { ...S.users[oldName] };
-          delete S.users[oldName];
-        }
-        // Update addedBy on all items
-        const lists = [S.songs, S.costumes, S.slots, S.past];
-        lists.forEach((arr) =>
-          arr.forEach((item) => {
-            if (item.addedBy === oldName) item.addedBy = newName;
-          }),
-        );
-        // Update attendees on slots and past
-        [...S.slots, ...S.past].forEach((s) => {
-          if (!s.attendees) return;
-          const i = s.attendees.indexOf(oldName);
-          if (i !== -1) s.attendees[i] = newName;
-        });
-        // Update expenses
-        S.expenses.forEach((e) => {
-          if (e.payer === oldName) e.payer = newName;
-          if (!e.attendees) return;
-          const i = e.attendees.indexOf(oldName);
-          if (i !== -1) e.attendees[i] = newName;
-        });
-      }
-
-      function openProf() {
-        const o = mk("div", "mo");
-        o.innerHTML =
-          '<div class="md"><h3>👤 Your Profile</h3><div class="f"><label>Alias</label><input id="pA" value="' +
-          esc(S.profile.alias) +
-          '" placeholder="Your good name please. Bad anelum "></div><div class="f"><label>📍 Location</label><input id="pL" value="' +
-          esc(S.profile.location) +
-          '" placeholder="address for meetups (optional)…"></div><div class="f"><label>💳 PayPal</label><input id="pP" value="' +
-          esc(S.profile.paypal) +
-          '" placeholder="for reimbursements (optional)"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
-        body.appendChild(o);
-        o.querySelector("#pA").focus();
-        const cl = () => o.remove();
-        o.onclick = (e) => {
-          if (e.target === o) cl();
-        };
-        o.querySelector("#pC").onclick = cl;
-        o.querySelector("#pS").onclick = () => {
-          const newAlias = o.querySelector("#pA").value.trim();
-          const oldAlias = S.profile.alias;
-          if (newAlias && newAlias !== oldAlias && S.users[newAlias]) {
-            const warn = mk("div", "f");
-            warn.innerHTML =
-              '<div style="color:var(--danger);font-size:0.82rem;padding:0.5rem;background:rgba(239,68,68,.1);border-radius:6px">⚠️ "<strong>' +
-              esc(newAlias) +
-              '</strong>" is already taken. Please choose a different alias.</div>';
-            const existing = o.querySelector(".collision-warn");
-            if (existing) existing.remove();
-            warn.className = "collision-warn";
-            o.querySelector(".md").insertBefore(warn, o.querySelector(".acts"));
-            return;
-          }
-          S.profile.alias = newAlias;
-          S.profile.location = o.querySelector("#pL").value.trim();
-          S.profile.paypal = o.querySelector("#pP").value.trim();
-          if (oldAlias && oldAlias !== newAlias) {
-            renameUser(oldAlias, newAlias);
-          }
-          syncU();
-          save();
-          $("hAlias").textContent = me();
-          updDl();
-          cl();
-          fullRender();
-        };
-      }
-      $("profBtn").onclick = openProf;
-      $("exportBtn").onclick = () => {
-        const blob = new Blob([JSON.stringify(S, null, 2)], {
-          type: "application/json",
-        });
-        const a = mk("a");
-        a.href = URL.createObjectURL(blob);
-        a.download =
-          "mgroove-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-        a.click();
-        URL.revokeObjectURL(a.href);
-      };
-      if (!S.profile.alias) setTimeout(openProf, 300);
-
-      function cDlg(msg) {
-        return new Promise((r) => {
-          const o = mk("div", "mo");
-          o.innerHTML =
-            '<div class="md"><p style="margin-bottom:1.1rem">' +
-            msg +
-            '</p><div class="acts"><button class="btn" id="cN">Cancel</button><button class="btn btn-add" id="cY">OK</button></div></div>';
-          body.appendChild(o);
-          o.querySelector("#cY").onclick = () => {
-            o.remove();
-            r(true);
-          };
-          o.querySelector("#cN").onclick = () => {
-            o.remove();
-            r(false);
-          };
-          o.onclick = (e) => {
-            if (e.target === o) {
-              o.remove();
-              r(false);
-            }
-          };
-        });
-      }
-      function lbox(src) {
-        const l = mk("div", "lb");
-        l.innerHTML = '<img src="' + src + '">';
-        l.onclick = () => l.remove();
-        body.appendChild(l);
-      }
       function xLink(t) {
         const m = t.match(/(https?:\/\/[^\s]+)/);
         return m ? m[1] : null;
       }
       function isImg(u) {
         return /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(u);
+      }
+      function lbox(src) {
+        const l = mk("div", "lb");
+        l.innerHTML = '<img src="' + src + '">';
+        l.onclick = () => l.remove();
+        document.body.appendChild(l);
       }
 
       // Nav
@@ -1198,17 +594,17 @@
 
       function togE(t) {
         const em = {
-            songs: "songE",
-            costumes: "cosE",
-            slots: "slE",
-            past: "pastE",
-          },
-          lm = {
-            songs: "songL",
-            costumes: "cosL",
-            slots: "slL",
-            past: "pastL",
-          };
+          songs: "songE",
+          costumes: "cosE",
+          slots: "slE",
+          past: "pastE",
+        };
+        const lm = {
+          songs: "songL",
+          costumes: "cosL",
+          slots: "slL",
+          past: "pastL",
+        };
         const e = $(em[t]),
           l = $(lm[t]);
         if (!e || !l) return;
@@ -1220,8 +616,90 @@
         );
       }
 
+      // Rename
+      function renameUser(oldName, newName) {
+        if (S.users[oldName]) {
+          S.users[newName] = { ...S.users[oldName] };
+          delete S.users[oldName];
+        }
+        [S.songs, S.costumes, S.slots, S.past].forEach((arr) =>
+          arr.forEach((item) => {
+            if (item.addedBy === oldName) item.addedBy = newName;
+          }),
+        );
+        [...S.slots, ...S.past].forEach((s) => {
+          if (!s.attendees) return;
+          const i = s.attendees.indexOf(oldName);
+          if (i !== -1) s.attendees[i] = newName;
+        });
+        S.expenses.forEach((e) => {
+          if (e.payer === oldName) e.payer = newName;
+          if (!e.attendees) return;
+          const i = e.attendees.indexOf(oldName);
+          if (i !== -1) e.attendees[i] = newName;
+        });
+      }
+
+      // Profile
+      function openProf() {
+        const m = modal(
+          "<h3>👤 Your Profile</h3>" +
+            '<div class="f"><label>Alias</label><input id="pA" value="' +
+            esc(S.profile.alias) +
+            '" placeholder="Your good name please. Bad anelum "></div>' +
+            '<div class="f"><label>📍 Location</label><input id="pL" value="' +
+            esc(S.profile.location) +
+            '" placeholder="address for meetups (optional)…"></div>' +
+            '<div class="f"><label>💳 PayPal</label><input id="pP" value="' +
+            esc(S.profile.paypal) +
+            '" placeholder="for reimbursements (optional)"></div>' +
+            '<div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div>',
+        );
+        m.q("#pA").focus();
+        m.q("#pC").onclick = m.close;
+        m.q("#pS").onclick = () => {
+          const newAlias = m.q("#pA").value.trim(),
+            oldAlias = S.profile.alias;
+          if (newAlias && newAlias !== oldAlias && S.users[newAlias]) {
+            const existing = m.el.querySelector(".collision-warn");
+            if (existing) existing.remove();
+            const warn = mk("div", "collision-warn");
+            warn.innerHTML =
+              '<div style="color:var(--danger);font-size:0.82rem;padding:0.5rem;background:rgba(239,68,68,.1);border-radius:6px">⚠️ "<strong>' +
+              esc(newAlias) +
+              '</strong>" is already taken.</div>';
+            m.q(".md").insertBefore(warn, m.q(".acts"));
+            return;
+          }
+          S.profile.alias = newAlias;
+          S.profile.location = m.q("#pL").value.trim();
+          S.profile.paypal = m.q("#pP").value.trim();
+          if (oldAlias && oldAlias !== newAlias) renameUser(oldAlias, newAlias);
+          syncU();
+          save();
+          $("hAlias").textContent = me();
+          updDl();
+          m.close();
+          fullRender();
+        };
+      }
+
+      $("hAlias").textContent = me();
+      $("profBtn").onclick = openProf;
+      $("exportBtn").onclick = () => {
+        const a = mk("a");
+        a.href = URL.createObjectURL(
+          new Blob([JSON.stringify(S, null, 2)], { type: "application/json" }),
+        );
+        a.download =
+          "mgroove-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      };
+      if (!S.profile.alias) setTimeout(openProf, 300);
+
+      // Edit modal
       function openEd(item, type, cb) {
-        const o = mk("div", "mo");
         let f = "";
         if (type === "song")
           f =
@@ -1232,13 +710,21 @@
           f =
             '<div class="f"><label>Idea/Link</label><input id="eT" value="' +
             esc(item.text) +
-            '"></div><div class="f"><label>Gender</label><select id="eG" style="width:100%"><option value="unisex"' +
-            (item.gender === "unisex" ? " selected" : "") +
-            '>⚥ Unisex</option><option value="male"' +
-            (item.gender === "male" ? " selected" : "") +
-            '>♂ Male</option><option value="female"' +
-            (item.gender === "female" ? " selected" : "") +
-            ">♀ Female</option></select></div>";
+            '"></div>' +
+            '<div class="f"><label>Gender</label><select id="eG" style="width:100%">' +
+            ["unisex", "male", "female"]
+              .map(
+                (g) =>
+                  '<option value="' +
+                  g +
+                  '"' +
+                  (item.gender === g ? " selected" : "") +
+                  ">" +
+                  g +
+                  "</option>",
+              )
+              .join("") +
+            "</select></div>";
         else {
           const dt = item.datetime
             ? new Date(item.datetime).toISOString().slice(0, 16)
@@ -1246,64 +732,56 @@
           f =
             '<div class="f"><label>Date & Time</label><input type="datetime-local" id="eDt" value="' +
             dt +
-            '" style="width:100%;color-scheme:dark"></div><div class="f"><label>Location</label><input id="eLo" value="' +
+            '" style="width:100%;color-scheme:dark"></div>' +
+            '<div class="f"><label>Location</label><input id="eLo" value="' +
             esc(item.location || "") +
-            '"></div><div class="f"><label>Cost €</label><input type="number" id="eCo" value="' +
+            '"></div>' +
+            '<div class="f"><label>Cost €</label><input type="number" id="eCo" value="' +
             (item.cost || 0) +
-            '" min="0" step="0.01"></div><div class="f"><label>Paid by</label><input id="ePa" value="' +
+            '" min="0" step="0.01"></div>' +
+            '<div class="f"><label>Paid by</label><input id="ePa" value="' +
             esc(item.payer || "") +
             '" list="userDl"></div>';
         }
-        o.innerHTML =
-          '<div class="md"><h3>✏️ Edit</h3>' +
-          f +
-          '<div class="acts"><button class="btn" id="eC">Cancel</button><button class="btn btn-add" id="eS">Save</button></div></div>';
-        body.appendChild(o);
-        const cl = () => o.remove();
-        o.onclick = (e) => {
-          if (e.target === o) cl();
-        };
-        o.querySelector("#eC").onclick = cl;
-        o.querySelector("#eS").onclick = () => {
-          if (type === "song")
-            item.text = o.querySelector("#eT").value.trim() || item.text;
+        const m = modal(
+          "<h3>✏️ Edit</h3>" +
+            f +
+            '<div class="acts"><button class="btn" id="eC">Cancel</button><button class="btn btn-add" id="eS">Save</button></div>',
+        );
+        m.q("#eC").onclick = m.close;
+        m.q("#eS").onclick = () => {
+          if (type === "song") item.text = m.q("#eT").value.trim() || item.text;
           else if (type === "costume") {
-            item.text = o.querySelector("#eT").value.trim() || item.text;
-            item.gender = o.querySelector("#eG").value;
+            item.text = m.q("#eT").value.trim() || item.text;
+            item.gender = m.q("#eG").value;
           } else {
-            item.datetime = o.querySelector("#eDt").value || item.datetime;
-            item.location = o.querySelector("#eLo").value.trim();
-            item.cost = parseFloat(o.querySelector("#eCo").value) || 0;
-            item.payer = o.querySelector("#ePa").value.trim();
+            item.datetime = m.q("#eDt").value || item.datetime;
+            item.location = m.q("#eLo").value.trim();
+            item.cost = parseFloat(m.q("#eCo").value) || 0;
+            item.payer = m.q("#ePa").value.trim();
           }
           save();
-          cl();
+          m.close();
           cb();
         };
       }
 
+      // Card rendering
       function rCard(item, type, listEl) {
         const card = mk("div", "card" + (item.finalized ? " final" : ""));
         card.dataset.id = item.id;
         if (type === "costume") card.dataset.gender = item.gender || "unisex";
+
         function build() {
           card.innerHTML = "";
           if (type === "costume") card.dataset.gender = item.gender || "unisex";
           card.className = "card" + (item.finalized ? " final" : "");
-          const ic = { song: "🎶", costume: "👗", slot: "📅" }[type],
+          const ic = IC[type],
             link = xLink(item.text || "");
+
           let tH = "";
           if (type === "slot") {
-            const dt = item.datetime ? new Date(item.datetime) : null;
-            const ds = dt
-              ? dt.toLocaleDateString("en-GB", {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "No date";
+            const ds = fmtDate(item.datetime, LONG_DATE) || "No date";
             tH = ic + " <strong>" + ds + "</strong>";
             if (item.location) tH += " · 📍 " + esc(item.location);
           } else if (link) {
@@ -1318,6 +796,7 @@
               (link.length > 45 ? link.slice(0, 45) + "…" : link) +
               "</a>";
           } else tH = ic + " " + esc(item.text || "");
+
           let meta =
             '<span class="card-meta">by ' +
             esc(item.addedBy || "?") +
@@ -1335,9 +814,11 @@
               '">' +
               item.gender +
               "</span>";
+
           const top = mk("div", "card-top"),
             bd = mk("div", "card-body");
           bd.innerHTML = tH + "<div>" + meta + "</div>";
+
           const imgSrc =
             item.imageData ||
             (type === "costume" && link && isImg(link) ? link : null);
@@ -1347,6 +828,7 @@
             im.onclick = () => lbox(imgSrc);
             bd.appendChild(im);
           }
+
           const btns = mk("div", "card-btns");
           if (canMod(item.addedBy) && !item.finalized) {
             const eb = mk("button", "btn btn-icon");
@@ -1373,6 +855,7 @@
           top.appendChild(bd);
           top.appendChild(btns);
           card.appendChild(top);
+
           const acts = mk("div", "card-actions");
           if (!item.finalized) {
             const vb = mk(
@@ -1394,6 +877,7 @@
             };
             acts.appendChild(vb);
           }
+
           let attDiv;
           if (type === "slot") {
             const att = new Set(item.attendees || []);
@@ -1416,6 +900,7 @@
             attDiv = mk("div", "att-list");
             attDiv.textContent = att.size ? "→ " + [...att].join(", ") : "";
           }
+
           const fb = mk(
             "button",
             "btn btn-sm btn-final ao" + (item.finalized ? " finalized" : ""),
@@ -1459,6 +944,7 @@
             build();
           };
           acts.appendChild(fb);
+
           if (type === "slot" && item.finalized) {
             const arb = mk("button", "btn btn-sm ao");
             arb.textContent = "🕰️ Archive";
@@ -1480,6 +966,7 @@
         listEl.appendChild(card);
       }
 
+      // Add item
       function addI(type, data) {
         const item = {
           id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -1496,8 +983,9 @@
           $({ song: "songL", costume: "cosL", slot: "slL" }[type]),
         );
         togE(type + "s");
-        return item;
       }
+
+      // Songs
       const doSong = () => {
         const v = $("songIn").value.trim();
         if (!v) return;
@@ -1509,6 +997,7 @@
         if (e.key === "Enter") doSong();
       };
 
+      // Costumes
       let pendImg = null;
       const doCos = () => {
         const v = $("cosIn").value.trim();
@@ -1526,6 +1015,7 @@
       $("cosIn").onkeydown = (e) => {
         if (e.key === "Enter") doCos();
       };
+
       function setI(d) {
         pendImg = d;
         $("cosPrev").src = d;
@@ -1542,6 +1032,7 @@
         e.stopPropagation();
         clrI();
       };
+
       function rdImg(f) {
         if (!f || !f.type.startsWith("image/")) return;
         const r = new FileReader();
@@ -1594,6 +1085,7 @@
         };
       });
 
+      // Slots
       const doSlot = () => {
         const dt = $("slDt").value,
           loc = $("slLoc").value.trim();
@@ -1628,20 +1120,15 @@
 
       // Past
       function rPast(item) {
-        const ic = { song: "🎶", costume: "👗", slot: "📅" }[item.type] || "📌";
-        const card = mk("div", "card final");
-        let txt = "";
-        if (item.type === "slot") {
-          const dt = item.datetime
-            ? new Date(item.datetime).toLocaleDateString("en-GB", {
-                weekday: "short",
-                day: "numeric",
-                month: "short",
-              })
-            : "";
-          txt =
-            ic + " " + dt + (item.location ? " · " + esc(item.location) : "");
-        } else txt = ic + " " + esc(item.text || "");
+        const ic = IC[item.type] || "📌",
+          card = mk("div", "card final");
+        let txt =
+          item.type === "slot"
+            ? ic +
+              " " +
+              fmtDate(item.datetime, SHORT_DATE) +
+              (item.location ? " · " + esc(item.location) : "")
+            : ic + " " + esc(item.text || "");
         card.innerHTML =
           '<div class="card-top"><div class="card-body">' +
           txt +
@@ -1659,11 +1146,14 @@
         dv.innerHTML = "";
         dr.innerHTML = "";
         dc.innerHTML = "";
+
         const all = [
           ...S.songs.map((s) => ({ ...s, _t: "song" })),
           ...S.costumes.map((c) => ({ ...c, _t: "costume" })),
           ...S.slots.map((s) => ({ ...s, _t: "slot" })),
         ];
+
+        // Pending votes
         const unv = all.filter((i) => !i.finalized && !iVoted(i.id));
         dv.innerHTML =
           "<h3>🗳️ Pending Votes (" +
@@ -1672,21 +1162,10 @@
         if (!unv.length)
           dv.innerHTML +=
             '<div class="dash-em">✅ You\'ve voted on everything!</div>';
-        else
+        else {
           unv.slice(0, 6).forEach((item) => {
-            const ic = { song: "🎶", costume: "👗", slot: "📅" }[item._t];
-            let lb = "";
-            if (item._t === "slot") {
-              const dt = item.datetime
-                ? new Date(item.datetime).toLocaleDateString("en-GB", {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                  })
-                : "Slot";
-              lb = dt + (item.location ? " · " + item.location : "");
-            } else lb = item.text || "";
-            if (lb.length > 50) lb = lb.slice(0, 50) + "…";
+            const ic = IC[item._t],
+              lb = itemLabel(item).slice(0, 50);
             const d = mk("div", "dash-i");
             const txDiv = mk("div", "tx");
             txDiv.innerHTML =
@@ -1708,16 +1187,15 @@
             d.appendChild(mk("span", "ic")).textContent = ic;
             d.appendChild(txDiv);
             d.appendChild(vb);
-            d.onclick = () =>
-              go(
-                { song: "songs", costume: "costumes", slot: "slots" }[item._t],
-              );
+            d.onclick = () => go(TAB[item._t]);
             dv.appendChild(d);
           });
-        if (unv.length > 6)
-          dv.innerHTML +=
-            '<div class="dash-em">…and ' + (unv.length - 6) + " more</div>";
+          if (unv.length > 6)
+            dv.innerHTML +=
+              '<div class="dash-em">…and ' + (unv.length - 6) + " more</div>";
+        }
 
+        // RSVP
         const unr = S.slots.filter(
           (s) => !s.finalized && !(s.attendees || []).includes(me()),
         );
@@ -1726,15 +1204,7 @@
           dr.innerHTML += '<div class="dash-em">✅ All caught up!</div>';
         else
           unr.forEach((s) => {
-            const dt = s.datetime
-              ? new Date(s.datetime).toLocaleDateString("en-GB", {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "TBD";
+            const dt = fmtDate(s.datetime, LONG_DATE) || "TBD";
             const d = mk("div", "dash-i");
             const txDiv = mk("div", "tx");
             txDiv.innerHTML =
@@ -1759,30 +1229,17 @@
             dr.appendChild(d);
           });
 
+        // Recent
         const recent = all
-          .sort((a, b) => {
-            const pa = parseInt(a.id, 36),
-              pb = parseInt(b.id, 36);
-            return pb - pa;
-          })
+          .sort((a, b) => parseInt(b.id, 36) - parseInt(a.id, 36))
           .slice(0, 5);
         dc.innerHTML = "<h3>🆕 Recent</h3>";
         if (!recent.length)
           dc.innerHTML += '<div class="dash-em">Nothing yet!</div>';
         else
           recent.forEach((item) => {
-            const ic = { song: "🎶", costume: "👗", slot: "📅" }[item._t];
-            let lb = "";
-            if (item._t === "slot") {
-              const dt = item.datetime
-                ? new Date(item.datetime).toLocaleDateString("en-GB", {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                  })
-                : "Slot";
-              lb = dt + (item.location ? " · " + item.location : "");
-            } else lb = (item.text || "").slice(0, 50);
+            const ic = IC[item._t],
+              lb = itemLabel(item).slice(0, 50);
             const d = mk("div", "dash-i");
             d.style.borderLeftColor = "var(--surface3)";
             const txDiv = mk("div", "tx");
@@ -1795,10 +1252,7 @@
               " votes</small>";
             d.appendChild(mk("span", "ic")).textContent = ic;
             d.appendChild(txDiv);
-            d.onclick = () =>
-              go(
-                { song: "songs", costume: "costumes", slot: "slots" }[item._t],
-              );
+            d.onclick = () => go(TAB[item._t]);
             dc.appendChild(d);
           });
 
@@ -1835,8 +1289,8 @@
             du.innerHTML += '<div class="dash-em">No users yet</div>';
           else
             uKeys.sort().forEach((name) => {
-              const u = S.users[name];
-              const r = mk("div", "user-row");
+              const u = S.users[name],
+                r = mk("div", "user-row");
               r.innerHTML =
                 "<div><strong>" +
                 esc(name) +
@@ -1863,72 +1317,20 @@
         renderDash();
         updDl();
       }
+
+      syncU();
+      updDl();
+      initAdmin(() => {
+        saveLocal();
+        renderDash();
+      });
+      saveLocal();
       fullRender();
 
-      // Firebase: auth + real-time sync
-      await signInAnonymously(fbAuth);
-      fbReady = true;
-
-      // Migrate old localStorage votes into user's Firestore entry
-      try {
-        const oldLocal = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}");
-        if (oldLocal.myVotes && oldLocal.myVotes.length && me() !== "Anon") {
-          if (!S.users[me()]) S.users[me()] = {};
-          const existing = S.users[me()].votes || [];
-          const merged = [...new Set([...existing, ...oldLocal.myVotes])];
-          S.users[me()].votes = merged;
-          delete oldLocal.myVotes;
-          localStorage.setItem(LOCAL_KEY, JSON.stringify(oldLocal));
-          saveShared();
-        }
-      } catch {}
-
-      const OLD_KEY = "mgroove_v3";
-      const oldData = localStorage.getItem(OLD_KEY);
-      if (oldData) {
-        try {
-          const old = JSON.parse(oldData);
-          const migrated = {};
-          SHARED_KEYS.forEach((k) => {
-            if (old[k]) migrated[k] = old[k];
-          });
-          if (
-            Object.keys(migrated).some((k) =>
-              Array.isArray(migrated[k])
-                ? migrated[k].length > 0
-                : Object.keys(migrated[k] || {}).length > 0,
-            )
-          ) {
-            await setDoc(docRef, migrated, { merge: true });
-          }
-          if (old.profile) {
-            S.profile = old.profile;
-            $("hAlias").textContent = me();
-          }
-          // Migrate old myVotes into user entry
-          if (old.myVotes && old.myVotes.length && me() !== "Anon") {
-            if (!S.users[me()]) S.users[me()] = {};
-            const existing = S.users[me()].votes || [];
-            S.users[me()].votes = [...new Set([...existing, ...old.myVotes])];
-          }
-          saveLocal();
-          localStorage.removeItem(OLD_KEY);
-        } catch (e) {
-          console.warn("Migration failed:", e);
-        }
-      }
-
-      onSnapshot(docRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          SHARED_KEYS.forEach((k) => {
-            if (data[k] !== undefined) S[k] = data[k];
-          });
-        }
-        if (!S.users) S.users = {};
-        if (!S.expenses) S.expenses = [];
+      await initFirebase(() => {
         syncU();
         fullRender();
+        $("hAlias").textContent = me();
       });
 
       if ("serviceWorker" in navigator)

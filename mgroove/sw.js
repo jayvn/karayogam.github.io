@@ -1,8 +1,10 @@
-const CACHE_NAME = "mgroove-v2";
+const CACHE_NAME = "mgroove-v3";
 const urlsToCache = [
   "/mgroove/",
   "/mgroove/index.html",
   "/mgroove/finance.html",
+  "/mgroove/shared.css",
+  "/mgroove/shared.js",
   "/mgroove/icon-192.png",
   "/mgroove/icon-512.png",
   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap",
