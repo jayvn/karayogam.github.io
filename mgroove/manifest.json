@@ -9,13 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/mgroove/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/mgroove/icon-512.png",
+      "src": "/mgroove/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
