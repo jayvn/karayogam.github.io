@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>M-Groove · Finance</title>
+    <meta
+      name="description"
+      content="Dance group finances — expenses, splits & settle-up"
+    />
+    <meta name="theme-color" content="#f0c040" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="M-Groove" />
+    <link rel="icon" type="image/png" href="/mgroove/icon.png" />
+    <link rel="apple-touch-icon" href="/mgroove/icon.png" />
+    <link rel="manifest" href="/mgroove/manifest.json" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      window.__firebase_config = JSON.stringify({
+        apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8",
+        authDomain: "rendercode-d73da.firebaseapp.com",
+        projectId: "rendercode-d73da",
+        storageBucket: "rendercode-d73da.firebasestorage.app",
+        messagingSenderId: "798989930424",
+        appId: "1:798989930424:web:7f324e5153cabc5d90494d",
+      });
+    </script>
+    <style>
+      :root {
+        --bg: #0c0818;
+        --surface: #16112a;
+        --surface2: #1f1840;
+        --surface3: #2a2050;
+        --gold: #f0c040;
+        --gold-dim: #8a6e20;
+        --pink: #e8365d;
+        --pink-dim: #9e2540;
+        --teal: #2dd4a8;
+        --teal-dim: #1a8066;
+        --text: #ece4f5;
+        --text-dim: #7a6d92;
+        --danger: #ef4444;
+        --border: #32265a;
+        --input-bg: #100c1e;
+        --glass: rgba(22, 17, 42, 0.75);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Outfit", sans-serif;
+        min-height: 100vh;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        opacity: 0.025;
+        pointer-events: none;
+        z-index: 9999;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      .shell {
+        max-width: 660px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        background: var(--glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .logo {
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--gold);
+      }
+
+      .hdr-r {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--gold);
+        text-decoration: none;
+        font-size: 0.83rem;
+        padding: 0.35rem 0.65rem;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        transition: border-color 0.2s;
+      }
+
+      .nav-link:hover {
+        border-color: var(--gold-dim);
+      }
+
+      .adm-l {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .adm-l input {
+        accent-color: var(--gold);
+      }
+
+      .irow {
+        display: flex;
+        gap: 0.45rem;
+        margin-bottom: 0.7rem;
+        flex-wrap: wrap;
+      }
+
+      input,
+      select {
+        background: var(--input-bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.7rem;
+        border-radius: 8px;
+        font-family: "Outfit", sans-serif;
+        font-size: 0.88rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--gold);
+      }
+
+      input::placeholder {
+        color: var(--text-dim);
+      }
+
+      .irow input,
+      .irow select {
+        flex: 1;
+        min-width: 0;
+      }
+
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        padding: 0.4rem 0.7rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Outfit", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.15s;
+        white-space: nowrap;
+        user-select: none;
+      }
+
+      .btn:hover {
+        background: var(--surface2);
+        border-color: var(--gold-dim);
+      }
+
+      .btn:active {
+        transform: scale(0.97);
+      }
+
+      .btn-add {
+        background: var(--pink);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      .btn-add:hover {
+        background: var(--pink-dim);
+      }
+
+      .btn-icon {
+        border-color: transparent;
+        color: var(--text-dim);
+        padding: 0.25rem 0.4rem;
+      }
+
+      .btn-icon:hover {
+        color: var(--text);
+        background: var(--surface3);
+      }
+
+      .btn-icon.del:hover {
+        color: var(--danger);
+        background: rgba(239, 68, 68, 0.1);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin: 0.5rem 0;
+      }
+
+      .chip {
+        padding: 0.28rem 0.6rem;
+        border-radius: 16px;
+        font-size: 0.78rem;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        color: var(--text-dim);
+        transition: all 0.15s;
+        user-select: none;
+      }
+
+      .chip:hover {
+        border-color: var(--gold-dim);
+      }
+
+      .chip.on {
+        background: var(--teal);
+        color: var(--bg);
+        border-color: var(--teal);
+        font-weight: 500;
+      }
+
+      .fin h2 {
+        font-family: "Space Mono", monospace;
+        font-size: 0.95rem;
+        color: var(--gold);
+        margin-bottom: 0.9rem;
+      }
+
+      .fin h3 {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin: 1.1rem 0 0.65rem;
+      }
+
+      .bar-i {
+        margin-bottom: 0.9rem;
+      }
+
+      .bar-h {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        margin-bottom: 3px;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+      }
+
+      .bar-t {
+        background: var(--input-bg);
+        border-radius: 4px;
+        height: 16px;
+        overflow: hidden;
+      }
+
+      .bar-f {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.4s;
+      }
+
+      .bar-f.pos {
+        background: var(--teal);
+      }
+
+      .bar-f.neg {
+        background: var(--pink);
+      }
+
+      .pp-link {
+        font-size: 0.76rem;
+        color: var(--teal);
+        text-decoration: none;
+        margin-left: 0.25rem;
+      }
+
+      .pp-link:hover {
+        text-decoration: underline;
+      }
+
+      .exp-card {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        padding: 0.5rem 0.7rem;
+        background: var(--surface);
+        border-radius: 6px;
+        margin-bottom: 0.3rem;
+      }
+
+      .settle-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 0.8rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.86rem;
+      }
+
+      .settle-card .ar {
+        color: var(--gold);
+        margin: 0 0.3rem;
+      }
+
+      .mo {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fi 0.15s;
+      }
+
+      .md {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.4rem;
+        max-width: 400px;
+        width: 92%;
+      }
+
+      .md h3 {
+        font-family: "Space Mono", monospace;
+        color: var(--gold);
+        font-size: 0.92rem;
+        margin-bottom: 0.9rem;
+      }
+
+      .md .f {
+        margin-bottom: 0.8rem;
+      }
+
+      .md .f label {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        margin-bottom: 0.25rem;
+      }
+
+      .md .f input,
+      .md .f select {
+        width: 100%;
+      }
+
+      .md .acts {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        margin-top: 1.1rem;
+      }
+
+      @keyframes fi {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      .empty {
+        text-align: center;
+        padding: 2.2rem 1rem;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+      }
+
+      .empty .icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      body:not(.admin) .ao {
+        display: none !important;
+      }
+
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="shell">
+      <header>
+        <span class="logo">💃 M-Groove</span>
+        <div class="hdr-r">
+          <a class="nav-link" href="/mgroove/">🏠 Main</a>
+          <label class="adm-l"
+            ><input type="checkbox" id="admTog" /> 👑 Admin</label
+          >
+        </div>
+      </header>
+      <div class="fin">
+        <h2>📊 Finances</h2>
+        <div
+          style="
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+          "
+        >
+          <div
+            style="
+              font-size: 0.8rem;
+              color: var(--text-dim);
+              margin-bottom: 0.45rem;
+            "
+          >
+            ➕ Add Expense
+          </div>
+          <div class="irow">
+            <input id="exDesc" placeholder="What for…" /><input
+              type="number"
+              id="exAmt"
+              placeholder="€"
+              min="0"
+              step="0.01"
+              style="flex: 0 0 80px"
+            />
+          </div>
+          <div class="irow">
+            <input id="exPayer" placeholder="Paid by…" list="userDl" /><button
+              class="btn btn-add"
+              id="addExp"
+            >
+              Add
+            </button>
+          </div>
+          <div
+            style="
+              font-size: 0.76rem;
+              color: var(--text-dim);
+              margin-bottom: 0.25rem;
+            "
+          >
+            Split among:
+          </div>
+          <div class="chips" id="exChips"></div>
+        </div>
+        <div id="finCh"></div>
+        <div id="settleS" class="hidden">
+          <h3>💸 Settle Up</h3>
+          <div id="settleL"></div>
+        </div>
+        <div id="finE" class="empty">
+          <div class="icon">💸</div>
+          No expenses yet
+        </div>
+        <h3 id="expHdr" class="hidden">All Expenses</h3>
+        <div id="expL"></div>
+      </div>
+      <datalist id="userDl"></datalist>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        onSnapshot,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      const fbApp = initializeApp(JSON.parse(window.__firebase_config));
+      const fbAuth = getAuth(fbApp);
+      const fbDb = getFirestore(fbApp);
+      const docRef = doc(fbDb, "mgroove", "v1");
+      let fbReady = false;
+      const SHARED_KEYS = [
+        "songs",
+        "costumes",
+        "slots",
+        "expenses",
+        "past",
+        "users",
+      ];
+
+      const LOCAL_KEY = "mgroove_local",
+        body = document.body;
+      const $ = (id) => document.getElementById(id);
+      const mk = (t, c) => {
+        const e = document.createElement(t);
+        if (c) e.className = c;
+        return e;
+      };
+      const esc = (s) => {
+        const d = mk("div");
+        d.textContent = s;
+        return d.innerHTML;
+      };
+
+      const blankShared = () => ({
+        songs: [],
+        costumes: [],
+        slots: [],
+        expenses: [],
+        past: [],
+        users: {},
+      });
+      const blankLocal = () => ({
+        profile: { alias: "", location: "", paypal: "" },
+        myVotes: [],
+      });
+      let localState;
+      try {
+        localState = {
+          ...blankLocal(),
+          ...JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
+        };
+      } catch {
+        localState = blankLocal();
+      }
+      if (!localState.myVotes) localState.myVotes = [];
+      let S = { ...blankShared(), ...localState, isAdmin: false };
+      const saveLocal = () =>
+        localStorage.setItem(
+          LOCAL_KEY,
+          JSON.stringify({ profile: S.profile, myVotes: S.myVotes }),
+        );
+      const saveShared = () => {
+        if (!fbReady) return;
+        const data = {};
+        SHARED_KEYS.forEach((k) => (data[k] = S[k]));
+        setDoc(docRef, data, { merge: true });
+      };
+      const save = () => {
+        saveLocal();
+        saveShared();
+      };
+      const me = () => S.profile.alias || "Anon";
+
+      // Admin
+      S.isAdmin = false;
+      $("admTog").checked = false;
+      const ADMIN_PIN = "0000";
+      $("admTog").onchange = (e) => {
+        if (e.target.checked) {
+          promptPin("🔒 Enter Admin PIN", "", (pin) => {
+            if (pin === ADMIN_PIN) {
+              S.isAdmin = true;
+              body.classList.add("admin");
+              $("admTog").checked = true;
+              renderFin();
+            } else {
+              $("admTog").checked = false;
+              alert("Wrong PIN");
+            }
+          });
+          e.target.checked = false;
+        } else {
+          S.isAdmin = false;
+          body.classList.remove("admin");
+          renderFin();
+        }
+      };
+      function promptPin(title, subtitle, cb) {
+        const o = mk("div", "mo");
+        o.innerHTML =
+          '<div class="md"><h3>' +
+          title +
+          "</h3>" +
+          (subtitle
+            ? '<p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.8rem">' +
+              subtitle +
+              "</p>"
+            : "") +
+          '<div class="f"><input type="password" id="pinIn" placeholder="PIN…" style="width:100%;letter-spacing:4px;text-align:center;font-size:1.1rem"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div></div>';
+        body.appendChild(o);
+        o.querySelector("#pinIn").focus();
+        const cl = () => o.remove();
+        o.onclick = (e) => {
+          if (e.target === o) cl();
+        };
+        o.querySelector("#pinC").onclick = cl;
+        o.querySelector("#pinOk").onclick = () => {
+          const v = o.querySelector("#pinIn").value;
+          cl();
+          cb(v);
+        };
+        o.querySelector("#pinIn").onkeydown = (e) => {
+          if (e.key === "Enter") {
+            const v = o.querySelector("#pinIn").value;
+            cl();
+            cb(v);
+          }
+        };
+      }
+
+      function cDlg(msg) {
+        return new Promise((r) => {
+          const o = mk("div", "mo");
+          o.innerHTML =
+            '<div class="md"><p style="margin-bottom:1.1rem">' +
+            msg +
+            '</p><div class="acts"><button class="btn" id="cN">Cancel</button><button class="btn btn-add" id="cY">OK</button></div></div>';
+          body.appendChild(o);
+          o.querySelector("#cY").onclick = () => {
+            o.remove();
+            r(true);
+          };
+          o.querySelector("#cN").onclick = () => {
+            o.remove();
+            r(false);
+          };
+          o.onclick = (e) => {
+            if (e.target === o) {
+              o.remove();
+              r(false);
+            }
+          };
+        });
+      }
+
+      function updDl() {
+        const d = $("userDl");
+        d.innerHTML = "";
+        Object.keys(S.users).forEach((u) => {
+          const o = mk("option");
+          o.value = u;
+          d.appendChild(o);
+        });
+      }
+      updDl();
+
+      // Finance chips
+      let expSplit = new Set();
+      function renderChips() {
+        const c = $("exChips");
+        c.innerHTML = "";
+        Object.keys(S.users).forEach((u) => {
+          const ch = mk("div", "chip" + (expSplit.has(u) ? " on" : ""));
+          ch.textContent = u;
+          ch.onclick = () => {
+            expSplit.has(u) ? expSplit.delete(u) : expSplit.add(u);
+            ch.classList.toggle("on", expSplit.has(u));
+          };
+          c.appendChild(ch);
+        });
+      }
+      function doAddExp() {
+        const desc = $("exDesc").value.trim(),
+          amt = parseFloat($("exAmt").value),
+          payer = $("exPayer").value.trim() || me();
+        if (!desc || !amt || amt <= 0) return;
+        if (S.users[payer] && !expSplit.has(payer)) expSplit.add(payer);
+        S.expenses.push({
+          sourceId: "m-" + Date.now(),
+          title: desc,
+          cost: amt,
+          payer: payer,
+          attendees: [...expSplit],
+        });
+        save();
+        $("exDesc").value = "";
+        $("exAmt").value = "";
+        $("exPayer").value = "";
+        expSplit.clear();
+        renderFin();
+        renderChips();
+      }
+      $("addExp").onclick = doAddExp;
+      $("exDesc").onkeydown = (e) => {
+        if (e.key === "Enter") doAddExp();
+      };
+      $("exPayer").addEventListener("change", () => {
+        const p = $("exPayer").value.trim();
+        if (p && S.users[p] && !expSplit.has(p)) {
+          expSplit.add(p);
+          renderChips();
+        }
+      });
+
+      function renderFin() {
+        const ch = $("finCh"),
+          li = $("expL"),
+          sl = $("settleL");
+        ch.innerHTML = "";
+        li.innerHTML = "";
+        sl.innerHTML = "";
+        if (!S.expenses.length) {
+          $("finE").classList.remove("hidden");
+          $("expHdr").classList.add("hidden");
+          $("settleS").classList.add("hidden");
+          return;
+        }
+        $("finE").classList.add("hidden");
+        $("expHdr").classList.remove("hidden");
+        const stats = {};
+        S.expenses.forEach((e, idx) => {
+          const d = mk("div", "exp-card");
+          d.style.display = "flex";
+          d.style.justifyContent = "space-between";
+          d.style.alignItems = "center";
+          d.style.gap = "0.4rem";
+          const txt = mk("span");
+          txt.textContent =
+            e.title +
+            " — €" +
+            e.cost.toFixed(2) +
+            " by " +
+            e.payer +
+            " · Split: " +
+            (e.attendees.length ? e.attendees.join(", ") : "nobody");
+          d.appendChild(txt);
+          if (S.isAdmin) {
+            const db = mk("button", "btn btn-icon del");
+            db.textContent = "✕";
+            db.style.flexShrink = "0";
+            db.onclick = async () => {
+              if (!(await cDlg("Delete this expense?"))) return;
+              S.expenses.splice(idx, 1);
+              save();
+              renderFin();
+            };
+            d.appendChild(db);
+          }
+          li.appendChild(d);
+          if (!stats[e.payer]) stats[e.payer] = { paid: 0, owes: 0 };
+          stats[e.payer].paid += e.cost;
+          if (e.attendees.length) {
+            const sh = e.cost / e.attendees.length;
+            e.attendees.forEach((a) => {
+              if (!stats[a]) stats[a] = { paid: 0, owes: 0 };
+              stats[a].owes += sh;
+            });
+          }
+        });
+        const entries = Object.entries(stats)
+          .map(([n, d]) => ({ name: n, net: d.paid - d.owes }))
+          .sort((a, b) => b.net - a.net);
+        const mx = Math.max(...entries.map((e) => Math.abs(e.net)), 1);
+        entries.forEach(({ name, net }) => {
+          const pct = (Math.abs(net) / mx) * 100,
+            pos = net >= 0,
+            u = S.users[name];
+          let pp = "";
+          if (u && u.paypal) {
+            const p = u.paypal,
+              h = p.startsWith("http")
+                ? p
+                : "https://paypal.me/" + p.replace("@", "");
+            pp =
+              ' <a class="pp-link" href="' +
+              h +
+              '" target="_blank">PayPal ↗</a>';
+          }
+          const loc =
+            u && u.location
+              ? ' <span style="font-size:.73rem;color:var(--text-dim)">(' +
+                esc(u.location) +
+                ")</span>"
+              : "";
+          const item = mk("div", "bar-i");
+          item.innerHTML =
+            '<div class="bar-h"><span>' +
+            esc(name) +
+            loc +
+            '</span><span style="color:var(--' +
+            (pos ? "teal" : "pink") +
+            ')">' +
+            (pos ? "Gets" : "Owes") +
+            " €" +
+            Math.abs(net).toFixed(2) +
+            pp +
+            '</span></div><div class="bar-t"><div class="bar-f ' +
+            (pos ? "pos" : "neg") +
+            '" style="width:' +
+            pct +
+            '%"></div></div>';
+          ch.appendChild(item);
+        });
+        const tx = settle(entries);
+        if (tx.length) {
+          $("settleS").classList.remove("hidden");
+          tx.forEach((t) => {
+            const c = mk("div", "settle-card");
+            c.innerHTML =
+              "<strong>" +
+              esc(t.from) +
+              '</strong><span class="ar">→</span><strong>' +
+              esc(t.to) +
+              "</strong>: €" +
+              t.amount.toFixed(2);
+            sl.appendChild(c);
+          });
+        } else $("settleS").classList.add("hidden");
+      }
+      function settle(entries) {
+        const db = [],
+          cr = [];
+        entries.forEach((e) => {
+          if (e.net < -0.01) db.push({ n: e.name, a: -e.net });
+          else if (e.net > 0.01) cr.push({ n: e.name, a: e.net });
+        });
+        db.sort((a, b) => b.a - a.a);
+        cr.sort((a, b) => b.a - a.a);
+        const tx = [];
+        let i = 0,
+          j = 0;
+        while (i < db.length && j < cr.length) {
+          const a = Math.min(db[i].a, cr[j].a);
+          if (a > 0.01) tx.push({ from: db[i].n, to: cr[j].n, amount: a });
+          db[i].a -= a;
+          cr[j].a -= a;
+          if (db[i].a < 0.01) i++;
+          if (cr[j].a < 0.01) j++;
+        }
+        return tx;
+      }
+
+      // Firebase: auth + real-time sync
+      await signInAnonymously(fbAuth);
+      fbReady = true;
+
+      onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          SHARED_KEYS.forEach((k) => {
+            if (data[k] !== undefined) S[k] = data[k];
+          });
+        }
+        if (!S.users) S.users = {};
+        if (!S.expenses) S.expenses = [];
+        updDl();
+        renderFin();
+        renderChips();
+      });
+
+      if ("serviceWorker" in navigator)
+        navigator.serviceWorker.register("/mgroove/sw.js");
+    </script>
+  </body>
+</html>

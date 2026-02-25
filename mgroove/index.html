@@ -6,7 +6,7 @@
     <title>M-Groove Organizer</title>
     <meta
       name="description"
-      content="Dance group organizer — songs, costumes, slots & finances"
+      content="Dance group organizer — songs, costumes, slots"
     />
     <meta name="theme-color" content="#f0c040" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -555,118 +555,6 @@
         display: none;
       }
 
-      .chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
-        margin: 0.5rem 0;
-      }
-
-      .chip {
-        padding: 0.28rem 0.6rem;
-        border-radius: 16px;
-        font-size: 0.78rem;
-        cursor: pointer;
-        border: 1px solid var(--border);
-        background: var(--input-bg);
-        color: var(--text-dim);
-        transition: all 0.15s;
-        user-select: none;
-      }
-
-      .chip:hover {
-        border-color: var(--gold-dim);
-      }
-
-      .chip.on {
-        background: var(--teal);
-        color: var(--bg);
-        border-color: var(--teal);
-        font-weight: 500;
-      }
-
-      .fin h2 {
-        font-family: "Space Mono", monospace;
-        font-size: 0.95rem;
-        color: var(--gold);
-        margin-bottom: 0.9rem;
-      }
-
-      .fin h3 {
-        font-size: 0.85rem;
-        color: var(--text-dim);
-        margin: 1.1rem 0 0.65rem;
-      }
-
-      .bar-i {
-        margin-bottom: 0.9rem;
-      }
-
-      .bar-h {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        margin-bottom: 3px;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.2rem;
-      }
-
-      .bar-t {
-        background: var(--input-bg);
-        border-radius: 4px;
-        height: 16px;
-        overflow: hidden;
-      }
-
-      .bar-f {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.4s;
-      }
-
-      .bar-f.pos {
-        background: var(--teal);
-      }
-
-      .bar-f.neg {
-        background: var(--pink);
-      }
-
-      .pp-link {
-        font-size: 0.76rem;
-        color: var(--teal);
-        text-decoration: none;
-        margin-left: 0.25rem;
-      }
-
-      .pp-link:hover {
-        text-decoration: underline;
-      }
-
-      .exp-card {
-        font-size: 0.8rem;
-        color: var(--text-dim);
-        padding: 0.5rem 0.7rem;
-        background: var(--surface);
-        border-radius: 6px;
-        margin-bottom: 0.3rem;
-      }
-
-      .settle-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 0.6rem 0.8rem;
-        margin-bottom: 0.3rem;
-        font-size: 0.86rem;
-      }
-
-      .settle-card .ar {
-        color: var(--gold);
-        margin: 0 0.3rem;
-      }
-
       .dash-s {
         margin-bottom: 1.4rem;
       }
@@ -842,6 +730,24 @@
         display: none !important;
       }
 
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--gold);
+        text-decoration: none;
+        font-size: 0.83rem;
+        padding: 0.35rem 0.65rem;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        transition: border-color 0.2s;
+      }
+
+      .nav-link:hover {
+        border-color: var(--gold-dim);
+      }
+
       ::-webkit-scrollbar {
         width: 5px;
       }
@@ -862,6 +768,7 @@
       <header>
         <span class="logo">💃 M-Groove</span>
         <div class="hdr-r">
+          <a class="nav-link" href="/mgroove/finance.html">💸 Finance</a>
           <button class="prof-btn" id="profBtn">
             👤 <span class="al" id="hAlias">Anon</span>
           </button>
@@ -878,7 +785,6 @@
         <button data-v="songs">🎵 Songs</button>
         <button data-v="costumes">👗 Costumes</button>
         <button data-v="slots">📅 Slots</button>
-        <button data-v="finance">💸 Finance</button>
         <button data-v="past">🕰️ Past</button>
       </nav>
       <main id="vHome">
@@ -962,69 +868,6 @@
         <div id="slE" class="empty">
           <div class="icon">📅</div>
           No slots yet
-        </div>
-      </main>
-      <main id="vFinance" class="hidden">
-        <div class="fin">
-          <h2>📊 Finances</h2>
-          <div
-            style="
-              background: var(--surface);
-              border-radius: 10px;
-              padding: 0.8rem;
-              margin-bottom: 1rem;
-              border: 1px solid var(--border);
-            "
-          >
-            <div
-              style="
-                font-size: 0.8rem;
-                color: var(--text-dim);
-                margin-bottom: 0.45rem;
-              "
-            >
-              ➕ Add Expense
-            </div>
-            <div class="irow">
-              <input id="exDesc" placeholder="What for…" /><input
-                type="number"
-                id="exAmt"
-                placeholder="€"
-                min="0"
-                step="0.01"
-                style="flex: 0 0 80px"
-              />
-            </div>
-            <div class="irow">
-              <input id="exPayer" placeholder="Paid by…" list="userDl" /><button
-                class="btn btn-add"
-                id="addExp"
-              >
-                Add
-              </button>
-            </div>
-            <div
-              style="
-                font-size: 0.76rem;
-                color: var(--text-dim);
-                margin-bottom: 0.25rem;
-              "
-            >
-              Split among:
-            </div>
-            <div class="chips" id="exChips"></div>
-          </div>
-          <div id="finCh"></div>
-          <div id="settleS" class="hidden">
-            <h3>💸 Settle Up</h3>
-            <div id="settleL"></div>
-          </div>
-          <div id="finE" class="empty">
-            <div class="icon">💸</div>
-            No expenses yet
-          </div>
-          <h3 id="expHdr" class="hidden">All Expenses</h3>
-          <div id="expL"></div>
         </div>
       </main>
       <main id="vPast" class="hidden">
@@ -1127,7 +970,6 @@
       };
 
       $("hAlias").textContent = me();
-      // Admin never auto-restores — must re-enter PIN each session
       S.isAdmin = false;
       $("admTog").checked = false;
       saveLocal();
@@ -1207,7 +1049,6 @@
       }
       updDl();
 
-      // Profile
       function openProf() {
         const o = mk("div", "mo");
         o.innerHTML =
@@ -1217,7 +1058,7 @@
           esc(S.profile.location) +
           '" placeholder="address for meetups (optional)…"></div><div class="f"><label>💳 PayPal</label><input id="pP" value="' +
           esc(S.profile.paypal) +
-          '" placeholder="if you wish to be reimbursed (optional)"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
+          '" placeholder="for reimbursements (optional)"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
         body.appendChild(o);
         o.querySelector("#pA").focus();
         const cl = () => o.remove();
@@ -1228,7 +1069,6 @@
         o.querySelector("#pS").onclick = () => {
           const newAlias = o.querySelector("#pA").value.trim();
           const oldAlias = S.profile.alias;
-          // Check collision: alias exists in users and isn't our old name
           if (newAlias && newAlias !== oldAlias && S.users[newAlias]) {
             const warn = mk("div", "f");
             warn.innerHTML =
@@ -1244,7 +1084,6 @@
           S.profile.alias = newAlias;
           S.profile.location = o.querySelector("#pL").value.trim();
           S.profile.paypal = o.querySelector("#pP").value.trim();
-          // Remove old user entry if renamed
           if (oldAlias && oldAlias !== newAlias && S.users[oldAlias]) {
             delete S.users[oldAlias];
           }
@@ -1270,7 +1109,6 @@
       };
       if (!S.profile.alias) setTimeout(openProf, 300);
 
-      // Confirm
       function cDlg(msg) {
         return new Promise((r) => {
           const o = mk("div", "mo");
@@ -1320,17 +1158,12 @@
         document
           .querySelectorAll("#nav button")
           .forEach((b) => b.classList.toggle("active", b.dataset.v === k));
-        if (k === "finance") {
-          renderFin();
-          renderChips();
-        }
         if (k === "home") renderDash();
       }
       document
         .querySelectorAll("#nav button")
         .forEach((b) => (b.onclick = () => go(b.dataset.v)));
 
-      // Empty
       function togE(t) {
         const em = {
             songs: "songE",
@@ -1355,7 +1188,6 @@
         );
       }
 
-      // Edit
       function openEd(item, type, cb) {
         const o = mk("div", "mo");
         let f = "";
@@ -1418,7 +1250,6 @@
         };
       }
 
-      // Render card
       function rCard(item, type, listEl) {
         const card = mk("div", "card" + (item.finalized ? " final" : ""));
         card.dataset.id = item.id;
@@ -1617,7 +1448,6 @@
         listEl.appendChild(card);
       }
 
-      // Add
       function addI(type, data) {
         const item = {
           id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -1763,195 +1593,6 @@
       )
         .toISOString()
         .slice(0, 16);
-
-      // Finance chips
-      let expSplit = new Set();
-      function renderChips() {
-        const c = $("exChips");
-        c.innerHTML = "";
-        Object.keys(S.users).forEach((u) => {
-          const ch = mk("div", "chip" + (expSplit.has(u) ? " on" : ""));
-          ch.textContent = u;
-          ch.onclick = () => {
-            expSplit.has(u) ? expSplit.delete(u) : expSplit.add(u);
-            ch.classList.toggle("on", expSplit.has(u));
-          };
-          c.appendChild(ch);
-        });
-      }
-      function doAddExp() {
-        const desc = $("exDesc").value.trim(),
-          amt = parseFloat($("exAmt").value),
-          payer = $("exPayer").value.trim() || me();
-        if (!desc || !amt || amt <= 0) return;
-        // Auto-include payer in split
-        if (S.users[payer] && !expSplit.has(payer)) expSplit.add(payer);
-        S.expenses.push({
-          sourceId: "m-" + Date.now(),
-          title: desc,
-          cost: amt,
-          payer: payer,
-          attendees: [...expSplit],
-        });
-        save();
-        $("exDesc").value = "";
-        $("exAmt").value = "";
-        $("exPayer").value = "";
-        expSplit.clear();
-        renderFin();
-        renderChips();
-      }
-      $("addExp").onclick = doAddExp;
-      $("exDesc").onkeydown = (e) => {
-        if (e.key === "Enter") doAddExp();
-      };
-      // Auto-select payer chip when payer field changes
-      $("exPayer").addEventListener("change", () => {
-        const p = $("exPayer").value.trim();
-        if (p && S.users[p] && !expSplit.has(p)) {
-          expSplit.add(p);
-          renderChips();
-        }
-      });
-
-      function renderFin() {
-        const ch = $("finCh"),
-          li = $("expL"),
-          sl = $("settleL");
-        ch.innerHTML = "";
-        li.innerHTML = "";
-        sl.innerHTML = "";
-        if (!S.expenses.length) {
-          $("finE").classList.remove("hidden");
-          $("expHdr").classList.add("hidden");
-          $("settleS").classList.add("hidden");
-          return;
-        }
-        $("finE").classList.add("hidden");
-        $("expHdr").classList.remove("hidden");
-        const stats = {};
-        S.expenses.forEach((e, idx) => {
-          const d = mk("div", "exp-card");
-          d.style.display = "flex";
-          d.style.justifyContent = "space-between";
-          d.style.alignItems = "center";
-          d.style.gap = "0.4rem";
-          const txt = mk("span");
-          txt.textContent =
-            e.title +
-            " — €" +
-            e.cost.toFixed(2) +
-            " by " +
-            e.payer +
-            " · Split: " +
-            (e.attendees.length ? e.attendees.join(", ") : "nobody");
-          d.appendChild(txt);
-          if (S.isAdmin) {
-            const db = mk("button", "btn btn-icon del");
-            db.textContent = "✕";
-            db.style.flexShrink = "0";
-            db.onclick = async () => {
-              if (!(await cDlg("Delete this expense?"))) return;
-              S.expenses.splice(idx, 1);
-              save();
-              renderFin();
-            };
-            d.appendChild(db);
-          }
-          li.appendChild(d);
-          if (!stats[e.payer]) stats[e.payer] = { paid: 0, owes: 0 };
-          stats[e.payer].paid += e.cost;
-          if (e.attendees.length) {
-            const sh = e.cost / e.attendees.length;
-            e.attendees.forEach((a) => {
-              if (!stats[a]) stats[a] = { paid: 0, owes: 0 };
-              stats[a].owes += sh;
-            });
-          }
-        });
-        const entries = Object.entries(stats)
-          .map(([n, d]) => ({ name: n, net: d.paid - d.owes }))
-          .sort((a, b) => b.net - a.net);
-        const mx = Math.max(...entries.map((e) => Math.abs(e.net)), 1);
-        entries.forEach(({ name, net }) => {
-          const pct = (Math.abs(net) / mx) * 100,
-            pos = net >= 0,
-            u = S.users[name];
-          let pp = "";
-          if (u && u.paypal) {
-            const p = u.paypal,
-              h = p.startsWith("http")
-                ? p
-                : "https://paypal.me/" + p.replace("@", "");
-            pp =
-              ' <a class="pp-link" href="' +
-              h +
-              '" target="_blank">PayPal ↗</a>';
-          }
-          const loc =
-            u && u.location
-              ? ' <span style="font-size:.73rem;color:var(--text-dim)">(' +
-                esc(u.location) +
-                ")</span>"
-              : "";
-          const item = mk("div", "bar-i");
-          item.innerHTML =
-            '<div class="bar-h"><span>' +
-            esc(name) +
-            loc +
-            '</span><span style="color:var(--' +
-            (pos ? "teal" : "pink") +
-            ')">' +
-            (pos ? "Gets" : "Owes") +
-            " €" +
-            Math.abs(net).toFixed(2) +
-            pp +
-            '</span></div><div class="bar-t"><div class="bar-f ' +
-            (pos ? "pos" : "neg") +
-            '" style="width:' +
-            pct +
-            '%"></div></div>';
-          ch.appendChild(item);
-        });
-        // Settle-up
-        const tx = settle(entries);
-        if (tx.length) {
-          $("settleS").classList.remove("hidden");
-          tx.forEach((t) => {
-            const c = mk("div", "settle-card");
-            c.innerHTML =
-              "<strong>" +
-              esc(t.from) +
-              '</strong><span class="ar">→</span><strong>' +
-              esc(t.to) +
-              "</strong>: €" +
-              t.amount.toFixed(2);
-            sl.appendChild(c);
-          });
-        } else $("settleS").classList.add("hidden");
-      }
-      function settle(entries) {
-        const db = [],
-          cr = [];
-        entries.forEach((e) => {
-          if (e.net < -0.01) db.push({ n: e.name, a: -e.net });
-          else if (e.net > 0.01) cr.push({ n: e.name, a: e.net });
-        });
-        db.sort((a, b) => b.a - a.a);
-        cr.sort((a, b) => b.a - a.a);
-        const tx = [];
-        let i = 0,
-          j = 0;
-        while (i < db.length && j < cr.length) {
-          const a = Math.min(db[i].a, cr[j].a);
-          if (a > 0.01) tx.push({ from: db[i].n, to: cr[j].n, amount: a });
-          db[i].a -= a;
-          cr[j].a -= a;
-          if (db[i].a < 0.01) i++;
-          if (cr[j].a < 0.01) j++;
-        }
-        return tx;
-      }
 
       // Past
       function rPast(item) {
@@ -2196,7 +1837,6 @@
       await signInAnonymously(fbAuth);
       fbReady = true;
 
-      // One-time migration from old localStorage
       const OLD_KEY = "mgroove_v3";
       const oldData = localStorage.getItem(OLD_KEY);
       if (oldData) {
