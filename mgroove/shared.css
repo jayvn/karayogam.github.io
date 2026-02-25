@@ -325,7 +325,7 @@ select {
 }
 
 /* Modal (native <dialog>) */
-dialog.mo {
+dialog.mo[open] {
   border: none;
   background: transparent;
   padding: 0;
