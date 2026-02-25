@@ -1,5 +1,3 @@
-/* Modern Browser App Gallery Styles */
-
 * {
     margin: 0;
     padding: 0;
@@ -10,35 +8,36 @@ body {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
     color: #f0f0f0;
-    min-height: 100vh;
+    min-height: 100dvh;
     line-height: 1.6;
+    scrollbar-gutter: stable;
 }
 
-/* Hero Section */
 .hero {
     text-align: center;
     padding: 80px 20px 40px;
     max-width: 800px;
     margin: 0 auto;
+
+    & .hero-title {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        text-wrap: balance;
+        background: linear-gradient(135deg, #fff 0%, #b0b0b0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    & .hero-subtitle {
+        font-size: 18px;
+        color: #888;
+        font-weight: 400;
+        text-wrap: balance;
+    }
 }
 
-.hero-title {
-    font-size: 48px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, #fff 0%, #b0b0b0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.hero-subtitle {
-    font-size: 18px;
-    color: #888;
-    font-weight: 400;
-}
-
-/* App Gallery */
 .app-gallery {
     max-width: 1200px;
     margin: 0 auto;
@@ -49,58 +48,59 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 24px;
+    container-type: inline-size;
 }
 
 .app-card {
-    background: rgba(30, 30, 30, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, white 12%, transparent);
+    border: 1px solid color-mix(in srgb, white 10%, transparent);
     border-radius: 16px;
     padding: 32px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(10px);
-}
 
-.app-card:hover {
-    transform: translateY(-8px);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-}
+    &:hover {
+        transform: translateY(-8px);
+        border-color: color-mix(in srgb, white 20%, transparent);
+        box-shadow: 0 12px 40px color-mix(in srgb, black 40%, transparent);
+    }
 
-.app-icon {
-    font-size: 56px;
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80px;
-    /* specific height to contain the icon */
-}
+    & .app-icon {
+        font-size: 56px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;
 
-.app-icon img {
-    width: 64px;
-    height: 64px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-    transition: transform 0.3s ease;
-}
+        & img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px color-mix(in srgb, black 20%, transparent));
+            transition: transform 0.3s ease;
+        }
+    }
 
-.app-card:hover .app-icon img {
-    transform: scale(1.1);
-}
+    &:hover .app-icon img {
+        transform: scale(1.1);
+    }
 
-.app-card h3 {
-    color: #fff;
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
+    & h3 {
+        color: #fff;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        text-wrap: balance;
+    }
 
-.app-card p {
-    color: #999;
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 24px;
-    min-height: 50px;
+    & p {
+        color: #999;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+        min-height: 50px;
+    }
 }
 
 .app-link {
@@ -114,59 +114,51 @@ body {
     font-weight: 500;
     transition: all 0.3s;
     border: none;
+
+    &:hover {
+        background: linear-gradient(135deg, #0099ff 0%, #00bbff 100%);
+        transform: translateX(4px);
+    }
 }
 
-.app-link:hover {
-    background: linear-gradient(135deg, #0099ff 0%, #00bbff 100%);
-    transform: translateX(4px);
-}
-
-/* Footer */
-.site-footer,
-footer {
-    background: rgba(10, 10, 10, 0.8);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+.site-footer, footer {
+    background: color-mix(in srgb, black 80%, transparent);
+    border-top: 1px solid color-mix(in srgb, white 5%, transparent);
     padding: 40px 20px;
     margin-top: 60px;
     text-align: center;
     font-size: 12px;
     color: #666;
+
+    & .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    & .footer-logo {
+        width: 48px;
+        height: 48px;
+        opacity: 0.6;
+        margin-bottom: 12px;
+    }
+
+    & .footer-text {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    & .footer-subtext {
+        font-size: 12px;
+        color: #555;
+    }
 }
 
-.footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.footer-logo {
-    width: 48px;
-    height: 48px;
-    opacity: 0.6;
-    margin-bottom: 12px;
-}
-
-.footer-text {
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.footer-subtext {
-    font-size: 12px;
-    color: #555;
-}
-
-/* Mobile Responsive */
 @media (max-width: 768px) {
     .hero {
         padding: 60px 20px 30px;
-    }
 
-    .hero-title {
-        font-size: 36px;
-    }
-
-    .hero-subtitle {
-        font-size: 16px;
+        & .hero-title { font-size: 36px; }
+        & .hero-subtitle { font-size: 16px; }
     }
 
     .app-grid {
@@ -176,34 +168,20 @@ footer {
 
     .app-card {
         padding: 24px;
-    }
 
-    .app-icon {
-        font-size: 48px;
-    }
-
-    .app-card h3 {
-        font-size: 22px;
-    }
-
-    .app-card p {
-        font-size: 14px;
-        min-height: auto;
+        & .app-icon { font-size: 48px; }
+        & h3 { font-size: 22px; }
+        & p { font-size: 14px; min-height: auto; }
     }
 }
 
 @media (max-width: 480px) {
-    .hero-title {
-        font-size: 28px;
+    .hero {
+        & .hero-title { font-size: 28px; }
+        & .hero-subtitle { font-size: 14px; }
     }
 
-    .hero-subtitle {
-        font-size: 14px;
-    }
-
-    .app-card {
-        padding: 20px;
-    }
+    .app-card { padding: 20px; }
 }
 
 /* Events page */
@@ -214,23 +192,23 @@ footer {
 }
 
 .event {
-    background-color: rgba(30, 30, 30, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: color-mix(in srgb, white 12%, transparent);
+    border: 1px solid color-mix(in srgb, white 10%, transparent);
     border-radius: 12px;
     padding: 24px;
     margin: 20px auto;
     max-width: 600px;
     backdrop-filter: blur(10px);
-}
 
-.event h2 {
-    color: #c68c5c;
-    margin-bottom: 12px;
-    font-size: 24px;
-}
+    & h2 {
+        color: #c68c5c;
+        margin-bottom: 12px;
+        font-size: 24px;
+    }
 
-.event p {
-    color: #ccc;
-    margin: 8px 0;
-    font-size: 15px;
+    & p {
+        color: #ccc;
+        margin: 8px 0;
+        font-size: 15px;
+    }
 }

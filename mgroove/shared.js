@@ -32,15 +32,10 @@ export const esc = (s) => {
   return d.innerHTML;
 };
 
-let localState;
-try {
-  localState = {
-    profile: { alias: "", location: "", paypal: "" },
-    ...JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
-  };
-} catch {
-  localState = { profile: { alias: "", location: "", paypal: "" } };
-}
+const localState = {
+  profile: { alias: "", location: "", paypal: "" },
+  ...JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
+};
 
 export const S = {
   songs: [],
@@ -68,33 +63,18 @@ export const save = () => {
 export const me = () => S.profile.alias || "Anon";
 
 export function modal(html) {
-  const o = mk("div", "mo");
-  o.innerHTML = '<div class="md">' + html + "</div>";
-  document.body.appendChild(o);
-  const cl = () => o.remove();
-  o.onclick = (e) => {
-    if (e.target === o) cl();
+  const dlg = mk("dialog", "mo");
+  dlg.innerHTML = '<div class="md">' + html + "</div>";
+  document.body.appendChild(dlg);
+  dlg.showModal();
+  const cl = () => {
+    dlg.close();
+    dlg.remove();
   };
-  return { el: o, close: cl, q: (sel) => o.querySelector(sel) };
-}
-
-export function promptPin(title, cb) {
-  const m = modal(
-    "<h3>" +
-      title +
-      '</h3><div class="f"><input type="password" id="pinIn" placeholder="PIN…" class="pin-input"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div>',
-  );
-  m.q("#pinIn").focus();
-  const done = () => {
-    const v = m.q("#pinIn").value;
-    m.close();
-    cb(v);
+  dlg.onclick = (e) => {
+    if (e.target === dlg) cl();
   };
-  m.q("#pinC").onclick = m.close;
-  m.q("#pinOk").onclick = done;
-  m.q("#pinIn").onkeydown = (e) => {
-    if (e.key === "Enter") done();
-  };
+  return { el: dlg, close: cl, q: (sel) => dlg.querySelector(sel) };
 }
 
 export function cDlg(msg) {
@@ -126,7 +106,13 @@ export function initAdmin(onToggle) {
   $("admTog").checked = false;
   $("admTog").onchange = (e) => {
     if (e.target.checked) {
-      promptPin("🔒ividentha karyam?", (pin) => {
+      const m = modal(
+        '<h3>🔒ividentha karyam?</h3><div class="f"><input type="password" id="pinIn" placeholder="PIN…" class="pin-input"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div>',
+      );
+      m.q("#pinIn").focus();
+      const done = () => {
+        const pin = m.q("#pinIn").value;
+        m.close();
         if (pin === ADMIN_PIN) {
           S.isAdmin = true;
           document.body.classList.add("admin");
@@ -136,7 +122,12 @@ export function initAdmin(onToggle) {
           $("admTog").checked = false;
           alert("Wrong PIN");
         }
-      });
+      };
+      m.q("#pinC").onclick = m.close;
+      m.q("#pinOk").onclick = done;
+      m.q("#pinIn").onkeydown = (e) => {
+        if (e.key === "Enter") done();
+      };
       e.target.checked = false;
     } else {
       S.isAdmin = false;
@@ -150,20 +141,19 @@ export async function initFirebase(onSnap) {
   await signInAnonymously(fbAuth);
   fbReady = true;
 
-  // Migrate old localStorage votes into user's Firestore entry
   try {
     const oldLocal = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}");
-    if (oldLocal.myVotes && oldLocal.myVotes.length && me() !== "Anon") {
-      if (!S.users[me()]) S.users[me()] = {};
-      const existing = S.users[me()].votes || [];
-      S.users[me()].votes = [...new Set([...existing, ...oldLocal.myVotes])];
+    if (oldLocal.myVotes?.length && me() !== "Anon") {
+      S.users[me()] ??= {};
+      S.users[me()].votes = [
+        ...new Set([...(S.users[me()].votes ?? []), ...oldLocal.myVotes]),
+      ];
       delete oldLocal.myVotes;
       localStorage.setItem(LOCAL_KEY, JSON.stringify(oldLocal));
       saveShared();
     }
   } catch {}
 
-  // Migrate old mgroove_v3 localStorage
   const OLD_KEY = "mgroove_v3";
   const oldData = localStorage.getItem(OLD_KEY);
   if (oldData) {
@@ -181,13 +171,12 @@ export async function initFirebase(onSnap) {
         )
       )
         await setDoc(docRef, migrated, { merge: true });
-      if (old.profile) {
-        S.profile = old.profile;
-      }
-      if (old.myVotes && old.myVotes.length && me() !== "Anon") {
-        if (!S.users[me()]) S.users[me()] = {};
-        const existing = S.users[me()].votes || [];
-        S.users[me()].votes = [...new Set([...existing, ...old.myVotes])];
+      if (old.profile) S.profile = old.profile;
+      if (old.myVotes?.length && me() !== "Anon") {
+        S.users[me()] ??= {};
+        S.users[me()].votes = [
+          ...new Set([...(S.users[me()].votes ?? []), ...old.myVotes]),
+        ];
       }
       saveLocal();
       localStorage.removeItem(OLD_KEY);
@@ -201,8 +190,8 @@ export async function initFirebase(onSnap) {
         if (data[k] !== undefined) S[k] = data[k];
       });
     }
-    if (!S.users) S.users = {};
-    if (!S.expenses) S.expenses = [];
+    S.users ??= {};
+    S.expenses ??= [];
     onSnap();
   });
 }
@@ -218,11 +207,7 @@ export function syncU() {
 }
 
 export function updDl() {
-  const d = $("userDl");
-  d.innerHTML = "";
-  Object.keys(S.users).forEach((u) => {
-    const o = mk("option");
-    o.value = u;
-    d.appendChild(o);
-  });
+  $("userDl").innerHTML = Object.keys(S.users)
+    .map((u) => `<option value="${u}">`)
+    .join("");
 }

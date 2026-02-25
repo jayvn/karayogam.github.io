@@ -33,7 +33,6 @@
         appId: "1:798989930424:web:7f324e5153cabc5d90494d",
       });
     </script>
-
   </head>
 
   <body>
@@ -201,29 +200,25 @@
 
         const entries = Object.entries(stats)
           .map(([n, d]) => ({ name: n, net: d.paid - d.owes }))
-          .sort((a, b) => b.net - a.net);
+          .toSorted((a, b) => b.net - a.net);
         const mx = Math.max(...entries.map((e) => Math.abs(e.net)), 1);
         entries.forEach(({ name, net }) => {
           const pct = (Math.abs(net) / mx) * 100,
             pos = net >= 0,
             u = S.users[name];
           let pp = "";
-          if (u && u.paypal) {
-            const p = u.paypal,
-              h = p.startsWith("http")
-                ? p
-                : "https://paypal.me/" + p.replace("@", "");
+          if (u?.paypal) {
+            const h = u.paypal.startsWith("http")
+              ? u.paypal
+              : "https://paypal.me/" + u.paypal.replace("@", "");
             pp =
               ' <a class="pp-link" href="' +
               h +
               '" target="_blank">PayPal ↗</a>';
           }
-          const loc =
-            u && u.location
-              ? ' <span class="loc-hint">(' +
-                esc(u.location) +
-                ")</span>"
-              : "";
+          const loc = u?.location
+            ? ' <span class="dim">(' + esc(u.location) + ")</span>"
+            : "";
           const item = mk("div", "bar-i");
           item.innerHTML =
             '<div class="bar-h"><span>' +
