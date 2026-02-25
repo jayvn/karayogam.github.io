@@ -24,14 +24,17 @@ Simply paste your generated app code, and it becomes a Progressive Web App (PWA)
 Avoid unnecessary exception/error handling and comments. For apps, errors should not be handled and should propagate to the console. Avoid React and use vanilla JavaScript. Code should be self-documenting and errors should be propagated unhandled for ease of understanding. Reduce code by using emojis instead of icons which are imported or drawn. Use default styles instead of too custom CSS. Use other refactoring methods while keeping functionality the same. Go for minimalism.
 
 
-## Example Apps
+## Apps
 
 - **ChoreoMarker** - Dance choreography marker ([docs](choreo/README.md))
 - **Anil's Library** - Plasma Physics Calculator
-- **Shopping List** - Offline shopping list with categories
-- **3D Colorizer** - Interactive 3D shape painter
 - **Secret Santa** - Gift exchange organizer with real-time sync
-- **Trip Planner** - Collaborative trip planning with expense tracking and voting
+- **Trip Planner** - Collaborative trip planning with live sync
+- **Group Expenses** - Expense splitting for groups
+- **Poll Barber** - Real-time polls with friends
+- **M-Groove Organizer** - Dance group organizer (songs, costumes, rehearsals, finances)
+- **Matrix Code Gen** - Pixel art editor generating C++ code for LED matrix displays
+- **Events** - Event management
 
 ## Quick Start
 
@@ -54,10 +57,10 @@ python3 -m http.server 8000
    - Copy the complete HTML from Claude/ChatGPT/Gemini
    - Save as `my-app/index.html`
 
-3. **Add to gallery, navigation, and deployment:**
+3. **Add to gallery and navigation:**
    - Edit `index.html` and add a card in the `#apps` section
    - Edit `shared/nav.js` and add your app to the `apps` array for Quick Launch menu
-   - Edit `.github/workflows/deploy.yml` and add your app folder to the copy commands
+   - Deployment picks up all files automatically via rsync
 
 ### Method 2: Use Templates
 
@@ -83,7 +86,7 @@ Include shared navigation in your app:
 
 ## Deployment
 
-GitHub Actions auto-deploys on push to main branch. No build step needed - pure static files.
+GitHub Actions auto-deploys on push to `master` branch. No build step needed - pure static files copied via rsync.
 
 ## File Structure
 
@@ -96,7 +99,7 @@ GitHub Actions auto-deploys on push to main branch. No build step needed - pure 
 ├── _templates/             # App templates for quick start
 ├── your-app/               # Your apps go here
 │   └── index.html
-└── choreo/, shopping/, etc # Example apps
+└── choreo/, mgroove/, poll/, etc # App folders
 ```
 
 ## How It Works
@@ -105,7 +108,7 @@ GitHub Actions auto-deploys on push to main branch. No build step needed - pure 
 - **No build required**: Pure HTML/CSS/JS - paste and deploy
 - **Optional navigation**: Use shared nav or go standalone
 - **PWA-ready**: Add service worker for offline support
-- **CDN-based React**: Single-file React apps via Babel CDN
+- **Firebase integration**: Firestore + anonymous auth for real-time collaborative apps
 
 ## Tips
 
@@ -118,9 +121,5 @@ GitHub Actions auto-deploys on push to main branch. No build step needed - pure 
 
 📖 **Documentation:** [_templates/README.md](_templates/README.md)
 
-## Latest Updates
-**Firestore paths must have even segments** (collection/document pairs) — odd segments like `artifacts/mgroove-v1/default` (3) cause `Invalid document reference` errors; use flat 2-segment paths like `mgroove/v1`.
-
-**Trip Planner Fix**: Resolved Firebase permission errors by refactoring the Firestore path to `artifacts/trip-planner-v1/...`.
-This matches the working pattern from Secret Santa, enabling real-time sync and anonymous auth.
-Users can now share trip tokens via URL for instant collaboration.
+## Firebase Notes
+Firestore paths must have even segments (collection/document pairs) — odd segments like `artifacts/mgroove-v1/default` (3) cause `Invalid document reference` errors; use flat 2-segment paths like `mgroove/v1`.

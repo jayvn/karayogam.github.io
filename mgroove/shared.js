@@ -126,7 +126,7 @@ export function initAdmin(onToggle) {
   $("admTog").checked = false;
   $("admTog").onchange = (e) => {
     if (e.target.checked) {
-      promptPin("🔒 Enter Admin PIN", (pin) => {
+      promptPin("🔒ividentha karyam?", (pin) => {
         if (pin === ADMIN_PIN) {
           S.isAdmin = true;
           document.body.classList.add("admin");
