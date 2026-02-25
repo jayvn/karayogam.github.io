@@ -931,7 +931,6 @@
       });
       const blankLocal = () => ({
         profile: { alias: "", location: "", paypal: "" },
-        myVotes: [],
       });
       let localState;
       try {
@@ -942,12 +941,11 @@
       } catch {
         localState = blankLocal();
       }
-      if (!localState.myVotes) localState.myVotes = [];
       let S = { ...blankShared(), ...localState, isAdmin: false };
       const saveLocal = () =>
         localStorage.setItem(
           LOCAL_KEY,
-          JSON.stringify({ profile: S.profile, myVotes: S.myVotes }),
+          JSON.stringify({ profile: S.profile }),
         );
       const saveShared = () => {
         if (!fbReady) return;
@@ -961,12 +959,17 @@
       };
       const me = () => S.profile.alias || "Anon";
       const canMod = (w) => S.isAdmin || me() === w;
-      const iVoted = (id) => S.myVotes.includes(id);
+      const myVotes = () => (S.users[me()] && S.users[me()].votes) || [];
+      const iVoted = (id) => myVotes().includes(id);
       const addMyVote = (id) => {
-        if (!iVoted(id)) S.myVotes.push(id);
+        if (me() === "Anon") return;
+        if (!S.users[me()]) return;
+        if (!S.users[me()].votes) S.users[me()].votes = [];
+        if (!iVoted(id)) S.users[me()].votes.push(id);
       };
       const rmMyVote = (id) => {
-        S.myVotes = S.myVotes.filter((x) => x !== id);
+        if (!S.users[me()] || !S.users[me()].votes) return;
+        S.users[me()].votes = S.users[me()].votes.filter((x) => x !== id);
       };
 
       $("hAlias").textContent = me();
@@ -1033,6 +1036,7 @@
         const a = me();
         if (a !== "Anon")
           S.users[a] = {
+            ...S.users[a],
             location: S.profile.location || "",
             paypal: S.profile.paypal || "",
           };
@@ -1048,6 +1052,34 @@
         });
       }
       updDl();
+
+      function renameUser(oldName, newName) {
+        // Migrate user entry (votes, location, paypal)
+        if (S.users[oldName]) {
+          S.users[newName] = { ...S.users[oldName] };
+          delete S.users[oldName];
+        }
+        // Update addedBy on all items
+        const lists = [S.songs, S.costumes, S.slots, S.past];
+        lists.forEach((arr) =>
+          arr.forEach((item) => {
+            if (item.addedBy === oldName) item.addedBy = newName;
+          }),
+        );
+        // Update attendees on slots and past
+        [...S.slots, ...S.past].forEach((s) => {
+          if (!s.attendees) return;
+          const i = s.attendees.indexOf(oldName);
+          if (i !== -1) s.attendees[i] = newName;
+        });
+        // Update expenses
+        S.expenses.forEach((e) => {
+          if (e.payer === oldName) e.payer = newName;
+          if (!e.attendees) return;
+          const i = e.attendees.indexOf(oldName);
+          if (i !== -1) e.attendees[i] = newName;
+        });
+      }
 
       function openProf() {
         const o = mk("div", "mo");
@@ -1084,8 +1116,8 @@
           S.profile.alias = newAlias;
           S.profile.location = o.querySelector("#pL").value.trim();
           S.profile.paypal = o.querySelector("#pP").value.trim();
-          if (oldAlias && oldAlias !== newAlias && S.users[oldAlias]) {
-            delete S.users[oldAlias];
+          if (oldAlias && oldAlias !== newAlias) {
+            renameUser(oldAlias, newAlias);
           }
           syncU();
           save();
@@ -1837,6 +1869,20 @@
       await signInAnonymously(fbAuth);
       fbReady = true;
 
+      // Migrate old localStorage votes into user's Firestore entry
+      try {
+        const oldLocal = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}");
+        if (oldLocal.myVotes && oldLocal.myVotes.length && me() !== "Anon") {
+          if (!S.users[me()]) S.users[me()] = {};
+          const existing = S.users[me()].votes || [];
+          const merged = [...new Set([...existing, ...oldLocal.myVotes])];
+          S.users[me()].votes = merged;
+          delete oldLocal.myVotes;
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(oldLocal));
+          saveShared();
+        }
+      } catch {}
+
       const OLD_KEY = "mgroove_v3";
       const oldData = localStorage.getItem(OLD_KEY);
       if (oldData) {
@@ -1859,7 +1905,12 @@
             S.profile = old.profile;
             $("hAlias").textContent = me();
           }
-          if (old.myVotes) S.myVotes = old.myVotes;
+          // Migrate old myVotes into user entry
+          if (old.myVotes && old.myVotes.length && me() !== "Anon") {
+            if (!S.users[me()]) S.users[me()] = {};
+            const existing = S.users[me()].votes || [];
+            S.users[me()].votes = [...new Set([...existing, ...old.myVotes])];
+          }
           saveLocal();
           localStorage.removeItem(OLD_KEY);
         } catch (e) {

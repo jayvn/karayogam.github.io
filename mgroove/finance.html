@@ -575,7 +575,6 @@
       });
       const blankLocal = () => ({
         profile: { alias: "", location: "", paypal: "" },
-        myVotes: [],
       });
       let localState;
       try {
@@ -586,12 +585,11 @@
       } catch {
         localState = blankLocal();
       }
-      if (!localState.myVotes) localState.myVotes = [];
       let S = { ...blankShared(), ...localState, isAdmin: false };
       const saveLocal = () =>
         localStorage.setItem(
           LOCAL_KEY,
-          JSON.stringify({ profile: S.profile, myVotes: S.myVotes }),
+          JSON.stringify({ profile: S.profile }),
         );
       const saveShared = () => {
         if (!fbReady) return;
