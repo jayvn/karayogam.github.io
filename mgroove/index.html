@@ -1001,7 +1001,7 @@
     // Profile
     function openProf() {
       const o = mk('div', 'mo');
-      o.innerHTML = '<div class="md"><h3>👤 Your Profile</h3><div class="f"><label>Alias</label><input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Name…"></div><div class="f"><label>📍 Location</label><input id="pL" value="' + esc(S.profile.location) + '" placeholder="City…"></div><div class="f"><label>💳 PayPal</label><input id="pP" value="' + esc(S.profile.paypal) + '" placeholder="email or paypal.me/…"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
+      o.innerHTML = '<div class="md"><h3>👤 Your Profile</h3><div class="f"><label>Alias</label><input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Your good name please. Bad anelum "></div><div class="f"><label>📍 Location</label><input id="pL" value="' + esc(S.profile.location) + '" placeholder="address for meetups (optional)…"></div><div class="f"><label>💳 PayPal</label><input id="pP" value="' + esc(S.profile.paypal) + '" placeholder="in case you pay for expenses and wish to be reimbursed (optional)"></div><div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div></div>';
       body.appendChild(o); o.querySelector('#pA').focus();
       const cl = () => o.remove();
       o.onclick = e => { if (e.target === o) cl() };
