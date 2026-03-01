@@ -35,8 +35,15 @@ export const esc = (s) => {
   return d.innerHTML;
 };
 
+const SESSION_ID_KEY = "mgroove_session_id";
+export const SESSION_ID = localStorage.getItem(SESSION_ID_KEY) || (() => {
+  const id = crypto.randomUUID();
+  localStorage.setItem(SESSION_ID_KEY, id);
+  return id;
+})();
+
 const localState = {
-  profile: { alias: "", nickname: "", location: "", paypal: "" },
+  profile: { alias: "", nickname: "" },
   ...JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
 };
 
@@ -179,11 +186,12 @@ export async function initFirebase(onSnap) {
 
 export function syncU() {
   const a = me();
-  S.users[a] = {
-    ...S.users[a],
-    location: S.profile.location || "",
-    paypal: S.profile.paypal || "",
-  };
+  S.users[a] = { ...S.users[a], sessionId: SESSION_ID };
+}
+
+export function nameTaken(name) {
+  const u = S.users[name];
+  return u && u.sessionId && u.sessionId !== SESSION_ID;
 }
 
 export function updDl() {

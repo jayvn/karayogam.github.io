@@ -1,4 +1,4 @@
-import { $, mk, esc, S, save, me, modal, initAdmin, initFirebase, syncU, updDl, display } from "/mgroove/shared.js";
+import { $, mk, esc, S, save, me, modal, initAdmin, initFirebase, syncU, updDl, display, nameTaken } from "/mgroove/shared.js";
 import { rCard } from "/mgroove/cards.js";
 import { TAB, renderDash, fullRender, setGo, setApplyCF } from "/mgroove/dash.js";
 
@@ -50,8 +50,6 @@ function openProf() {
   const m = modal(
     "<h3>👤 Your Profile</h3>" + nameField +
     '<div class="f"><label>🏷️ Nickname</label><input id="pN" value="' + esc(S.profile.nickname || "") + '" placeholder="optional short name…"></div>' +
-    '<div class="f"><label>📍 Location</label><input id="pL" value="' + esc(S.profile.location) + '" placeholder="address for meetups (optional)…"></div>' +
-    '<div class="f"><label>💳 PayPal</label><input id="pP" value="' + esc(S.profile.paypal) + '" placeholder="for reimbursements (optional)"></div>' +
     '<div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div>',
   );
   if (!roster.length) m.q("#pA").focus();
@@ -68,8 +66,6 @@ function openProf() {
     }
     S.profile.alias = newAlias;
     S.profile.nickname = m.q("#pN").value.trim();
-    S.profile.location = m.q("#pL").value.trim();
-    S.profile.paypal = m.q("#pP").value.trim();
     if (oldAlias && oldAlias !== newAlias) renameUser(oldAlias, newAlias);
     syncU(); save();
     $("hAlias").textContent = display();
