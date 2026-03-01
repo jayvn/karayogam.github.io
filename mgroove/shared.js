@@ -1,9 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
-  getAuth,
-  signInAnonymously,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import {
   getFirestore,
   doc,
   setDoc,
@@ -11,12 +7,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const fbApp = initializeApp(JSON.parse(window.__firebase_config));
-const fbAuth = getAuth(fbApp);
 const fbDb = getFirestore(fbApp);
 const docRef = doc(fbDb, "mgroove", "v1");
 let fbReady = false;
 
-const SHARED_KEYS = ["songs", "costumes", "slots", "expenses", "past", "users", "misc"];
+const SHARED_KEYS = ["songs", "costumes", "slots", "expenses", "past", "users", "misc", "roster"];
 const LOCAL_KEY = "mgroove_local";
 const ADMIN_PIN = "0000";
 
@@ -33,7 +28,7 @@ export const esc = (s) => {
 };
 
 const localState = {
-  profile: { alias: "", location: "", paypal: "" },
+  profile: { alias: "", nickname: "", location: "", paypal: "" },
   ...JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
 };
 
@@ -45,6 +40,7 @@ export const S = {
   past: [],
   users: {},
   misc: [],
+  roster: [],
   ...localState,
   isAdmin: false,
 };
@@ -62,6 +58,7 @@ export const save = () => {
   saveShared();
 };
 export const me = () => S.profile.alias || "Anon";
+export const display = () => S.profile.nickname || me();
 
 export function modal(html) {
   const dlg = mk("dialog", "mo");
@@ -139,7 +136,6 @@ export function initAdmin(onToggle) {
 }
 
 export async function initFirebase(onSnap) {
-  await signInAnonymously(fbAuth);
   fbReady = true;
 
   try {

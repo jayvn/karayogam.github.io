@@ -169,6 +169,7 @@
         initFirebase,
         syncU,
         updDl,
+        display,
       } from "/mgroove/shared.js";
 
       const IC = { song: "🎶", costume: "👗", slot: "📅", misc: "🗳️" };
@@ -265,11 +266,36 @@
 
       // Profile
       function openProf() {
+        const roster = S.roster || [];
+        const taken = Object.keys(S.users).filter(n => n !== S.profile.alias);
+        const available = roster.filter(n => !taken.includes(n));
+
+        let nameField;
+        if (roster.length) {
+          const opts = available.map(n =>
+            `<option value="${esc(n)}"${S.profile.alias === n ? " selected" : ""}>${esc(n)}</option>`
+          ).join("");
+          const hasCurrent = S.profile.alias && roster.includes(S.profile.alias);
+          const selVal = hasCurrent ? S.profile.alias : "";
+          nameField =
+            '<div class="f"><label>👤 Who are you?</label>' +
+            '<select id="pA">' +
+            '<option value="">— pick your name —</option>' +
+            (hasCurrent ? `<option value="${esc(S.profile.alias)}" selected>${esc(S.profile.alias)}</option>` : "") +
+            available.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") +
+            "</select></div>";
+        } else {
+          nameField =
+            '<div class="f"><label>👤 Alias</label>' +
+            '<input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Your name…"></div>';
+        }
+
         const m = modal(
           "<h3>👤 Your Profile</h3>" +
-            '<div class="f"><label>Alias</label><input id="pA" value="' +
-            esc(S.profile.alias) +
-            '" placeholder="Your good name please. Bad anelum "></div>' +
+            nameField +
+            '<div class="f"><label>🏷️ Nickname</label><input id="pN" value="' +
+            esc(S.profile.nickname || "") +
+            '" placeholder="optional short name…"></div>' +
             '<div class="f"><label>📍 Location</label><input id="pL" value="' +
             esc(S.profile.location) +
             '" placeholder="address for meetups (optional)…"></div>' +
@@ -278,12 +304,13 @@
             '" placeholder="for reimbursements (optional)"></div>' +
             '<div class="acts"><button class="btn" id="pC">Cancel</button><button class="btn btn-add" id="pS">Save</button></div>',
         );
-        m.q("#pA").focus();
+        if (!roster.length) m.q("#pA").focus();
         m.q("#pC").onclick = m.close;
         m.q("#pS").onclick = () => {
           const newAlias = m.q("#pA").value.trim(),
             oldAlias = S.profile.alias;
-          if (newAlias && newAlias !== oldAlias && S.users[newAlias]) {
+          if (!newAlias) { alert("Please pick your name!"); return; }
+          if (newAlias !== oldAlias && S.users[newAlias]) {
             const existing = m.el.querySelector(".collision-warn");
             if (existing) existing.remove();
             const warn = mk("div", "collision-warn");
@@ -295,12 +322,13 @@
             return;
           }
           S.profile.alias = newAlias;
+          S.profile.nickname = m.q("#pN").value.trim();
           S.profile.location = m.q("#pL").value.trim();
           S.profile.paypal = m.q("#pP").value.trim();
           if (oldAlias && oldAlias !== newAlias) renameUser(oldAlias, newAlias);
           syncU();
           save();
-          $("hAlias").textContent = me();
+          $("hAlias").textContent = display();
           updDl();
           m.close();
           fullRender();
@@ -913,15 +941,76 @@
             .querySelector('[data-v="misc"]')
             .appendChild(mk("span", "bdot"));
 
-        // Admin: user list
+        // Admin: roster + user list
         const du = $("dashUsers");
         du.innerHTML = "";
         if (S.isAdmin) {
+          // Roster management
+          const roster = S.roster || [];
+          const rh = mk("h3");
+          rh.textContent = "📋 Member Roster (" + roster.length + ")";
+          du.appendChild(rh);
+
+          const rHint = mk("div", "dash-hint");
+          rHint.textContent = "Members pick their name from this list when setting up their profile.";
+          du.appendChild(rHint);
+
+          const rAdd = mk("div", "irow");
+          rAdd.innerHTML = '<input id="rosterIn" placeholder="Add member name…"><button class="btn btn-add" id="rosterAdd">＋</button>';
+          du.appendChild(rAdd);
+
+          const rList = mk("div", "roster-list");
+          const renderRoster = () => {
+            rList.innerHTML = "";
+            (S.roster || []).sort().forEach(name => {
+              const row = mk("div", "user-row");
+              const taken = S.users[name] ? ' <span class="dim">✓ joined</span>' : ' <span class="dim">pending</span>';
+              row.innerHTML = "<div><strong>" + esc(name) + "</strong>" + taken + "</div>";
+              if (!S.users[name]) {
+                const db = mk("button", "btn btn-icon del");
+                db.textContent = "✕";
+                db.onclick = async () => {
+                  if (!(await cDlg("Remove " + name + " from roster?"))) return;
+                  S.roster = S.roster.filter(n => n !== name);
+                  save();
+                  renderRoster();
+                };
+                row.appendChild(db);
+              }
+              rList.appendChild(row);
+            });
+            if (!roster.length) {
+              const em = mk("div", "dash-em");
+              em.textContent = "No members yet — add names above";
+              rList.appendChild(em);
+            }
+          };
+          renderRoster();
+          du.appendChild(rList);
+
+          du.querySelector("#rosterAdd").onclick = () => {
+            const inp = du.querySelector("#rosterIn");
+            const name = inp.value.trim();
+            if (!name) return;
+            S.roster = S.roster || [];
+            if (!S.roster.includes(name)) { S.roster.push(name); save(); }
+            inp.value = "";
+            renderRoster();
+          };
+          du.querySelector("#rosterIn").onkeydown = (e) => {
+            if (e.key === "Enter") du.querySelector("#rosterAdd").click();
+          };
+
+          // Registered users
           const uKeys = Object.keys(S.users);
-          du.innerHTML = "<h3>👥 Registered Users (" + uKeys.length + ")</h3>";
-          if (!uKeys.length)
-            du.innerHTML += '<div class="dash-em">No users yet</div>';
-          else
+          const uh = mk("h3");
+          uh.textContent = "👥 Registered Users (" + uKeys.length + ")";
+          du.appendChild(uh);
+          if (!uKeys.length) {
+            const em = mk("div", "dash-em");
+            em.textContent = "No users yet";
+            du.appendChild(em);
+          } else
             uKeys.sort().forEach((name) => {
               const u = S.users[name],
                 r = mk("div", "user-row");

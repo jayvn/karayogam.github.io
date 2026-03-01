@@ -727,6 +727,16 @@ nav {
 .dash-s {
   margin-bottom: 1.4rem;
 }
+.roster-list {
+  margin-bottom: 1rem;
+  .user-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
 .dash-hint {
   font-size: 0.76rem;
   color: var(--text-dim);

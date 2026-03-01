@@ -224,13 +224,36 @@ const jumpTo = b => {
 };
 
 // Dancers
-const addDancer = () => {
-  const d = { id: `d_${Date.now()}`, name: `Dancer ${state.dancers.length + 1}`, color: COLORS[state.dancers.length % COLORS.length] };
-  state.dancers.push(d);
-  state.positions[d.id] = { x: 50, y: 50 };
-  save();
-  renderStage();
-  renderDancers();
+const addDancer = async () => {
+  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+  const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+  const cfg = { apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8", authDomain: "rendercode-d73da.firebaseapp.com", projectId: "rendercode-d73da", appId: "1:798989930424:web:7f324e5153cabc5d90494d" };
+  const fbApp = getApps().length ? getApps()[0] : initializeApp(cfg);
+  const snap = await getDoc(doc(getFirestore(fbApp), "mgroove", "v1"));
+  const roster = snap.exists() ? (snap.data().roster || []) : [];
+
+  const available = roster.filter(name => !state.dancers.find(d => d.name === name));
+  if (!available.length) return alert("All roster members already added.");
+
+  const dlg = document.createElement('dialog');
+  dlg.className = 'fixed inset-0 bg-gray-900 rounded-xl p-4 shadow-2xl border border-gray-700 max-w-xs w-full';
+  dlg.innerHTML = `<h3 class="font-semibold text-gray-200 mb-3">Add Dancer</h3>
+    <div class="space-y-1 max-h-64 overflow-y-auto">${available.map(n =>
+      `<button class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-600 text-gray-100 text-sm" data-name="${n}">${n}</button>`
+    ).join('')}</div>
+    <button id="dlg-cancel" class="mt-3 w-full py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm">Cancel</button>`;
+  document.body.appendChild(dlg);
+  dlg.showModal();
+
+  const pick = name => {
+    dlg.close(); dlg.remove();
+    const d = { id: `d_${Date.now()}`, name, color: COLORS[state.dancers.length % COLORS.length] };
+    state.dancers.push(d);
+    state.positions[d.id] = { x: 50, y: 50 };
+    save(); renderStage(); renderDancers();
+  };
+  dlg.querySelectorAll('[data-name]').forEach(btn => btn.onclick = () => pick(btn.dataset.name));
+  dlg.querySelector('#dlg-cancel').onclick = () => { dlg.close(); dlg.remove(); };
 };
 
 const deleteDancer = id => {
@@ -629,6 +652,26 @@ const init = async () => {
 
   state.isLoading = true;
   load();
+
+  // Auto-add mgroove user as dancer if signed in there and on roster
+  try {
+    const mgroove = JSON.parse(localStorage.getItem('mgroove_local') || '{}');
+    const alias = mgroove?.profile?.alias;
+    if (alias && !state.dancers.find(d => d.name === alias)) {
+      const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+      const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+      const cfg = { apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8", authDomain: "rendercode-d73da.firebaseapp.com", projectId: "rendercode-d73da", appId: "1:798989930424:web:7f324e5153cabc5d90494d" };
+      const fbApp = getApps().length ? getApps()[0] : initializeApp(cfg);
+      const snap = await getDoc(doc(getFirestore(fbApp), "mgroove", "v1"));
+      const roster = snap.exists() ? (snap.data().roster || []) : [];
+      if (roster.includes(alias)) {
+        const d = { id: `d_${Date.now()}`, name: alias, color: COLORS[state.dancers.length % COLORS.length] };
+        state.dancers.push(d);
+        state.positions[d.id] = { x: 50, y: 50 };
+      }
+    }
+  } catch {}
+
   const audioData = await loadAudioFromDB();
   if (audioData?.blob) {
     state.audioSrc = URL.createObjectURL(audioData.blob);
