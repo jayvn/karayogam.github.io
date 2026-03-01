@@ -63,9 +63,8 @@ function openProf() {
     if (newAlias !== oldAlias && nameTaken(newAlias)) {
       m.el.querySelector(".collision-warn")?.remove();
       const warn = mk("div", "collision-warn");
-      warn.innerHTML = '⚠️ "<strong>' + esc(newAlias) + '</strong>" is already logged in elsewhere. Only pick a name that is yours!';
+      warn.innerHTML = '⚠️ "<strong>' + esc(newAlias) + '</strong>" is active on another device.';
       m.q(".md").insertBefore(warn, m.q(".acts"));
-      return;
     }
     S.profile.alias = newAlias;
     S.profile.nickname = m.q("#pN").value.trim();
