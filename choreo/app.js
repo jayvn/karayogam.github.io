@@ -3,8 +3,11 @@
 // IndexedDB — reuse a single connection
 let _db = null;
 const openDB = () => _db ? Promise.resolve(_db) : new Promise(resolve => {
-  const req = indexedDB.open('ChoreoMarkerDB', 1);
-  req.onupgradeneeded = e => e.target.result.createObjectStore('audio');
+  const req = indexedDB.open('ChoreoMarkerDB', 2);
+  req.onupgradeneeded = e => {
+    const db = e.target.result;
+    if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio');
+  };
   req.onsuccess = () => { _db = req.result; resolve(_db); };
 });
 
