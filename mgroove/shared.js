@@ -35,7 +35,7 @@ export const esc = (s) => {
 
 const SESSION_ID_KEY = "mgroove_session_id";
 export const SESSION_ID = localStorage.getItem(SESSION_ID_KEY) || (() => {
-  const id = crypto.randomUUID();
+  const id = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
   localStorage.setItem(SESSION_ID_KEY, id);
   return id;
 })();

@@ -36,8 +36,7 @@ function renameUser(oldName, newName) {
 // Profile
 function openProf() {
   const roster = S.roster || [];
-  const taken = Object.keys(S.users).filter((n) => n !== S.profile.alias);
-  const available = roster.filter((n) => !taken.includes(n));
+  const available = roster.filter((n) => !nameTaken(n) || n === S.profile.alias);
   const hasCurrent = S.profile.alias && roster.includes(S.profile.alias);
 
   const nameField = roster.length
@@ -57,10 +56,10 @@ function openProf() {
   m.q("#pS").onclick = () => {
     const newAlias = m.q("#pA").value.trim(), oldAlias = S.profile.alias;
     if (!newAlias) { alert("Please pick your name!"); return; }
-    if (newAlias !== oldAlias && S.users[newAlias]) {
+    if (newAlias !== oldAlias && nameTaken(newAlias)) {
       m.el.querySelector(".collision-warn")?.remove();
       const warn = mk("div", "collision-warn");
-      warn.innerHTML = '⚠️ "<strong>' + esc(newAlias) + '</strong>" is already taken.';
+      warn.innerHTML = '⚠️ "<strong>' + esc(newAlias) + '</strong>" is already logged in elsewhere. Only pick a name that is yours!';
       m.q(".md").insertBefore(warn, m.q(".acts"));
       return;
     }
@@ -85,7 +84,7 @@ $("exportBtn").onclick = () => {
 // Name gate
 function showNameGate() {
   const roster = S.roster || [];
-  const available = roster.filter((n) => !Object.keys(S.users).includes(n));
+  const available = roster.filter((n) => !nameTaken(n) || n === S.profile.alias);
   const nameField = roster.length
     ? '<div class="f"><label>👤 Who are you?</label><select id="gA">' +
       '<option value="">— pick your name —</option>' +
@@ -103,9 +102,9 @@ function showNameGate() {
   const doGo = () => {
     const name = inp.value.trim();
     if (!name) { inp.classList.add("shake"); setTimeout(() => inp.classList.remove("shake"), 500); return; }
-    if (S.users[name] && name !== S.profile.alias) {
+    if (nameTaken(name) && name !== S.profile.alias) {
       const warn = gate.querySelector(".collision-warn") || mk("div", "collision-warn");
-      warn.innerHTML = '⚠️ "<strong>' + esc(name) + '</strong>" is already taken.';
+      warn.innerHTML = '⚠️ "<strong>' + esc(name) + '</strong>" is already logged in elsewhere. Only pick a name that is yours!';
       inp.closest(".f").after(warn); return;
     }
     const oldAlias = S.profile.alias;
