@@ -18,7 +18,7 @@ export function renderDash() {
   ];
 
   // Pending votes
-  const unv = all.filter((i) => !i.finalized && !iVoted(i.id));
+  const unv = all.filter((i) => !i.finalized && !iVoted(i.id) && i._t !== "song");
   dv.innerHTML = "<h3>🗳️ Pending Votes (" + unv.length + ')</h3><div class="dash-hint">All votes are anonymous — only totals are visible</div>';
   if (!unv.length)
     dv.innerHTML += '<div class="dash-em">✅ You\'ve voted on everything!</div>';
@@ -76,7 +76,7 @@ export function renderDash() {
 
   // Nav dots
   document.querySelectorAll("#nav button .bdot").forEach((d) => d.remove());
-  if (S.songs.some((s) => !s.finalized && !iVoted(s.id))) document.querySelector('[data-v="songs"]').appendChild(mk("span", "bdot"));
+
   if (S.costumes.some((c) => !c.finalized && !iVoted(c.id))) document.querySelector('[data-v="costumes"]').appendChild(mk("span", "bdot"));
   if (S.slots.some((s) => !s.finalized && (!iVoted(s.id) || !(s.attendees ?? []).includes(me())))) document.querySelector('[data-v="slots"]').appendChild(mk("span", "bdot"));
   if (S.misc.some((m) => !m.finalized && !iVoted(m.id))) document.querySelector('[data-v="misc"]').appendChild(mk("span", "bdot"));

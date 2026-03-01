@@ -108,8 +108,8 @@ function showNameGate() {
     if (!name) { inp.classList.add("shake"); setTimeout(() => inp.classList.remove("shake"), 500); return; }
     if (nameTaken(name) && name !== S.profile.alias) {
       const warn = gate.querySelector(".collision-warn") || mk("div", "collision-warn");
-      warn.innerHTML = '⚠️ "<strong>' + esc(name) + '</strong>" is already logged in elsewhere. Only pick a name that is yours!';
-      inp.closest(".f").after(warn); return;
+      warn.innerHTML = '⚠️ "<strong>' + esc(name) + '</strong>" is active on another device.';
+      if (!gate.querySelector(".collision-warn")) inp.closest(".f").after(warn);
     }
     const oldAlias = S.profile.alias;
     S.profile.alias = name;
