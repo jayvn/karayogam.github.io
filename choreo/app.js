@@ -196,13 +196,20 @@ const animationLoop = () => {
   state.animationId = requestAnimationFrame(animationLoop);
 };
 
-const seek = time => {
+let seekThrottleTimer = null;
+const seek = (time, throttleAudio = false) => {
   if (!audio) return;
-  audio.currentTime = time;
   state.currentTime = time;
   updatePositions(time);
   updatePlayerUI();
   renderStage();
+  if (throttleAudio) {
+    clearTimeout(seekThrottleTimer);
+    seekThrottleTimer = setTimeout(() => { audio.currentTime = time; }, 80);
+  } else {
+    clearTimeout(seekThrottleTimer);
+    audio.currentTime = time;
+  }
 };
 
 // Bookmarks
@@ -442,7 +449,8 @@ const renderPlayer = () => {
     waveform = new Waveform(waveformCanvas);
     if (state.audioSrc) waveform.load(state.audioSrc);
 
-    document.getElementById('seek-slider').oninput = e => seek(parseFloat(e.target.value));
+    document.getElementById('seek-slider').oninput = e => seek(parseFloat(e.target.value), true);
+    document.getElementById('seek-slider').onchange = e => seek(parseFloat(e.target.value));
     document.getElementById('play-btn').onclick = togglePlay;
     document.getElementById('rw-btn').onclick = () => seek(audio.currentTime - 5);
     document.getElementById('ff-btn').onclick = () => seek(audio.currentTime + 5);
