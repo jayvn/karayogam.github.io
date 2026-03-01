@@ -43,9 +43,7 @@
         <span class="logo"><img src="/mgroove/icon.png" alt="M-Groove"> M-Groove</span>
         <div class="hdr-r">
           <a class="nav-link" href="/mgroove/">🏠 Main</a>
-          <label class="adm-l"
-            ><input type="checkbox" id="admTog" /> 👑 Admin</label
-          >
+
         </div>
       </header>
       <div class="fin">
@@ -94,7 +92,6 @@
         save,
         me,
         cDlg,
-        initAdmin,
         initFirebase,
         updDl,
       } from "/mgroove/shared.js";
@@ -177,17 +174,15 @@
             " · Split: " +
             (e.attendees.length ? e.attendees.join(", ") : "nobody");
           d.appendChild(txt);
-          if (S.isAdmin) {
-            const db = mk("button", "btn btn-icon del");
-            db.textContent = "✕";
-            db.onclick = async () => {
-              if (!(await cDlg("Delete this expense?"))) return;
-              S.expenses.splice(idx, 1);
-              save();
-              renderFin();
-            };
-            d.appendChild(db);
-          }
+          const db = mk("button", "btn btn-icon del");
+          db.textContent = "✕";
+          db.onclick = async () => {
+            if (!(await cDlg("Delete this expense?"))) return;
+            S.expenses.splice(idx, 1);
+            save();
+            renderFin();
+          };
+          d.appendChild(db);
           li.appendChild(d);
           if (!stats[e.payer]) stats[e.payer] = { paid: 0, owes: 0 };
           stats[e.payer].paid += e.cost;
@@ -280,8 +275,6 @@
         }
         return tx;
       }
-
-      initAdmin(() => renderFin());
 
       await initFirebase(() => {
         updDl();

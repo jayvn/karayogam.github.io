@@ -77,14 +77,14 @@ export function openEd(item, type, cb) {
 }
 
 export function rCard(item, type, listEl) {
-  const card = mk("div", "card" + (item.finalized ? " final" : ""));
+  const card = mk("div", "card card-" + type + (item.finalized ? " final" : ""));
   card.dataset.id = item.id;
   if (type === "costume") card.dataset.gender = item.gender || "unisex";
 
   function build() {
     card.innerHTML = "";
     if (type === "costume") card.dataset.gender = item.gender || "unisex";
-    card.className = "card" + (item.finalized ? " final" : "");
+    card.className = "card card-" + type + (item.finalized ? " final" : "");
     const ic = IC[type], link = xLink(item.text || "");
 
     let tH = "";
@@ -218,7 +218,7 @@ export function rCard(item, type, listEl) {
       attDiv.textContent = att.size ? "→ " + [...att].join(", ") : "";
     }
 
-    const fb = mk("button", "btn btn-sm btn-final ao" + (item.finalized ? " finalized" : ""));
+    const fb = mk("button", "btn btn-sm btn-final" + (item.finalized ? " finalized" : ""));
     fb.textContent = item.finalized ? "⏪ Undo" : "🎯 Finalize";
     fb.onclick = () => {
       if (item.finalized) {
@@ -247,7 +247,7 @@ export function rCard(item, type, listEl) {
     acts.appendChild(fb);
 
     if (type === "slot" && item.finalized) {
-      const arb = mk("button", "btn btn-sm ao");
+      const arb = mk("button", "btn btn-sm");
       arb.textContent = "🕰️ Archive";
       arb.onclick = async () => {
         if (!(await cDlg("Archive?"))) return;
