@@ -1,6 +1,53 @@
 // ChoreoMarker - Choreography marking tool for dance rehearsals
 
-// IndexedDB — reuse a single connection
+// Firebase
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const FB_CFG = { apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8", authDomain: "rendercode-d73da.firebaseapp.com", projectId: "rendercode-d73da", appId: "1:798989930424:web:7f324e5153cabc5d90494d" };
+const fbApp = getApps().length ? getApps()[0] : initializeApp(FB_CFG);
+const db = getFirestore(fbApp);
+
+// Session — from URL or generate new
+const sessionId = (() => {
+  const p = new URLSearchParams(location.search).get('session');
+  if (p) return p;
+  const id = Math.random().toString(36).slice(2, 10);
+  history.replaceState(null, '', `?session=${id}`);
+  return id;
+})();
+
+let _ignoreNextSnapshot = false;
+let _unsubscribe = null;
+
+const syncToFirestore = async () => {
+  _ignoreNextSnapshot = true;
+  await setDoc(doc(db, 'choreo', sessionId), {
+    dancers: state.dancers,
+    bookmarks: state.bookmarks,
+    positions: state.positions,
+    fileName: state.fileName,
+    nextDancerId: state.nextDancerId,
+    updatedAt: Date.now()
+  });
+};
+
+const subscribeFirestore = () => {
+  _unsubscribe?.();
+  _unsubscribe = onSnapshot(doc(db, 'choreo', sessionId), snap => {
+    if (_ignoreNextSnapshot) { _ignoreNextSnapshot = false; return; }
+    if (!snap.exists()) return;
+    const d = snap.data();
+    state.dancers = d.dancers ?? state.dancers;
+    state.bookmarks = d.bookmarks ?? state.bookmarks;
+    state.positions = d.positions ?? state.positions;
+    state.fileName = d.fileName ?? state.fileName;
+    state.nextDancerId = d.nextDancerId ?? state.nextDancerId;
+    renderAll();
+  });
+};
+
+// IndexedDB — audio stays local (too large for Firestore)
 let _db = null;
 const openDB = () => _db ? Promise.resolve(_db) : new Promise(resolve => {
   const req = indexedDB.open('ChoreoMarkerDB', 2);
@@ -14,13 +61,13 @@ const openDB = () => _db ? Promise.resolve(_db) : new Promise(resolve => {
 const saveAudioToDB = async (blob, fileName) => {
   const db = await openDB();
   const tx = db.transaction('audio', 'readwrite');
-  tx.objectStore('audio').put({ blob, fileName }, 'current');
+  tx.objectStore('audio').put({ blob, fileName }, sessionId);
 };
 
 const loadAudioFromDB = async () => {
   const db = await openDB();
   return new Promise(resolve => {
-    const req = db.transaction('audio', 'readonly').objectStore('audio').get('current');
+    const req = db.transaction('audio', 'readonly').objectStore('audio').get(sessionId);
     req.onsuccess = () => resolve(req.result);
   });
 };
@@ -28,7 +75,7 @@ const loadAudioFromDB = async () => {
 const deleteAudioFromDB = () => new Promise(async resolve => {
   const db = await openDB();
   const tx = db.transaction('audio', 'readwrite');
-  tx.objectStore('audio').delete('current');
+  tx.objectStore('audio').delete(sessionId);
   tx.oncomplete = () => { _db = null; resolve(); };
   tx.onerror = () => { _db = null; resolve(); };
 });
@@ -53,7 +100,7 @@ const state = {
   audioSrc: null, fileName: "", isPlaying: false, currentTime: 0, duration: 0,
   bookmarks: [], dancers: [], positions: {}, nextDancerId: 1,
   draggedId: null, editingDancer: null, editingBookmarkId: null,
-  showDancers: true, isLoading: false, animationId: null
+  showDancers: true, animationId: null
 };
 
 // DOM refs
@@ -129,22 +176,21 @@ class Waveform {
   }
 }
 
-// Storage
+// Storage — Firestore is source of truth; localStorage only for session list
 const save = () => {
-  if (state.isLoading) return;
-  localStorage.setItem('choreo_dancers', JSON.stringify(state.dancers));
-  localStorage.setItem('choreo_bookmarks', JSON.stringify(state.bookmarks));
-  localStorage.setItem('choreo_positions', JSON.stringify(state.positions));
-  localStorage.setItem('choreo_fileName', state.fileName);
-  localStorage.setItem('choreo_nextDancerId', state.nextDancerId);
+  syncToFirestore();
 };
 
-const load = () => {
-  state.dancers = JSON.parse(localStorage.getItem('choreo_dancers') || '[]');
-  state.bookmarks = JSON.parse(localStorage.getItem('choreo_bookmarks') || '[]');
-  state.positions = JSON.parse(localStorage.getItem('choreo_positions') || '{}');
-  state.fileName = localStorage.getItem('choreo_fileName') || '';
-  state.nextDancerId = parseInt(localStorage.getItem('choreo_nextDancerId') || '1');
+const load = async () => {
+  const snap = await getDoc(doc(db, 'choreo', sessionId));
+  if (snap.exists()) {
+    const d = snap.data();
+    state.dancers = d.dancers ?? [];
+    state.bookmarks = d.bookmarks ?? [];
+    state.positions = d.positions ?? {};
+    state.fileName = d.fileName ?? '';
+    state.nextDancerId = d.nextDancerId ?? 1;
+  }
 };
 
 // Position tracking
@@ -240,18 +286,13 @@ const jumpTo = b => {
 let _roster = null;
 const fetchRoster = async () => {
   if (_roster) return _roster;
-  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-  const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-  const cfg = { apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8", authDomain: "rendercode-d73da.firebaseapp.com", projectId: "rendercode-d73da", appId: "1:798989930424:web:7f324e5153cabc5d90494d" };
-  const fbApp = getApps().length ? getApps()[0] : initializeApp(cfg);
-  const snap = await getDoc(doc(getFirestore(fbApp), "mgroove", "v1"));
+  const snap = await getDoc(doc(db, "mgroove", "v1"));
   _roster = snap.exists() ? (snap.data().roster || []) : [];
   return _roster;
 };
 
 const addDancer = async () => {
   const roster = await fetchRoster();
-
   const available = roster.filter(name => !state.dancers.find(d => d.name === name));
   if (!available.length) return alert("All roster members already added.");
 
@@ -351,10 +392,10 @@ const importData = e => {
 
 const clearStorage = async () => {
   if (!confirm('Clear all saved data including audio file?')) return;
-  ['choreo_dancers', 'choreo_bookmarks', 'choreo_positions', 'choreo_fileName', 'choreo_nextDancerId'].forEach(k => localStorage.removeItem(k));
   await deleteAudioFromDB();
   if (state.audioSrc) URL.revokeObjectURL(state.audioSrc);
   Object.assign(state, { dancers: [], bookmarks: [], positions: {}, nextDancerId: 1, fileName: '', audioSrc: null, isPlaying: false, currentTime: 0, duration: 0 });
+  save();
   renderAll();
 };
 
@@ -372,7 +413,6 @@ const handleAudioUpload = async e => {
   audio.src = state.audioSrc;
   await saveAudioToDB(file, file.name);
   save();
-  // force player rebuild for new audio
   document.getElementById('player-container').innerHTML = '';
   renderPlayer();
   renderStage();
@@ -380,9 +420,18 @@ const handleAudioUpload = async e => {
   const n = state.fileName; document.getElementById('upload-btn-text').textContent = n.length > 16 ? n.slice(0, 14) + '…' : n;
 };
 
+const shareSession = () => {
+  const url = location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('share-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+};
+
 // Rendering
 
-// Full reset render — only for import/clear/init
 const renderAll = () => {
   renderStage();
   renderPlayer();
@@ -394,7 +443,6 @@ const renderAll = () => {
   if (btnText) { const n = state.fileName || 'Upload Audio'; btnText.textContent = n.length > 16 ? n.slice(0, 14) + '…' : n; }
 };
 
-// Stage: uses CSS transform for GPU-composited moves; only rebuilds DOM when dancer set changes
 const renderStage = () => {
   const content = stage?.querySelector('.stage-content');
   if (!content) return;
@@ -432,7 +480,7 @@ const renderPlayer = () => {
 
   if (!state.audioSrc) {
     if (!container.querySelector('#upload-prompt')) {
-      container.innerHTML = `<div id="upload-prompt" class="h-32 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 cursor-pointer hover:border-indigo-600 hover:text-gray-300 hover:bg-gray-800/40 transition-colors"><span class="text-3xl">🎵</span><span class="text-sm">Tap to load audio</span></div>`;
+      container.innerHTML = `<div id="upload-prompt" class="h-32 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 cursor-pointer hover:border-indigo-600 hover:text-gray-300 hover:bg-gray-800/40 transition-colors"><span class="text-3xl">🎵</span><span class="text-sm">Tap to load audio${state.fileName ? ` (session has: ${state.fileName})` : ''}</span></div>`;
       container.querySelector('#upload-prompt').onclick = () => fileInput.click();
     }
     return;
@@ -519,7 +567,6 @@ const renderDancers = () => {
   });
 };
 
-// Timeline: full rebuild only when bookmarks change; highlight update is in-place
 const renderTimeline = () => {
   const container = document.getElementById('timeline-container');
   if (!container) return;
@@ -552,7 +599,6 @@ const renderTimeline = () => {
 
   bookmarksContainer = document.getElementById('bookmarks-scroll');
 
-  // Event delegation — one listener handles all bookmark interactions
   container.onclick = e => {
     const delBtn = e.target.closest('[data-del-mark]');
     const editBtn = e.target.closest('[data-edit-mark]');
@@ -585,7 +631,6 @@ const renderTimeline = () => {
   };
 };
 
-// Update only the active-row highlight without rebuilding the timeline
 const updateTimelineHighlight = () => {
   const container = document.getElementById('timeline-container');
   if (!container) return;
@@ -666,6 +711,7 @@ const init = async () => {
   document.getElementById('export-btn').onclick = exportData;
   document.getElementById('clear-storage-btn').onclick = clearStorage;
   document.getElementById('add-dancer-btn').onclick = addDancer;
+  document.getElementById('share-btn').onclick = shareSession;
 
   document.addEventListener('keydown', e => {
     if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
@@ -674,11 +720,10 @@ const init = async () => {
     }
   });
 
-  state.isLoading = true;
-  load();
+  await load();
   fetchRoster().catch(() => {});
 
-  // Auto-add mgroove user as dancer if signed in there and on roster
+  // Auto-add mgroove user if on roster
   try {
     const mgroove = JSON.parse(localStorage.getItem('mgroove_local') || '{}');
     const alias = mgroove?.profile?.alias;
@@ -688,6 +733,7 @@ const init = async () => {
         const d = { id: state.nextDancerId++, name: alias, color: COLORS[state.dancers.length % COLORS.length] };
         state.dancers.push(d);
         state.positions[d.id] = { x: 50, y: 50 };
+        save();
       }
     }
   } catch {}
@@ -697,8 +743,9 @@ const init = async () => {
     state.audioSrc = URL.createObjectURL(audioData.blob);
     audio.src = state.audioSrc;
   }
-  state.isLoading = false;
+
   renderAll();
+  subscribeFirestore();
 };
 
 // Service Worker
