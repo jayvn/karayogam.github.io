@@ -46,7 +46,7 @@ const state = {
   audioSrc: null, fileName: "", isPlaying: false, currentTime: 0, duration: 0,
   bookmarks: [], dancers: [], positions: {}, 
   draggedId: null, editingDancer: null, editingBookmarkId: null, tempName: "",
-  showDancers: false, isLoading: false, animationId: null
+  showDancers: true, isLoading: false, animationId: null
 };
 
 // DOM refs
@@ -64,8 +64,26 @@ class Waveform {
   }
 
   async load(src) {
+    this.canvas.width = this.canvas.offsetWidth || 800;
     const data = await fetch(src).then(r => r.arrayBuffer());
-    this.buffer = await getAudioCtx().decodeAudioData(data);
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') {
+      // defer decode until user gesture unlocks AudioContext
+      this._pendingSrc = src;
+      this._pendingData = data;
+      const resume = async () => {
+        if (!this._pendingData) return;
+        this.buffer = await getAudioCtx().decodeAudioData(this._pendingData);
+        this._pendingData = null;
+        this.draw();
+        document.removeEventListener('click', resume);
+        document.removeEventListener('keydown', resume);
+      };
+      document.addEventListener('click', resume, { once: true });
+      document.addEventListener('keydown', resume, { once: true });
+      return;
+    }
+    this.buffer = await ctx.decodeAudioData(data);
     this.draw();
   }
 
@@ -201,7 +219,6 @@ const addBookmark = () => {
 
 const jumpTo = b => {
   seek(b.time);
-  if (!state.isPlaying) { audio.play(); state.isPlaying = true; }
   render();
 };
 
@@ -259,7 +276,7 @@ const endDrag = () => {
 
 // Import/Export
 const exportData = () => {
-  const blob = new Blob([JSON.stringify({ version: 1, meta: { audioFile: state.fileName }, dancers: state.dancers, bookmarks: state.bookmarks }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ version: 1, meta: { audioFile: state.fileName }, dancers: state.dancers, bookmarks: state.bookmarks, positions: state.positions }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${state.fileName?.split('.')[0] || 'choreo'}_data.json`;
@@ -274,6 +291,7 @@ const importData = e => {
     const data = JSON.parse(ev.target.result);
     if (data.dancers) state.dancers = data.dancers;
     if (data.bookmarks) state.bookmarks = data.bookmarks;
+    if (data.positions) state.positions = data.positions;
     state.currentTime = 0;
     if (audio) audio.currentTime = 0;
     save();
@@ -342,6 +360,10 @@ const renderStage = () => {
       el.style.left = `${p.x}%`;
       el.style.top = `${p.y}%`;
       el.style.cursor = state.draggedId === d.id ? 'grabbing' : 'grab';
+      el.style.background = d.color;
+      el.title = d.name;
+      // update initials text node (first child is text, last child is the triangle div)
+      el.childNodes[0].textContent = getInitials(d.name);
     });
   }
 };
@@ -465,7 +487,7 @@ const renderTimeline = () => {
     </div>`;
 
   bookmarksContainer = document.getElementById('bookmarks-scroll');
-  document.getElementById('clear-marks').onclick = () => { state.bookmarks = []; save(); render(); };
+  document.getElementById('clear-marks').onclick = () => { if (!confirm('Clear all timeline marks?')) return; state.bookmarks = []; save(); render(); };
 
   state.bookmarks.forEach(b => {
     const el = container.querySelector(`[data-bid="${b.id}"]`);
@@ -491,7 +513,10 @@ const renderModal = () => {
   modal.innerHTML = `
     <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-gray-700">
       <h3 class="text-lg font-semibold mb-4">Edit Dancer</h3>
-      <input id="edit-dancer-input" class="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-white mb-4" value="${state.editingDancer.name}"/>
+      <input id="edit-dancer-input" class="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-white mb-3" value="${state.editingDancer.name}"/>
+      <div class="flex gap-2 mb-4 flex-wrap">
+        ${COLORS.map(c => `<button data-color="${c}" class="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${c === state.editingDancer.color ? 'border-white scale-110' : 'border-transparent'}" style="background:${c}"></button>`).join('')}
+      </div>
       <div class="flex justify-between gap-3">
         <button id="modal-delete" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-xl">Delete</button>
         <div class="flex gap-2">
@@ -502,7 +527,20 @@ const renderModal = () => {
     </div>`;
 
   const input = document.getElementById('edit-dancer-input');
-  const saveName = () => { state.dancers.find(d => d.id === state.editingDancer.id).name = input.value; state.editingDancer = null; save(); render(); };
+  const saveName = () => {
+    const dancer = state.dancers.find(d => d.id === state.editingDancer.id);
+    dancer.name = input.value;
+    dancer.color = state.editingDancer.color;
+    state.editingDancer = null;
+    save();
+    render();
+  };
+  modal.querySelectorAll('[data-color]').forEach(btn => {
+    btn.onclick = () => {
+      state.editingDancer.color = btn.dataset.color;
+      modal.querySelectorAll('[data-color]').forEach(b => { b.classList.toggle('border-white', b === btn); b.classList.toggle('border-transparent', b !== btn); });
+    };
+  });
   document.getElementById('modal-delete').onclick = () => deleteDancer(state.editingDancer.id);
   document.getElementById('modal-cancel').onclick = () => { state.editingDancer = null; render(); };
   document.getElementById('modal-save').onclick = saveName;
@@ -528,6 +566,13 @@ const init = async () => {
   document.getElementById('export-btn').onclick = exportData;
   document.getElementById('clear-storage-btn').onclick = clearStorage;
   document.getElementById('add-dancer-btn').onclick = addDancer;
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      if (state.audioSrc) togglePlay();
+    }
+  });
 
   state.isLoading = true;
   load();
