@@ -36,8 +36,12 @@ export function rmMyVote(id) {
 
 export function openEd(item, type, cb) {
   let f = "";
-  if (type === "song")
-    f = '<div class="f"><label>Song</label><input id="eT" value="' + esc(item.text) + '"></div>';
+  if (type === "song") {
+    const link = xLink(item.text || "") || "";
+    const name = (item.text || "").replace(link, "").trim();
+    f = '<div class="f"><label>Link</label><input id="eTL" value="' + esc(link) + '"></div>' +
+        '<div class="f"><label>Name (optional)</label><input id="eT" value="' + esc(name) + '"></div>';
+  }
   else if (type === "costume")
     f = '<div class="f"><label>Idea/Link</label><input id="eT" value="' + esc(item.text) + '"></div>' +
       '<div class="f"><label>Gender</label><select id="eG">' +
@@ -57,7 +61,10 @@ export function openEd(item, type, cb) {
   );
   m.q("#eC").onclick = m.close;
   m.q("#eS").onclick = () => {
-    if (type === "song") item.text = m.q("#eT").value.trim() || item.text;
+    if (type === "song") {
+      const l = m.q("#eTL").value.trim(), n = m.q("#eT").value.trim();
+      item.text = l && n ? n + " " + l : l || n || item.text;
+    }
     else if (type === "costume") { item.text = m.q("#eT").value.trim() || item.text; item.gender = m.q("#eG").value; }
     else {
       item.datetime = m.q("#eDt").value || item.datetime;

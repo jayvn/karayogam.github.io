@@ -139,9 +139,16 @@ function addI(type, data) {
 }
 
 // Songs
-const doSong = () => { const v = $("songIn").value.trim(); if (!v) return; addI("song", { text: v }); $("songIn").value = ""; };
+const doSong = () => {
+  const link = $("songIn").value.trim(), name = $("songName").value.trim();
+  if (!link && !name) return;
+  const text = link && name ? name + " " + link : link || name;
+  addI("song", { text });
+  $("songIn").value = ""; $("songName").value = "";
+};
 $("addSong").onclick = doSong;
 $("songIn").onkeydown = (e) => { if (e.key === "Enter") doSong(); };
+$("songName").onkeydown = (e) => { if (e.key === "Enter") doSong(); };
 
 // Costumes
 let pendImg = null;
