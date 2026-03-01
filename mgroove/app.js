@@ -36,7 +36,7 @@ function renameUser(oldName, newName) {
 // Profile
 function openProf() {
   const roster = S.roster || [];
-  const available = roster.filter((n) => !nameTaken(n) || n === S.profile.alias);
+  const available = roster;
   const hasCurrent = S.profile.alias && roster.includes(S.profile.alias);
 
   const nameField = roster.length
@@ -88,7 +88,7 @@ $("exportBtn").onclick = () => {
 // Name gate
 function showNameGate() {
   const roster = S.roster || [];
-  const available = roster.filter((n) => !nameTaken(n) || n === S.profile.alias);
+  const available = roster;
   const nameField = roster.length
     ? '<div class="f"><label>👤 Who are you?</label><select id="gA">' +
       '<option value="">— pick your name —</option>' +
