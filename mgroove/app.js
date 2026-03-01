@@ -1,4 +1,4 @@
-import { $, mk, esc, S, save, me, modal, initFirebase, syncU, updDl, display, nameTaken } from "/mgroove/shared.js";
+import { $, mk, esc, S, save, me, modal, cDlg, initFirebase, syncU, updDl, display, nameTaken } from "/mgroove/shared.js";
 import { rCard } from "/mgroove/cards.js";
 import { TAB, renderDash, fullRender, setGo, setApplyCF } from "/mgroove/dash.js";
 
@@ -53,9 +53,13 @@ function openProf() {
   );
   if (!roster.length) m.q("#pA").focus();
   m.q("#pC").onclick = m.close;
-  m.q("#pS").onclick = () => {
+  m.q("#pS").onclick = async () => {
     const newAlias = m.q("#pA").value.trim(), oldAlias = S.profile.alias;
     if (!newAlias) { alert("Please pick your name!"); return; }
+    if (oldAlias && newAlias !== oldAlias) {
+      const ok = await cDlg(`Switch from <strong>${esc(oldAlias)}</strong> to <strong>${esc(newAlias)}</strong>?<br><small>All your entries will be reassigned to the new name.</small>`);
+      if (!ok) return;
+    }
     if (newAlias !== oldAlias && nameTaken(newAlias)) {
       m.el.querySelector(".collision-warn")?.remove();
       const warn = mk("div", "collision-warn");
