@@ -25,11 +25,13 @@ const loadAudioFromDB = async () => {
   });
 };
 
-const deleteAudioFromDB = async () => {
+const deleteAudioFromDB = () => new Promise(async resolve => {
   const db = await openDB();
-  db.transaction('audio', 'readwrite').objectStore('audio').delete('current');
-  _db = null;
-};
+  const tx = db.transaction('audio', 'readwrite');
+  tx.objectStore('audio').delete('current');
+  tx.oncomplete = () => { _db = null; resolve(); };
+  tx.onerror = () => { _db = null; resolve(); };
+});
 
 // Utils
 const formatTime = s => {
@@ -70,6 +72,7 @@ class Waveform {
 
   async load(src) {
     this.canvas.width = this.canvas.offsetWidth || 800;
+    this.canvas.height = this.canvas.offsetHeight || 80;
     const data = await fetch(src).then(r => r.arrayBuffer());
     const ctx = getAudioCtx();
     if (ctx.state === 'suspended') {
@@ -374,7 +377,7 @@ const handleAudioUpload = async e => {
   renderPlayer();
   renderStage();
   renderTimeline();
-  document.getElementById('upload-btn-text').textContent = state.fileName;
+  const n = state.fileName; document.getElementById('upload-btn-text').textContent = n.length > 16 ? n.slice(0, 14) + '…' : n;
 };
 
 // Rendering
@@ -388,7 +391,7 @@ const renderAll = () => {
   renderModal();
   waveform?.draw();
   const btnText = document.getElementById('upload-btn-text');
-  if (btnText) btnText.textContent = state.fileName || 'Upload Audio';
+  if (btnText) { const n = state.fileName || 'Upload Audio'; btnText.textContent = n.length > 16 ? n.slice(0, 14) + '…' : n; }
 };
 
 // Stage: uses CSS transform for GPU-composited moves; only rebuilds DOM when dancer set changes
@@ -429,7 +432,7 @@ const renderPlayer = () => {
 
   if (!state.audioSrc) {
     if (!container.querySelector('#upload-prompt')) {
-      container.innerHTML = `<div id="upload-prompt" class="h-24 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-800"><span class="flex items-center gap-2">⬆️ Load Audio</span></div>`;
+      container.innerHTML = `<div id="upload-prompt" class="h-32 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 cursor-pointer hover:border-indigo-600 hover:text-gray-300 hover:bg-gray-800/40 transition-colors"><span class="text-3xl">🎵</span><span class="text-sm">Tap to load audio</span></div>`;
       container.querySelector('#upload-prompt').onclick = () => fileInput.click();
     }
     return;
@@ -437,22 +440,22 @@ const renderPlayer = () => {
 
   if (!container.querySelector('#seek-slider')) {
     container.innerHTML = `
-      <div class="space-y-4">
-        <div class="relative h-16 w-full bg-gray-950 rounded-lg overflow-hidden">
-          <canvas id="waveform-canvas" width="800" height="64" class="w-full h-16 rounded-lg opacity-90"></canvas>
+      <div class="space-y-3">
+        <div class="relative h-20 w-full bg-gray-950 rounded-lg overflow-hidden">
+          <canvas id="waveform-canvas" width="800" height="80" class="w-full h-20 rounded-lg opacity-90"></canvas>
           <input type="range" id="seek-slider" min="0" max="${state.duration || 1}" value="${state.currentTime}" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"/>
           <div id="progress-bar" class="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none z-10 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style="left:0%"><div class="absolute -top-1 -ml-[6px] w-[13px] h-[13px] bg-white rounded-full shadow-md"></div></div>
         </div>
-        <div class="flex items-center justify-between gap-4">
-          <div id="time-display" class="font-mono text-xs text-gray-400 w-12">0:00</div>
-          <div class="flex items-center gap-6">
-            <button id="rw-btn" class="p-2 text-gray-400 hover:text-white">⏪</button>
-            <button id="play-btn" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all">▶️</button>
-            <button id="ff-btn" class="p-2 text-gray-400 hover:text-white">⏩</button>
+        <div class="flex items-center justify-between gap-2">
+          <div id="time-display" class="font-mono text-xs text-gray-400 w-10 tabular-nums">0:00</div>
+          <div class="flex items-center gap-4">
+            <button id="rw-btn" class="p-2 text-gray-400 hover:text-white active:scale-95">⏪</button>
+            <button id="play-btn" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg">▶️</button>
+            <button id="ff-btn" class="p-2 text-gray-400 hover:text-white active:scale-95">⏩</button>
           </div>
-          <div id="dur-display" class="font-mono text-xs text-gray-400 w-12 text-right">0:00</div>
+          <div id="dur-display" class="font-mono text-xs text-gray-400 w-10 text-right tabular-nums">0:00</div>
         </div>
-        <button id="mark-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 text-lg font-bold rounded-xl flex items-center justify-center gap-2 active:scale-95 text-white shadow-lg shadow-indigo-500/20">📝 Mark at 0:00</button>
+        <button id="mark-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-95 text-white shadow-lg shadow-indigo-500/20">📝 Mark at 0:00</button>
       </div>`;
 
     waveformCanvas = document.getElementById('waveform-canvas');
@@ -494,7 +497,7 @@ const renderDancers = () => {
     <div class="space-y-3">
       <div id="dancers-toggle" class="flex items-center justify-between px-2 cursor-pointer hover:bg-gray-800/30 rounded-lg p-2">
         <h2 class="font-semibold text-gray-300">Dancers (${state.dancers.length})</h2>
-        <span class="text-gray-400">${state.showDancers ? '▼' : '▶'}</span>
+        <span class="text-gray-400 text-xs">${state.showDancers ? '▾' : '▸'}</span>
       </div>
       ${state.showDancers ? `<div class="space-y-2">${state.dancers.map(d => `
         <div class="flex items-center justify-between p-3 rounded-lg bg-gray-800 border border-gray-700">
@@ -532,15 +535,15 @@ const renderTimeline = () => {
         ${state.bookmarks.map(b => {
           const isMov = b.type === 'movement';
           const isCurrent = Math.abs(state.currentTime - b.time) < 0.5;
-          return `<div data-bid="${b.id}" class="flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${isCurrent ? 'bg-gray-800 border-gray-600' : 'bg-gray-900 border-gray-800 hover:bg-gray-800/50'} border-l-4 ${isMov ? 'border-l-emerald-500' : 'border-l-orange-500'}">
-            <div class="flex items-center gap-3 flex-1">
-              <div class="font-mono text-xs text-gray-500 w-10">${formatTime(b.time)}</div>
-              <span class="${isMov ? 'text-emerald-500' : 'text-orange-500'}">${isMov ? '🚶' : '📝'}</span>
-              <span class="bm-name ${isMov ? 'text-emerald-400' : 'text-orange-400'} font-medium truncate">${b.name}</span>
+          return `<div data-bid="${b.id}" class="flex items-center justify-between px-3 py-2 rounded-lg border cursor-pointer transition-all ${isCurrent ? 'bg-gray-800 border-gray-600' : 'bg-gray-900 border-gray-800 hover:bg-gray-800/50'} border-l-4 ${isMov ? 'border-l-emerald-500' : 'border-l-orange-500'}">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+              <div class="font-mono text-xs text-gray-500 w-12 shrink-0 tabular-nums">${formatTime(b.time)}</div>
+              <span class="${isMov ? 'text-emerald-500' : 'text-orange-500'} text-sm">${isMov ? '🚶' : '📝'}</span>
+              <span class="bm-name ${isMov ? 'text-emerald-400' : 'text-orange-400'} text-sm font-medium truncate">${b.name}</span>
             </div>
-            <div class="flex gap-1">
-              <button data-edit-mark="${b.id}" class="p-2 text-gray-600 hover:text-white">✏️</button>
-              <button data-del-mark="${b.id}" class="p-2 text-gray-600 hover:text-red-400">🗑️</button>
+            <div class="flex gap-1 shrink-0">
+              <button data-edit-mark="${b.id}" class="p-1.5 text-gray-400 hover:text-white active:scale-95 text-sm">✏️</button>
+              <button data-del-mark="${b.id}" class="p-1.5 text-gray-400 hover:text-red-400 active:scale-95 text-sm">🗑️</button>
             </div>
           </div>`;
         }).join('')}
