@@ -1,0 +1,60 @@
+/* Section headings */
+.sec-title {
+  font-family: "Space Mono", monospace;
+  color: var(--gold);
+  font-size: 0.95rem;
+  margin-bottom: 0.9rem;
+  text-wrap: balance;
+}
+
+.sec-sub {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 1.1rem 0 0.65rem;
+  text-wrap: balance;
+}
+
+/* Finance */
+.add-box {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+}
+
+.add-box-label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 0.45rem;
+}
+
+.bar-i { margin-bottom: 0.9rem; }
+.bar-h {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 3px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+.bar-t { background: var(--input-bg); border-radius: 4px; height: 16px; overflow: hidden; }
+
+.bar-f {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s;
+
+  &.pos { background: var(--teal); }
+  &.neg { background: var(--pink); }
+}
+
+.pp-link {
+  font-size: 0.76rem;
+  color: var(--teal);
+  text-decoration: none;
+  margin-left: 0.25rem;
+
+  &:hover { text-decoration: underline; }
+}

@@ -1,0 +1,213 @@
+/* Filter tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 0.9rem;
+}
+
+.tab {
+  background: var(--surface2);
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.15s;
+
+  &:hover { color: var(--text); }
+  &.active { border-color: var(--gold); color: var(--gold); background: color-mix(in oklch, var(--gold) 6%, transparent); }
+}
+
+/* Costumes */
+.costume-thumb {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 6px;
+  margin-top: 0.45rem;
+  display: block;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover { border-color: color-mix(in oklch, var(--gold) 50%, transparent); }
+}
+
+.g-badge {
+  display: inline-block;
+  padding: 0.08rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-left: 0.25rem;
+
+  &.male { background: color-mix(in oklch, var(--male) 12%, transparent); color: var(--male); }
+  &.female { background: color-mix(in oklch, var(--female) 12%, transparent); color: var(--female); }
+  &.unisex { background: color-mix(in oklch, var(--unisex) 12%, transparent); color: var(--unisex); }
+}
+
+/* Dropzone */
+.dz {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 1.1rem;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.83rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.9rem;
+  position: relative;
+
+  &:hover, &.over {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: color-mix(in oklch, var(--gold) 2%, transparent);
+  }
+
+  & input[type="file"] { display: none; }
+  & .prev {
+    max-width: 100%;
+    max-height: 130px;
+    border-radius: 6px;
+    margin-top: 0.4rem;
+    display: block;
+    margin-inline: auto;
+    &[hidden] { display: none; }
+  }
+
+  & .clr {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    display: none;
+  }
+
+  &:has(.prev:not([hidden])) .clr { display: block; }
+}
+
+/* Dashboard */
+.dash-s { margin-bottom: 1.4rem; }
+.dash-s h3 {
+  font-family: "Space Mono", monospace;
+  color: var(--gold);
+  font-size: 0.86rem;
+  margin-bottom: 0.5rem;
+  text-wrap: balance;
+}
+
+.dash-hint {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin-bottom: 0.45rem;
+  font-style: italic;
+}
+
+.dash-i {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 3px solid var(--pink);
+
+  &:hover { background: var(--surface2); }
+  & .ic { font-size: 1rem; flex-shrink: 0; }
+  & .tx {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.88rem;
+    & small { color: var(--text-dim); font-size: 0.76rem; }
+  }
+}
+
+.dash-em { color: var(--text-dim); font-size: 0.86rem; padding: 0.4rem 0; }
+.dash-recent { border-left-color: var(--surface3); }
+
+.roster-list {
+  margin-bottom: 1rem;
+  .user-row { padding: 0.4rem 0.6rem; }
+}
+
+/* Lightbox */
+.lb {
+  position: fixed;
+  inset: 0;
+  background: oklch(0 0 0 / 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  cursor: pointer;
+  animation: fi 0.15s;
+
+  & img { max-width: 94vw; max-height: 92dvh; border-radius: 8px; }
+}
+
+/* Empty states */
+.card.fh { display: none; }
+
+#songL:has(.card) ~ #songE,
+#cosL:has(.card:not(.fh)) ~ #cosE,
+#slL:has(.card) ~ #slE,
+#pastL:has(.card) ~ #pastE,
+#miscL:has(.card) ~ #miscE { display: none; }
+
+#songL:not(:has(.card)) ~ #songE,
+#cosL:not(:has(.card:not(.fh))) ~ #cosE,
+#slL:not(:has(.card)) ~ #slE,
+#pastL:not(:has(.card)) ~ #pastE,
+#miscL:not(:has(.card)) ~ #miscE { display: block; }
+
+/* Name gate */
+.name-gate {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.1 0.04 290 / 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+}
+
+.name-gate-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 2rem;
+  width: min(380px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: center;
+  box-shadow: 0 0 40px oklch(0.83 0.16 85 / 0.15);
+
+  & h2 { font-size: 1.2rem; color: var(--gold); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.shake { animation: shake 0.4s ease; }
