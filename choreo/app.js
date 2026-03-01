@@ -36,7 +36,7 @@ const formatTime = s => {
 const getInitials = name => {
   if (!name) return "?";
   const p = name.trim().split(' ');
-  return p.length >= 2 ? (p[0][0] + p[p.length - 1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
+  return p.length >= 2 ? (p[0][0] + p[p.length - 1][0]).toUpperCase() : name.slice(0, 2).toUpperCase().padEnd(2, name[0].toUpperCase());
 };
 
 const COLORS = ['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
@@ -45,7 +45,7 @@ const COLORS = ['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'
 const state = {
   audioSrc: null, fileName: "", isPlaying: false, currentTime: 0, duration: 0,
   bookmarks: [], dancers: [], positions: {}, 
-  draggedId: null, editingDancer: null, editingBookmarkId: null, tempName: "",
+  draggedId: null, editingDancer: null, editingBookmarkId: null,
   showDancers: true, isLoading: false, animationId: null
 };
 
@@ -117,9 +117,9 @@ class Waveform {
       ctx.fillStyle = m.type === 'manual' ? '#f97316' : '#10b981';
       ctx.fillRect(x, 0, 2, height);
       ctx.beginPath();
-      ctx.moveTo(x - 3, 0);
-      ctx.lineTo(x + 5, 0);
-      ctx.lineTo(x + 1, 6);
+      ctx.moveTo(x - 4, 0);
+      ctx.lineTo(x + 4, 0);
+      ctx.lineTo(x, 6);
       ctx.fill();
     });
   }
@@ -305,6 +305,7 @@ const clearStorage = async () => {
   if (!confirm('Clear all saved data including audio file?')) return;
   ['choreo_dancers', 'choreo_bookmarks', 'choreo_positions', 'choreo_fileName'].forEach(k => localStorage.removeItem(k));
   await deleteAudioFromDB();
+  if (state.audioSrc) URL.revokeObjectURL(state.audioSrc);
   Object.assign(state, { dancers: [], bookmarks: [], positions: {}, fileName: '', audioSrc: null, isPlaying: false, currentTime: 0, duration: 0 });
   render();
 };
@@ -335,6 +336,8 @@ const render = () => {
   renderTimeline();
   renderModal();
   waveform?.draw();
+  const btnText = document.getElementById('upload-btn-text');
+  if (btnText) btnText.textContent = state.fileName || 'Upload Audio';
 };
 
 const renderStage = () => {
@@ -385,7 +388,7 @@ const renderPlayer = () => {
       <div class="space-y-4">
         <div class="relative h-16 w-full bg-gray-950 rounded-lg overflow-hidden">
           <canvas id="waveform-canvas" width="800" height="64" class="w-full h-16 rounded-lg opacity-90"></canvas>
-          <input type="range" id="seek-slider" min="0" max="${state.duration||0}" value="${state.currentTime}" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"/>
+          <input type="range" id="seek-slider" min="0" max="${state.duration || 1}" value="${state.currentTime}" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"/>
           <div id="progress-bar" class="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none z-10 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style="left:0%"><div class="absolute -top-1 -ml-[6px] w-[13px] h-[13px] bg-white rounded-full shadow-md"></div></div>
         </div>
         <div class="flex items-center justify-between gap-4">
@@ -492,13 +495,13 @@ const renderTimeline = () => {
   state.bookmarks.forEach(b => {
     const el = container.querySelector(`[data-bid="${b.id}"]`);
     el?.addEventListener('click', e => { if (!e.target.closest('button') && !e.target.closest('input')) jumpTo(b); });
-    container.querySelector(`[data-edit-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); state.editingBookmarkId = b.id; state.tempName = b.name; render(); });
-    container.querySelector(`[data-save-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); b.name = state.tempName; state.editingBookmarkId = null; save(); render(); });
-    container.querySelector(`[data-del-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); state.bookmarks = state.bookmarks.filter(x => x.id !== b.id); save(); render(); });
+    container.querySelector(`[data-edit-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); state.editingBookmarkId = b.id; render(); });
     const input = document.getElementById(`edit-mark-${b.id}`);
+    const saveMarkName = () => { b.name = input.value; state.editingBookmarkId = null; save(); render(); };
+    container.querySelector(`[data-save-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); saveMarkName(); });
+    container.querySelector(`[data-del-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); state.bookmarks = state.bookmarks.filter(x => x.id !== b.id); save(); render(); });
     if (input) {
-      input.oninput = e => state.tempName = e.target.value;
-      input.onkeydown = e => { if (e.key === 'Enter') { b.name = state.tempName; state.editingBookmarkId = null; save(); render(); } };
+      input.onkeydown = e => { if (e.key === 'Enter') saveMarkName(); };
       input.onclick = e => e.stopPropagation();
     }
   });
