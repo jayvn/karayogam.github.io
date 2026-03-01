@@ -156,12 +156,28 @@
 
     <script type="module">
       import {
-        $, mk, esc, S, save, me, modal, cDlg,
-        initAdmin, initFirebase, syncU, updDl, display,
+        $,
+        mk,
+        esc,
+        S,
+        save,
+        me,
+        modal,
+        cDlg,
+        initAdmin,
+        initFirebase,
+        syncU,
+        updDl,
+        display,
       } from "/mgroove/shared.js";
 
       const IC = { song: "🎶", costume: "👗", slot: "📅", misc: "🗳️" };
-      const TAB = { song: "songs", costume: "costumes", slot: "slots", misc: "misc" };
+      const TAB = {
+        song: "songs",
+        costume: "costumes",
+        slot: "slots",
+        misc: "misc",
+      };
       const canMod = (w) => S.isAdmin || me() === w;
       const myVotes = () => S.users[me()]?.votes ?? [];
       const iVoted = (id) => myVotes().includes(id);
@@ -254,18 +270,24 @@
       // Profile
       function openProf() {
         const roster = S.roster || [];
-        const taken = Object.keys(S.users).filter(n => n !== S.profile.alias);
-        const available = roster.filter(n => !taken.includes(n));
+        const taken = Object.keys(S.users).filter((n) => n !== S.profile.alias);
+        const available = roster.filter((n) => !taken.includes(n));
         const hasCurrent = S.profile.alias && roster.includes(S.profile.alias);
 
         const nameField = roster.length
           ? '<div class="f"><label>👤 Who are you?</label><select id="pA">' +
             '<option value="">— pick your name —</option>' +
-            (hasCurrent ? `<option value="${esc(S.profile.alias)}" selected>${esc(S.profile.alias)}</option>` : "") +
-            available.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") +
+            (hasCurrent
+              ? `<option value="${esc(S.profile.alias)}" selected>${esc(S.profile.alias)}</option>`
+              : "") +
+            available
+              .map((n) => `<option value="${esc(n)}">${esc(n)}</option>`)
+              .join("") +
             "</select></div>"
           : '<div class="f"><label>👤 Alias</label>' +
-            '<input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Your name…"></div>';
+            '<input id="pA" value="' +
+            esc(S.profile.alias) +
+            '" placeholder="Your name…"></div>';
 
         const m = modal(
           "<h3>👤 Your Profile</h3>" +
@@ -286,11 +308,15 @@
         m.q("#pS").onclick = () => {
           const newAlias = m.q("#pA").value.trim(),
             oldAlias = S.profile.alias;
-          if (!newAlias) { alert("Please pick your name!"); return; }
+          if (!newAlias) {
+            alert("Please pick your name!");
+            return;
+          }
           if (newAlias !== oldAlias && S.users[newAlias]) {
             m.el.querySelector(".collision-warn")?.remove();
             const warn = mk("div", "collision-warn");
-            warn.innerHTML = '⚠️ "<strong>' + esc(newAlias) + '</strong>" is already taken.';
+            warn.innerHTML =
+              '⚠️ "<strong>' + esc(newAlias) + '</strong>" is already taken.';
             m.q(".md").insertBefore(warn, m.q(".acts"));
             return;
           }
@@ -324,7 +350,7 @@
       function showNameGate() {
         const roster = S.roster || [];
         const taken = Object.keys(S.users);
-        const available = roster.filter(n => !taken.includes(n));
+        const available = roster.filter((n) => !taken.includes(n));
 
         let nameField;
         if (roster.length) {
@@ -332,7 +358,9 @@
             '<div class="f"><label>👤 Who are you?</label>' +
             '<select id="gA">' +
             '<option value="">— pick your name —</option>' +
-            available.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") +
+            available
+              .map((n) => `<option value="${esc(n)}">${esc(n)}</option>`)
+              .join("") +
             "</select></div>";
         } else {
           nameField =
@@ -353,10 +381,17 @@
         const inp = gate.querySelector("#gA");
         const doGo = () => {
           const name = inp.value.trim();
-          if (!name) { inp.classList.add("shake"); setTimeout(() => inp.classList.remove("shake"), 500); return; }
+          if (!name) {
+            inp.classList.add("shake");
+            setTimeout(() => inp.classList.remove("shake"), 500);
+            return;
+          }
           if (S.users[name] && name !== S.profile.alias) {
-            const warn = gate.querySelector(".collision-warn") || mk("div", "collision-warn");
-            warn.innerHTML = '⚠️ "<strong>' + esc(name) + '</strong>" is already taken.';
+            const warn =
+              gate.querySelector(".collision-warn") ||
+              mk("div", "collision-warn");
+            warn.innerHTML =
+              '⚠️ "<strong>' + esc(name) + '</strong>" is already taken.';
             inp.closest(".f").after(warn);
             return;
           }
@@ -373,7 +408,10 @@
           fullRender();
         };
         gate.querySelector("#gOk").onclick = doGo;
-        if (inp.tagName === "INPUT") inp.onkeydown = (e) => { if (e.key === "Enter") doGo(); };
+        if (inp.tagName === "INPUT")
+          inp.onkeydown = (e) => {
+            if (e.key === "Enter") doGo();
+          };
         if (inp.tagName === "INPUT") setTimeout(() => inp.focus(), 50);
       }
 
@@ -666,7 +704,11 @@
         rCard(
           item,
           type,
-          $({ song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[type]),
+          $(
+            { song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[
+              type
+            ],
+          ),
         );
       }
 
@@ -706,7 +748,10 @@
         $("cosPrev").hidden = true;
         $("cosPrev").src = "";
       }
-      $("cosClr").onclick = (e) => { e.stopPropagation(); clrI(); };
+      $("cosClr").onclick = (e) => {
+        e.stopPropagation();
+        clrI();
+      };
 
       function rdImg(f) {
         if (!f || !f.type.startsWith("image/")) return;
@@ -802,7 +847,9 @@
         $("miscIn").value = "";
       };
       $("addMisc").onclick = doMisc;
-      $("miscIn").onkeydown = (e) => { if (e.key === "Enter") doMisc(); };
+      $("miscIn").onkeydown = (e) => {
+        if (e.key === "Enter") doMisc();
+      };
 
       // Past
       function rPast(item) {
@@ -981,26 +1028,31 @@
           du.appendChild(rh);
 
           const rHint = mk("div", "dash-hint");
-          rHint.textContent = "Members pick their name from this list when setting up their profile.";
+          rHint.textContent =
+            "Members pick their name from this list when setting up their profile.";
           du.appendChild(rHint);
 
           const rAdd = mk("div", "irow");
-          rAdd.innerHTML = '<input id="rosterIn" placeholder="Add member name…"><button class="btn btn-add" id="rosterAdd">＋</button>';
+          rAdd.innerHTML =
+            '<input id="rosterIn" placeholder="Add member name…"><button class="btn btn-add" id="rosterAdd">＋</button>';
           du.appendChild(rAdd);
 
           const rList = mk("div", "roster-list");
           const renderRoster = () => {
             rList.innerHTML = "";
-            (S.roster || []).sort().forEach(name => {
+            (S.roster || []).sort().forEach((name) => {
               const row = mk("div", "user-row");
-              const taken = S.users[name] ? ' <span class="dim">✓ joined</span>' : ' <span class="dim">pending</span>';
-              row.innerHTML = "<div><strong>" + esc(name) + "</strong>" + taken + "</div>";
+              const taken = S.users[name]
+                ? ' <span class="dim">✓ joined</span>'
+                : ' <span class="dim">pending</span>';
+              row.innerHTML =
+                "<div><strong>" + esc(name) + "</strong>" + taken + "</div>";
               if (!S.users[name]) {
                 const db = mk("button", "btn btn-icon del");
                 db.textContent = "✕";
                 db.onclick = async () => {
                   if (!(await cDlg("Remove " + name + " from roster?"))) return;
-                  S.roster = S.roster.filter(n => n !== name);
+                  S.roster = S.roster.filter((n) => n !== name);
                   save();
                   renderRoster();
                 };
@@ -1021,7 +1073,10 @@
             const inp = du.querySelector("#rosterIn");
             const name = inp.value.trim();
             if (!name) return;
-            if (!S.roster.includes(name)) { S.roster.push(name); save(); }
+            if (!S.roster.includes(name)) {
+              S.roster.push(name);
+              save();
+            }
             inp.value = "";
             renderRoster();
           };

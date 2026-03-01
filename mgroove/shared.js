@@ -10,7 +10,16 @@ const fbApp = initializeApp(JSON.parse(window.__firebase_config));
 const fbDb = getFirestore(fbApp);
 const docRef = doc(fbDb, "mgroove", "v1");
 
-const SHARED_KEYS = ["songs", "costumes", "slots", "expenses", "past", "users", "misc", "roster"];
+const SHARED_KEYS = [
+  "songs",
+  "costumes",
+  "slots",
+  "expenses",
+  "past",
+  "users",
+  "misc",
+  "roster",
+];
 const LOCAL_KEY = "mgroove_local";
 const ADMIN_PIN = "0000";
 
@@ -63,20 +72,37 @@ export function modal(html) {
   dlg.innerHTML = '<div class="md">' + html + "</div>";
   document.body.appendChild(dlg);
   dlg.showModal();
-  const cl = () => { dlg.close(); dlg.remove(); };
-  dlg.onclick = (e) => { if (e.target === dlg) cl(); };
+  const cl = () => {
+    dlg.close();
+    dlg.remove();
+  };
+  dlg.onclick = (e) => {
+    if (e.target === dlg) cl();
+  };
   return { el: dlg, close: cl, q: (sel) => dlg.querySelector(sel) };
 }
 
 export function cDlg(msg) {
   return new Promise((r) => {
     const m = modal(
-      '<p class="dlg-msg">' + msg +
+      '<p class="dlg-msg">' +
+        msg +
         '</p><div class="acts"><button class="btn" id="cN">Cancel</button><button class="btn btn-add" id="cY">OK</button></div>',
     );
-    m.q("#cY").onclick = () => { m.close(); r(true); };
-    m.q("#cN").onclick = () => { m.close(); r(false); };
-    m.el.onclick = (e) => { if (e.target === m.el) { m.close(); r(false); } };
+    m.q("#cY").onclick = () => {
+      m.close();
+      r(true);
+    };
+    m.q("#cN").onclick = () => {
+      m.close();
+      r(false);
+    };
+    m.el.onclick = (e) => {
+      if (e.target === m.el) {
+        m.close();
+        r(false);
+      }
+    };
   });
 }
 
@@ -104,7 +130,9 @@ export function initAdmin(onToggle) {
       };
       m.q("#pinC").onclick = m.close;
       m.q("#pinOk").onclick = done;
-      m.q("#pinIn").onkeydown = (e) => { if (e.key === "Enter") done(); };
+      m.q("#pinIn").onkeydown = (e) => {
+        if (e.key === "Enter") done();
+      };
       e.target.checked = false;
     } else {
       S.isAdmin = false;
@@ -120,10 +148,17 @@ export async function initFirebase(onSnap) {
   if (oldData) {
     const old = JSON.parse(oldData);
     const migrated = {};
-    SHARED_KEYS.forEach((k) => { if (old[k]) migrated[k] = old[k]; });
-    if (Object.keys(migrated).some((k) =>
-      Array.isArray(migrated[k]) ? migrated[k].length > 0 : Object.keys(migrated[k] || {}).length > 0
-    )) await setDoc(docRef, migrated, { merge: true });
+    SHARED_KEYS.forEach((k) => {
+      if (old[k]) migrated[k] = old[k];
+    });
+    if (
+      Object.keys(migrated).some((k) =>
+        Array.isArray(migrated[k])
+          ? migrated[k].length > 0
+          : Object.keys(migrated[k] || {}).length > 0,
+      )
+    )
+      await setDoc(docRef, migrated, { merge: true });
     if (old.profile) S.profile = old.profile;
     saveLocal();
     localStorage.removeItem(OLD_KEY);
@@ -132,7 +167,9 @@ export async function initFirebase(onSnap) {
   onSnapshot(docRef, (snap) => {
     if (snap.exists()) {
       const data = snap.data();
-      SHARED_KEYS.forEach((k) => { if (data[k] !== undefined) S[k] = data[k]; });
+      SHARED_KEYS.forEach((k) => {
+        if (data[k] !== undefined) S[k] = data[k];
+      });
     }
     S.users ??= {};
     S.expenses ??= [];
@@ -142,9 +179,15 @@ export async function initFirebase(onSnap) {
 
 export function syncU() {
   const a = me();
-  S.users[a] = { ...S.users[a], location: S.profile.location || "", paypal: S.profile.paypal || "" };
+  S.users[a] = {
+    ...S.users[a],
+    location: S.profile.location || "",
+    paypal: S.profile.paypal || "",
+  };
 }
 
 export function updDl() {
-  $("userDl").innerHTML = Object.keys(S.users).map((u) => `<option value="${u}">`).join("");
+  $("userDl").innerHTML = Object.keys(S.users)
+    .map((u) => `<option value="${u}">`)
+    .join("");
 }

@@ -933,8 +933,17 @@ nav {
   color: var(--gold);
 }
 @keyframes shake {
-  0%,100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
 }
-.shake { animation: shake 0.4s ease; }
+.shake {
+  animation: shake 0.4s ease;
+}
