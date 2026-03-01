@@ -1,10 +1,11 @@
 // ChoreoMarker - Choreography marking tool for dance rehearsals
 
-// IndexedDB
-const openDB = () => new Promise(resolve => {
+// IndexedDB — reuse a single connection
+let _db = null;
+const openDB = () => _db ? Promise.resolve(_db) : new Promise(resolve => {
   const req = indexedDB.open('ChoreoMarkerDB', 1);
   req.onupgradeneeded = e => e.target.result.createObjectStore('audio');
-  req.onsuccess = () => resolve(req.result);
+  req.onsuccess = () => { _db = req.result; resolve(_db); };
 });
 
 const saveAudioToDB = async (blob, fileName) => {
@@ -24,6 +25,7 @@ const loadAudioFromDB = async () => {
 const deleteAudioFromDB = async () => {
   const db = await openDB();
   db.transaction('audio', 'readwrite').objectStore('audio').delete('current');
+  _db = null;
 };
 
 // Utils
@@ -44,7 +46,7 @@ const COLORS = ['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'
 // State
 const state = {
   audioSrc: null, fileName: "", isPlaying: false, currentTime: 0, duration: 0,
-  bookmarks: [], dancers: [], positions: {}, 
+  bookmarks: [], dancers: [], positions: {},
   draggedId: null, editingDancer: null, editingBookmarkId: null,
   showDancers: true, isLoading: false, animationId: null
 };
@@ -68,16 +70,12 @@ class Waveform {
     const data = await fetch(src).then(r => r.arrayBuffer());
     const ctx = getAudioCtx();
     if (ctx.state === 'suspended') {
-      // defer decode until user gesture unlocks AudioContext
-      this._pendingSrc = src;
       this._pendingData = data;
       const resume = async () => {
         if (!this._pendingData) return;
         this.buffer = await getAudioCtx().decodeAudioData(this._pendingData);
         this._pendingData = null;
         this.draw();
-        document.removeEventListener('click', resume);
-        document.removeEventListener('keydown', resume);
       };
       document.addEventListener('click', resume, { once: true });
       document.addEventListener('keydown', resume, { once: true });
@@ -110,7 +108,6 @@ class Waveform {
       ctx.fillRect(i, (height - Math.max(2, (max - min) * amp)) / 2, 1, Math.max(2, (max - min) * amp));
     }
 
-    // Markers
     state.bookmarks.forEach(m => {
       if (!state.duration) return;
       const x = (m.time / state.duration) * width;
@@ -220,7 +217,7 @@ const addBookmark = () => {
 
 const jumpTo = b => {
   seek(b.time);
-  renderTimeline();
+  updateTimelineHighlight();
 };
 
 // Dancers
@@ -229,7 +226,8 @@ const addDancer = () => {
   state.dancers.push(d);
   state.positions[d.id] = { x: 50, y: 50 };
   save();
-  render();
+  renderStage();
+  renderDancers();
 };
 
 const deleteDancer = id => {
@@ -238,7 +236,10 @@ const deleteDancer = id => {
   state.bookmarks.forEach(b => b.positions && delete b.positions[id]);
   state.editingDancer = null;
   save();
-  render();
+  renderStage();
+  renderDancers();
+  renderTimeline();
+  renderModal();
 };
 
 // Drag handling
@@ -296,7 +297,7 @@ const importData = e => {
     state.currentTime = 0;
     if (audio) audio.currentTime = 0;
     save();
-    render();
+    renderAll();
   };
   reader.readAsText(file);
   e.target.value = null;
@@ -308,29 +309,35 @@ const clearStorage = async () => {
   await deleteAudioFromDB();
   if (state.audioSrc) URL.revokeObjectURL(state.audioSrc);
   Object.assign(state, { dancers: [], bookmarks: [], positions: {}, fileName: '', audioSrc: null, isPlaying: false, currentTime: 0, duration: 0 });
-  render();
+  renderAll();
 };
 
 const handleAudioUpload = async e => {
   const file = e.target.files[0];
   if (!file) return;
   if (state.audioSrc) URL.revokeObjectURL(state.audioSrc);
-  
+
   state.audioSrc = URL.createObjectURL(file);
   state.fileName = file.name;
   state.bookmarks = [];
   state.isPlaying = false;
   state.currentTime = 0;
-  
+
   audio.src = state.audioSrc;
   await saveAudioToDB(file, file.name);
   save();
-  render();
-  waveform?.load(state.audioSrc);
+  // force player rebuild for new audio
+  document.getElementById('player-container').innerHTML = '';
+  renderPlayer();
+  renderStage();
+  renderTimeline();
+  document.getElementById('upload-btn-text').textContent = state.fileName;
 };
 
 // Rendering
-const render = () => {
+
+// Full reset render — only for import/clear/init
+const renderAll = () => {
   renderStage();
   renderPlayer();
   renderDancers();
@@ -341,15 +348,17 @@ const render = () => {
   if (btnText) btnText.textContent = state.fileName || 'Upload Audio';
 };
 
+// Stage: uses CSS transform for GPU-composited moves; only rebuilds DOM when dancer set changes
 const renderStage = () => {
   const content = stage?.querySelector('.stage-content');
   if (!content) return;
 
-  const existing = content.querySelectorAll('[data-id]');
-  if (existing.length !== state.dancers.length) {
+  const currentIds = state.dancers.map(d => d.id).join(',');
+  if (content.dataset.dancerIds !== currentIds) {
+    content.dataset.dancerIds = currentIds;
     content.innerHTML = state.dancers.map(d => {
       const p = state.positions[d.id] || { x: 50, y: 50 };
-      return `<div data-id="${d.id}" class="absolute w-12 h-12 -ml-6 -mt-6 rounded-full flex items-center justify-center font-bold text-sm shadow-xl z-10 touch-none select-none transition-transform hover:scale-110" style="left:${p.x}%;top:${p.y}%;background:${d.color};cursor:grab;border:3px solid rgba(255,255,255,0.9)" title="${d.name}">${getInitials(d.name)}<div class="absolute -bottom-1.5 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white/90"></div></div>`;
+      return `<div data-id="${d.id}" class="absolute w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm shadow-xl z-10 touch-none select-none hover:scale-110" style="left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%);background:${d.color};cursor:grab;border:3px solid rgba(255,255,255,0.9)" title="${d.name}">${getInitials(d.name)}<div class="absolute -bottom-1.5 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white/90"></div></div>`;
     }).join('');
     state.dancers.forEach(d => {
       const el = content.querySelector(`[data-id="${d.id}"]`);
@@ -366,7 +375,6 @@ const renderStage = () => {
       el.style.cursor = state.draggedId === d.id ? 'grabbing' : 'grab';
       el.style.background = d.color;
       el.title = d.name;
-      // update initials text node (first child is text, last child is the triangle div)
       el.childNodes[0].textContent = getInitials(d.name);
     });
   }
@@ -456,16 +464,18 @@ const renderDancers = () => {
         </div>`).join('')}</div>` : ''}
     </div>`;
 
-  document.getElementById('dancers-toggle').onclick = () => { state.showDancers = !state.showDancers; render(); };
+  document.getElementById('dancers-toggle').onclick = () => { state.showDancers = !state.showDancers; renderDancers(); };
   state.dancers.forEach(d => {
-    container.querySelector(`[data-edit="${d.id}"]`)?.addEventListener('click', () => { state.editingDancer = d; render(); setTimeout(() => document.getElementById('edit-dancer-input')?.focus(), 0); });
+    container.querySelector(`[data-edit="${d.id}"]`)?.addEventListener('click', () => { state.editingDancer = d; renderModal(); setTimeout(() => document.getElementById('edit-dancer-input')?.focus(), 0); });
     container.querySelector(`[data-del="${d.id}"]`)?.addEventListener('click', () => deleteDancer(d.id));
   });
 };
 
+// Timeline: full rebuild only when bookmarks change; highlight update is in-place
 const renderTimeline = () => {
   const container = document.getElementById('timeline-container');
-  if (!container || !state.bookmarks.length) { if (container) container.innerHTML = ''; return; }
+  if (!container) return;
+  if (!state.bookmarks.length) { container.innerHTML = ''; return; }
 
   container.innerHTML = `
     <div class="space-y-3 pb-24 md:pb-6">
@@ -475,16 +485,16 @@ const renderTimeline = () => {
       </div>
       <div id="bookmarks-scroll" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
         ${state.bookmarks.map(b => {
-          const isMov = b.type === 'movement', editing = state.editingBookmarkId === b.id;
+          const isMov = b.type === 'movement';
           const isCurrent = Math.abs(state.currentTime - b.time) < 0.5;
           return `<div data-bid="${b.id}" class="flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${isCurrent ? 'bg-gray-800 border-gray-600' : 'bg-gray-900 border-gray-800 hover:bg-gray-800/50'} border-l-4 ${isMov ? 'border-l-emerald-500' : 'border-l-orange-500'}">
             <div class="flex items-center gap-3 flex-1">
               <div class="font-mono text-xs text-gray-500 w-10">${formatTime(b.time)}</div>
               <span class="${isMov ? 'text-emerald-500' : 'text-orange-500'}">${isMov ? '🚶' : '📝'}</span>
-              ${editing ? `<input id="edit-mark-${b.id}" class="bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-600 w-32" value="${state.tempName}"/><button data-save-mark="${b.id}" class="text-green-400">✅</button>` : `<span class="${isMov ? 'text-emerald-400' : 'text-orange-400'} font-medium truncate">${b.name}</span>`}
+              <span class="bm-name ${isMov ? 'text-emerald-400' : 'text-orange-400'} font-medium truncate">${b.name}</span>
             </div>
             <div class="flex gap-1">
-              ${!editing ? `<button data-edit-mark="${b.id}" class="p-2 text-gray-600 hover:text-white">✏️</button>` : ''}
+              <button data-edit-mark="${b.id}" class="p-2 text-gray-600 hover:text-white">✏️</button>
               <button data-del-mark="${b.id}" class="p-2 text-gray-600 hover:text-red-400">🗑️</button>
             </div>
           </div>`;
@@ -493,20 +503,52 @@ const renderTimeline = () => {
     </div>`;
 
   bookmarksContainer = document.getElementById('bookmarks-scroll');
-  document.getElementById('clear-marks').onclick = () => { if (!confirm('Clear all timeline marks?')) return; state.bookmarks = []; save(); render(); };
 
-  state.bookmarks.forEach(b => {
-    const el = container.querySelector(`[data-bid="${b.id}"]`);
-    el?.addEventListener('click', e => { if (!e.target.closest('button') && !e.target.closest('input')) jumpTo(b); });
-    container.querySelector(`[data-edit-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); state.editingBookmarkId = b.id; render(); });
-    const input = document.getElementById(`edit-mark-${b.id}`);
-    const saveMarkName = () => { b.name = input.value; state.editingBookmarkId = null; save(); render(); };
-    container.querySelector(`[data-save-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); saveMarkName(); });
-    container.querySelector(`[data-del-mark="${b.id}"]`)?.addEventListener('click', e => { e.stopPropagation(); state.bookmarks = state.bookmarks.filter(x => x.id !== b.id); save(); render(); });
-    if (input) {
-      input.onkeydown = e => { if (e.key === 'Enter') saveMarkName(); };
-      input.onclick = e => e.stopPropagation();
+  // Event delegation — one listener handles all bookmark interactions
+  container.onclick = e => {
+    const delBtn = e.target.closest('[data-del-mark]');
+    const editBtn = e.target.closest('[data-edit-mark]');
+    const row = e.target.closest('[data-bid]');
+
+    if (delBtn) {
+      const id = parseInt(delBtn.dataset.delMark);
+      state.bookmarks = state.bookmarks.filter(x => x.id !== id);
+      save(); renderTimeline(); waveform?.draw();
+      return;
     }
+    if (editBtn) {
+      const id = parseInt(editBtn.dataset.editMark);
+      const b = state.bookmarks.find(x => x.id === id);
+      const name = prompt('Rename mark:', b.name);
+      if (name !== null) { b.name = name.trim() || b.name; save(); renderTimeline(); }
+      return;
+    }
+    if (row) {
+      const id = parseInt(row.dataset.bid);
+      const b = state.bookmarks.find(x => x.id === id);
+      if (b) jumpTo(b);
+    }
+  };
+
+  document.getElementById('clear-marks').onclick = e => {
+    e.stopPropagation();
+    if (!confirm('Clear all timeline marks?')) return;
+    state.bookmarks = []; save(); renderTimeline(); waveform?.draw();
+  };
+};
+
+// Update only the active-row highlight without rebuilding the timeline
+const updateTimelineHighlight = () => {
+  const container = document.getElementById('timeline-container');
+  if (!container) return;
+  container.querySelectorAll('[data-bid]').forEach(el => {
+    const b = state.bookmarks.find(x => x.id === parseInt(el.dataset.bid));
+    if (!b) return;
+    const isCurrent = Math.abs(state.currentTime - b.time) < 0.5;
+    el.classList.toggle('bg-gray-800', isCurrent);
+    el.classList.toggle('border-gray-600', isCurrent);
+    el.classList.toggle('bg-gray-900', !isCurrent);
+    el.classList.toggle('border-gray-800', !isCurrent);
   });
 };
 
@@ -539,7 +581,9 @@ const renderModal = () => {
     dancer.color = state.editingDancer.color;
     state.editingDancer = null;
     save();
-    render();
+    renderStage();
+    renderDancers();
+    renderModal();
   };
   modal.querySelectorAll('[data-color]').forEach(btn => {
     btn.onclick = () => {
@@ -548,7 +592,7 @@ const renderModal = () => {
     };
   });
   document.getElementById('modal-delete').onclick = () => deleteDancer(state.editingDancer.id);
-  document.getElementById('modal-cancel').onclick = () => { state.editingDancer = null; render(); };
+  document.getElementById('modal-cancel').onclick = () => { state.editingDancer = null; renderModal(); };
   document.getElementById('modal-save').onclick = saveName;
   input.onkeydown = e => e.key === 'Enter' && saveName();
 };
@@ -560,8 +604,8 @@ const init = async () => {
   fileInput = document.getElementById('file-input');
   jsonInput = document.getElementById('json-input');
 
-  audio.addEventListener('loadedmetadata', () => { state.duration = audio.duration; render(); });
-  audio.addEventListener('ended', () => { state.isPlaying = false; render(); });
+  audio.addEventListener('loadedmetadata', () => { state.duration = audio.duration; renderPlayer(); });
+  audio.addEventListener('ended', () => { state.isPlaying = false; renderPlayer(); });
   audio.addEventListener('timeupdate', () => { if (!state.isPlaying) { state.currentTime = audio.currentTime; updatePositions(state.currentTime); updatePlayerUI(); renderStage(); } });
 
   fileInput.onchange = handleAudioUpload;
@@ -588,12 +632,7 @@ const init = async () => {
     audio.src = state.audioSrc;
   }
   state.isLoading = false;
-  render();
-
-  if (state.audioSrc) {
-    waveformCanvas = document.getElementById('waveform-canvas');
-    if (waveformCanvas) { waveform = new Waveform(waveformCanvas); await waveform.load(state.audioSrc); }
-  }
+  renderAll();
 };
 
 // Service Worker
