@@ -335,7 +335,7 @@
         };
       }
 
-      $("hAlias").textContent = me();
+      $("hAlias").textContent = display();
       $("profBtn").onclick = openProf;
       $("exportBtn").onclick = () => {
         const a = mk("a");
@@ -1053,7 +1053,7 @@
       await initFirebase(() => {
         syncU();
         fullRender();
-        $("hAlias").textContent = me();
+        $("hAlias").textContent = display();
       });
 
       if ("serviceWorker" in navigator)
