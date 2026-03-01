@@ -90,6 +90,7 @@ class Waveform {
 
   draw() {
     if (!this.buffer) return;
+    this.canvas.width = this.canvas.offsetWidth || this.canvas.width;
     const { width, height } = this.canvas;
     const ctx = this.ctx;
     const data = this.buffer.getChannelData(0);
@@ -448,6 +449,7 @@ const renderPlayer = () => {
     waveformCanvas = document.getElementById('waveform-canvas');
     waveform = new Waveform(waveformCanvas);
     if (state.audioSrc) waveform.load(state.audioSrc);
+    new ResizeObserver(() => waveform?.draw()).observe(waveformCanvas);
 
     document.getElementById('seek-slider').oninput = e => seek(parseFloat(e.target.value), true);
     document.getElementById('seek-slider').onchange = e => seek(parseFloat(e.target.value));
