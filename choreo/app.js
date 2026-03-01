@@ -184,7 +184,7 @@ const togglePlay = async () => {
     animationLoop();
   }
   state.isPlaying = !state.isPlaying;
-  render();
+  renderPlayer();
 };
 
 const animationLoop = () => {
@@ -213,13 +213,14 @@ const addBookmark = () => {
   });
   state.bookmarks.sort((a, b) => a.time - b.time);
   save();
-  render();
+  renderTimeline();
+  waveform?.draw();
   setTimeout(() => bookmarksContainer?.scrollTo(0, bookmarksContainer.scrollHeight), 100);
 };
 
 const jumpTo = b => {
   seek(b.time);
-  render();
+  renderTimeline();
 };
 
 // Dancers
@@ -271,7 +272,7 @@ const endDrag = () => {
   window.removeEventListener('mouseup', endDrag);
   window.removeEventListener('touchmove', onDrag);
   window.removeEventListener('touchend', endDrag);
-  render();
+  renderTimeline();
 };
 
 // Import/Export
@@ -400,7 +401,7 @@ const renderPlayer = () => {
           </div>
           <div id="dur-display" class="font-mono text-xs text-gray-400 w-12 text-right">0:00</div>
         </div>
-        <button id="mark-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 text-lg font-bold rounded-xl flex items-center justify-center gap-2 active:scale-95 text-white shadow-lg shadow-indigo-500/20">📝 Mark</button>
+        <button id="mark-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 text-lg font-bold rounded-xl flex items-center justify-center gap-2 active:scale-95 text-white shadow-lg shadow-indigo-500/20">📝 Mark at 0:00</button>
       </div>`;
 
     waveformCanvas = document.getElementById('waveform-canvas');
@@ -427,6 +428,8 @@ const updatePlayerUI = () => {
   document.getElementById('time-display').textContent = formatTime(state.currentTime);
   const bar = document.getElementById('progress-bar');
   if (bar) bar.style.left = `${state.duration ? (state.currentTime / state.duration) * 100 : 0}%`;
+  const markBtn = document.getElementById('mark-btn');
+  if (markBtn) markBtn.textContent = `📝 Mark at ${formatTime(state.currentTime)}`;
   waveform?.draw();
 };
 
