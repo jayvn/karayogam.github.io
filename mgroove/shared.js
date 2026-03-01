@@ -148,6 +148,7 @@ export async function initFirebase(onSnap) {
 
 export function syncU() {
   const a = me();
+  if (!a) return;
   S.users[a] = { ...S.users[a], sessionId: SESSION_ID };
 }
 
