@@ -49,7 +49,7 @@ const COLORS = ['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'
 // State
 const state = {
   audioSrc: null, fileName: "", isPlaying: false, currentTime: 0, duration: 0,
-  bookmarks: [], dancers: [], positions: {},
+  bookmarks: [], dancers: [], positions: {}, nextDancerId: 1,
   draggedId: null, editingDancer: null, editingBookmarkId: null,
   showDancers: true, isLoading: false, animationId: null
 };
@@ -133,6 +133,7 @@ const save = () => {
   localStorage.setItem('choreo_bookmarks', JSON.stringify(state.bookmarks));
   localStorage.setItem('choreo_positions', JSON.stringify(state.positions));
   localStorage.setItem('choreo_fileName', state.fileName);
+  localStorage.setItem('choreo_nextDancerId', state.nextDancerId);
 };
 
 const load = () => {
@@ -140,6 +141,7 @@ const load = () => {
   state.bookmarks = JSON.parse(localStorage.getItem('choreo_bookmarks') || '[]');
   state.positions = JSON.parse(localStorage.getItem('choreo_positions') || '{}');
   state.fileName = localStorage.getItem('choreo_fileName') || '';
+  state.nextDancerId = parseInt(localStorage.getItem('choreo_nextDancerId') || '1');
 };
 
 // Position tracking
@@ -232,13 +234,20 @@ const jumpTo = b => {
 };
 
 // Dancers
-const addDancer = async () => {
+let _roster = null;
+const fetchRoster = async () => {
+  if (_roster) return _roster;
   const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
   const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
   const cfg = { apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8", authDomain: "rendercode-d73da.firebaseapp.com", projectId: "rendercode-d73da", appId: "1:798989930424:web:7f324e5153cabc5d90494d" };
   const fbApp = getApps().length ? getApps()[0] : initializeApp(cfg);
   const snap = await getDoc(doc(getFirestore(fbApp), "mgroove", "v1"));
-  const roster = snap.exists() ? (snap.data().roster || []) : [];
+  _roster = snap.exists() ? (snap.data().roster || []) : [];
+  return _roster;
+};
+
+const addDancer = async () => {
+  const roster = await fetchRoster();
 
   const available = roster.filter(name => !state.dancers.find(d => d.name === name));
   if (!available.length) return alert("All roster members already added.");
@@ -255,7 +264,7 @@ const addDancer = async () => {
 
   const pick = name => {
     dlg.close(); dlg.remove();
-    const d = { id: `d_${Date.now()}`, name, color: COLORS[state.dancers.length % COLORS.length] };
+    const d = { id: state.nextDancerId++, name, color: COLORS[state.dancers.length % COLORS.length] };
     state.dancers.push(d);
     state.positions[d.id] = { x: 50, y: 50 };
     save(); renderStage(); renderDancers();
@@ -339,10 +348,10 @@ const importData = e => {
 
 const clearStorage = async () => {
   if (!confirm('Clear all saved data including audio file?')) return;
-  ['choreo_dancers', 'choreo_bookmarks', 'choreo_positions', 'choreo_fileName'].forEach(k => localStorage.removeItem(k));
+  ['choreo_dancers', 'choreo_bookmarks', 'choreo_positions', 'choreo_fileName', 'choreo_nextDancerId'].forEach(k => localStorage.removeItem(k));
   await deleteAudioFromDB();
   if (state.audioSrc) URL.revokeObjectURL(state.audioSrc);
-  Object.assign(state, { dancers: [], bookmarks: [], positions: {}, fileName: '', audioSrc: null, isPlaying: false, currentTime: 0, duration: 0 });
+  Object.assign(state, { dancers: [], bookmarks: [], positions: {}, nextDancerId: 1, fileName: '', audioSrc: null, isPlaying: false, currentTime: 0, duration: 0 });
   renderAll();
 };
 
@@ -594,10 +603,12 @@ const renderModal = () => {
   if (!state.editingDancer) { modal.style.display = 'none'; modal.innerHTML = ''; return; }
 
   modal.style.display = 'flex';
+  const rosterOptions = (_roster || []).map(n => `<option value="${n}">`).join('');
   modal.innerHTML = `
     <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-gray-700">
       <h3 class="text-lg font-semibold mb-4">Edit Dancer</h3>
-      <input id="edit-dancer-input" class="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-white mb-3" value="${state.editingDancer.name}"/>
+      <datalist id="roster-list">${rosterOptions}</datalist>
+      <input id="edit-dancer-input" list="roster-list" class="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-white mb-3" value="${state.editingDancer.name}"/>
       <div class="flex gap-2 mb-4 flex-wrap">
         ${COLORS.map(c => `<button data-color="${c}" class="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${c === state.editingDancer.color ? 'border-white scale-110' : 'border-transparent'}" style="background:${c}"></button>`).join('')}
       </div>
@@ -662,20 +673,16 @@ const init = async () => {
 
   state.isLoading = true;
   load();
+  fetchRoster().catch(() => {});
 
   // Auto-add mgroove user as dancer if signed in there and on roster
   try {
     const mgroove = JSON.parse(localStorage.getItem('mgroove_local') || '{}');
     const alias = mgroove?.profile?.alias;
     if (alias && !state.dancers.find(d => d.name === alias)) {
-      const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-      const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-      const cfg = { apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8", authDomain: "rendercode-d73da.firebaseapp.com", projectId: "rendercode-d73da", appId: "1:798989930424:web:7f324e5153cabc5d90494d" };
-      const fbApp = getApps().length ? getApps()[0] : initializeApp(cfg);
-      const snap = await getDoc(doc(getFirestore(fbApp), "mgroove", "v1"));
-      const roster = snap.exists() ? (snap.data().roster || []) : [];
+      const roster = await fetchRoster();
       if (roster.includes(alias)) {
-        const d = { id: `d_${Date.now()}`, name: alias, color: COLORS[state.dancers.length % COLORS.length] };
+        const d = { id: state.nextDancerId++, name: alias, color: COLORS[state.dancers.length % COLORS.length] };
         state.dancers.push(d);
         state.positions[d.id] = { x: 50, y: 50 };
       }
