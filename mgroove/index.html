@@ -156,20 +156,8 @@
 
     <script type="module">
       import {
-        $,
-        mk,
-        esc,
-        S,
-        save,
-        saveLocal,
-        me,
-        modal,
-        cDlg,
-        initAdmin,
-        initFirebase,
-        syncU,
-        updDl,
-        display,
+        $, mk, esc, S, save, me, modal, cDlg,
+        initAdmin, initFirebase, syncU, updDl, display,
       } from "/mgroove/shared.js";
 
       const IC = { song: "🎶", costume: "👗", slot: "📅", misc: "🗳️" };
@@ -178,12 +166,11 @@
       const myVotes = () => S.users[me()]?.votes ?? [];
       const iVoted = (id) => myVotes().includes(id);
       function addMyVote(id) {
-        if (me() === "Anon" || !S.users[me()]) return;
+        S.users[me()] ??= {};
         S.users[me()].votes ??= [];
         if (!iVoted(id)) S.users[me()].votes.push(id);
       }
       function rmMyVote(id) {
-        if (!S.users[me()]?.votes) return;
         S.users[me()].votes = S.users[me()].votes.filter((x) => x !== id);
       }
 
@@ -269,26 +256,16 @@
         const roster = S.roster || [];
         const taken = Object.keys(S.users).filter(n => n !== S.profile.alias);
         const available = roster.filter(n => !taken.includes(n));
+        const hasCurrent = S.profile.alias && roster.includes(S.profile.alias);
 
-        let nameField;
-        if (roster.length) {
-          const opts = available.map(n =>
-            `<option value="${esc(n)}"${S.profile.alias === n ? " selected" : ""}>${esc(n)}</option>`
-          ).join("");
-          const hasCurrent = S.profile.alias && roster.includes(S.profile.alias);
-          const selVal = hasCurrent ? S.profile.alias : "";
-          nameField =
-            '<div class="f"><label>👤 Who are you?</label>' +
-            '<select id="pA">' +
+        const nameField = roster.length
+          ? '<div class="f"><label>👤 Who are you?</label><select id="pA">' +
             '<option value="">— pick your name —</option>' +
             (hasCurrent ? `<option value="${esc(S.profile.alias)}" selected>${esc(S.profile.alias)}</option>` : "") +
             available.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") +
-            "</select></div>";
-        } else {
-          nameField =
-            '<div class="f"><label>👤 Alias</label>' +
+            "</select></div>"
+          : '<div class="f"><label>👤 Alias</label>' +
             '<input id="pA" value="' + esc(S.profile.alias) + '" placeholder="Your name…"></div>';
-        }
 
         const m = modal(
           "<h3>👤 Your Profile</h3>" +
@@ -311,13 +288,9 @@
             oldAlias = S.profile.alias;
           if (!newAlias) { alert("Please pick your name!"); return; }
           if (newAlias !== oldAlias && S.users[newAlias]) {
-            const existing = m.el.querySelector(".collision-warn");
-            if (existing) existing.remove();
+            m.el.querySelector(".collision-warn")?.remove();
             const warn = mk("div", "collision-warn");
-            warn.innerHTML =
-              '<div class="collision-warn">⚠️ "<strong>' +
-              esc(newAlias) +
-              '</strong>" is already taken.</div>';
+            warn.innerHTML = '⚠️ "<strong>' + esc(newAlias) + '</strong>" is already taken.';
             m.q(".md").insertBefore(warn, m.q(".acts"));
             return;
           }
@@ -347,7 +320,68 @@
         a.click();
         URL.revokeObjectURL(a.href);
       };
-      if (!S.profile.alias) setTimeout(openProf, 300);
+
+      function showNameGate() {
+        const roster = S.roster || [];
+        const taken = Object.keys(S.users);
+        const available = roster.filter(n => !taken.includes(n));
+
+        let nameField;
+        if (roster.length) {
+          nameField =
+            '<div class="f"><label>👤 Who are you?</label>' +
+            '<select id="gA">' +
+            '<option value="">— pick your name —</option>' +
+            available.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") +
+            "</select></div>";
+        } else {
+          nameField =
+            '<div class="f"><label>👤 Your name</label>' +
+            '<input id="gA" placeholder="Enter your name…"></div>';
+        }
+
+        const gate = mk("div", "name-gate");
+        gate.innerHTML =
+          '<div class="name-gate-box">' +
+          '<div class="logo" style="font-size:2.5rem;margin-bottom:.5rem">💃 M-Groove</div>' +
+          "<h2>Welcome! Who are you?</h2>" +
+          nameField +
+          '<button class="btn btn-add" id="gOk" style="width:100%;margin-top:.5rem">Let\'s go →</button>' +
+          "</div>";
+        document.body.appendChild(gate);
+
+        const inp = gate.querySelector("#gA");
+        const doGo = () => {
+          const name = inp.value.trim();
+          if (!name) { inp.classList.add("shake"); setTimeout(() => inp.classList.remove("shake"), 500); return; }
+          if (S.users[name] && name !== S.profile.alias) {
+            const warn = gate.querySelector(".collision-warn") || mk("div", "collision-warn");
+            warn.innerHTML = '⚠️ "<strong>' + esc(name) + '</strong>" is already taken.';
+            inp.closest(".f").after(warn);
+            return;
+          }
+          const oldAlias = S.profile.alias;
+          S.profile.alias = name;
+          if (oldAlias && oldAlias !== name) renameUser(oldAlias, name);
+          syncU();
+          save();
+          $("hAlias").textContent = display();
+          updDl();
+          gate.remove();
+          $("nav").style.pointerEvents = "";
+          $("nav").style.opacity = "";
+          fullRender();
+        };
+        gate.querySelector("#gOk").onclick = doGo;
+        if (inp.tagName === "INPUT") inp.onkeydown = (e) => { if (e.key === "Enter") doGo(); };
+        if (inp.tagName === "INPUT") setTimeout(() => inp.focus(), 50);
+      }
+
+      if (!S.profile.alias) {
+        $("nav").style.pointerEvents = "none";
+        $("nav").style.opacity = "0.3";
+        showNameGate();
+      }
 
       // Edit modal
       function openEd(item, type, cb) {
@@ -619,7 +653,7 @@
       // Add item
       function addI(type, data) {
         const item = {
-          id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36),
+          id: crypto.randomUUID(),
           createdAt: Date.now(),
           addedBy: me(),
           votes: 0,
@@ -667,25 +701,21 @@
         if (e.key === "Enter") doCos();
       };
 
-      function setI(d) {
-        pendImg = d;
-        $("cosPrev").src = d;
-        $("cosPrev").removeAttribute("hidden");
-      }
       function clrI() {
         pendImg = null;
-        $("cosPrev").setAttribute("hidden", "");
+        $("cosPrev").hidden = true;
         $("cosPrev").src = "";
       }
-      $("cosClr").onclick = (e) => {
-        e.stopPropagation();
-        clrI();
-      };
+      $("cosClr").onclick = (e) => { e.stopPropagation(); clrI(); };
 
       function rdImg(f) {
         if (!f || !f.type.startsWith("image/")) return;
         const r = new FileReader();
-        r.onload = (e) => setI(e.target.result);
+        r.onload = (e) => {
+          pendImg = e.target.result;
+          $("cosPrev").src = pendImg;
+          $("cosPrev").hidden = false;
+        };
         r.readAsDataURL(f);
       }
       const dz = $("cosDz");
@@ -946,9 +976,8 @@
         du.innerHTML = "";
         if (S.isAdmin) {
           // Roster management
-          const roster = S.roster || [];
           const rh = mk("h3");
-          rh.textContent = "📋 Member Roster (" + roster.length + ")";
+          rh.textContent = "📋 Member Roster (" + S.roster.length + ")";
           du.appendChild(rh);
 
           const rHint = mk("div", "dash-hint");
@@ -979,7 +1008,7 @@
               }
               rList.appendChild(row);
             });
-            if (!roster.length) {
+            if (!S.roster.length) {
               const em = mk("div", "dash-em");
               em.textContent = "No members yet — add names above";
               rList.appendChild(em);
@@ -992,7 +1021,6 @@
             const inp = du.querySelector("#rosterIn");
             const name = inp.value.trim();
             if (!name) return;
-            S.roster = S.roster || [];
             if (!S.roster.includes(name)) { S.roster.push(name); save(); }
             inp.value = "";
             renderRoster();
@@ -1043,17 +1071,20 @@
 
       syncU();
       updDl();
-      initAdmin(() => {
-        saveLocal();
-        renderDash();
-      });
-      saveLocal();
+      initAdmin(renderDash);
       fullRender();
 
       await initFirebase(() => {
         syncU();
-        fullRender();
-        $("hAlias").textContent = display();
+        // If the name gate is still visible, refresh it with the now-loaded roster
+        const existingGate = document.querySelector(".name-gate");
+        if (existingGate) {
+          existingGate.remove();
+          showNameGate();
+        } else {
+          fullRender();
+          $("hAlias").textContent = display();
+        }
       });
 
       if ("serviceWorker" in navigator)
