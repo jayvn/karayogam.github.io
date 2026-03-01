@@ -1,4 +1,4 @@
-import { $, mk, esc, S, save, me, modal, initAdmin, initFirebase, syncU, updDl, display, nameTaken } from "/mgroove/shared.js";
+import { $, mk, esc, S, save, me, modal, initFirebase, syncU, updDl, display, nameTaken } from "/mgroove/shared.js";
 import { rCard } from "/mgroove/cards.js";
 import { TAB, renderDash, fullRender, setGo, setApplyCF } from "/mgroove/dash.js";
 
@@ -203,7 +203,6 @@ $("miscIn").onkeydown = (e) => { if (e.key === "Enter") doMisc(); };
 
 // Init
 syncU(); updDl();
-initAdmin(renderDash);
 fullRender();
 
 await initFirebase(() => {

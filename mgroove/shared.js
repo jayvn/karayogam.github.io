@@ -21,8 +21,6 @@ const SHARED_KEYS = [
   "roster",
 ];
 const LOCAL_KEY = "mgroove_local";
-const ADMIN_PIN = "0000";
-
 export const $ = (id) => document.getElementById(id);
 export const mk = (t, c) => {
   const e = document.createElement(t);
@@ -57,7 +55,6 @@ export const S = {
   misc: [],
   roster: [],
   ...localState,
-  isAdmin: false,
 };
 
 export const saveLocal = () =>
@@ -113,41 +110,6 @@ export function cDlg(msg) {
   });
 }
 
-export function initAdmin(onToggle) {
-  S.isAdmin = false;
-  $("admTog").checked = false;
-  $("admTog").onchange = (e) => {
-    if (e.target.checked) {
-      const m = modal(
-        '<h3>🔒ividentha karyam?</h3><div class="f"><input type="password" id="pinIn" placeholder="PIN…" class="pin-input"></div><div class="acts"><button class="btn" id="pinC">Cancel</button><button class="btn btn-add" id="pinOk">OK</button></div>',
-      );
-      m.q("#pinIn").focus();
-      const done = () => {
-        const pin = m.q("#pinIn").value;
-        m.close();
-        if (pin === ADMIN_PIN) {
-          S.isAdmin = true;
-          document.body.classList.add("admin");
-          $("admTog").checked = true;
-          onToggle();
-        } else {
-          $("admTog").checked = false;
-          alert("Wrong PIN");
-        }
-      };
-      m.q("#pinC").onclick = m.close;
-      m.q("#pinOk").onclick = done;
-      m.q("#pinIn").onkeydown = (e) => {
-        if (e.key === "Enter") done();
-      };
-      e.target.checked = false;
-    } else {
-      S.isAdmin = false;
-      document.body.classList.remove("admin");
-      onToggle();
-    }
-  };
-}
 
 export async function initFirebase(onSnap) {
   const OLD_KEY = "mgroove_v3";

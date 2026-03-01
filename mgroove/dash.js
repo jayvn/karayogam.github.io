@@ -1,4 +1,4 @@
-import { $, mk, esc, S, save, me, cDlg, updDl } from "/mgroove/shared.js";
+import { $, mk, esc, S, me, updDl } from "/mgroove/shared.js";
 import { IC, iVoted, addMyVote, itemLabel, longFmt, rCard, rPast } from "/mgroove/cards.js";
 
 export let go;
@@ -81,74 +81,6 @@ export function renderDash() {
   if (S.slots.some((s) => !s.finalized && (!iVoted(s.id) || !(s.attendees ?? []).includes(me())))) document.querySelector('[data-v="slots"]').appendChild(mk("span", "bdot"));
   if (S.misc.some((m) => !m.finalized && !iVoted(m.id))) document.querySelector('[data-v="misc"]').appendChild(mk("span", "bdot"));
 
-  // Admin: roster + user list
-  const du = $("dashUsers");
-  du.innerHTML = "";
-  if (!S.isAdmin) return;
-
-  const rh = mk("h3");
-  rh.textContent = "📋 Member Roster (" + S.roster.length + ")";
-  du.appendChild(rh);
-  const rHint = mk("div", "dash-hint");
-  rHint.textContent = "Members pick their name from this list when setting up their profile.";
-  du.appendChild(rHint);
-
-  const rAdd = mk("div", "irow");
-  rAdd.innerHTML = '<input id="rosterIn" placeholder="Add member name…"><button class="btn btn-add" id="rosterAdd">＋</button>';
-  du.appendChild(rAdd);
-
-  const rList = mk("div", "roster-list");
-  const renderRoster = () => {
-    rList.innerHTML = "";
-    S.roster.slice().sort().forEach((name) => {
-      const row = mk("div", "user-row");
-      row.innerHTML = "<div><strong>" + esc(name) + "</strong>" +
-        (S.users[name] ? ' <span class="dim">✓ joined</span>' : ' <span class="dim">pending</span>') + "</div>";
-      if (!S.users[name]) {
-        const db = mk("button", "btn btn-icon del");
-        db.textContent = "✕";
-        db.onclick = async () => {
-          if (!(await cDlg("Remove " + name + " from roster?"))) return;
-          S.roster = S.roster.filter((n) => n !== name);
-          save(); renderRoster();
-        };
-        row.appendChild(db);
-      }
-      rList.appendChild(row);
-    });
-    if (!S.roster.length) {
-      const em = mk("div", "dash-em");
-      em.textContent = "No members yet — add names above";
-      rList.appendChild(em);
-    }
-  };
-  renderRoster();
-  du.appendChild(rList);
-
-  du.querySelector("#rosterAdd").onclick = () => {
-    const inp = du.querySelector("#rosterIn");
-    const name = inp.value.trim();
-    if (!name) return;
-    if (!S.roster.includes(name)) { S.roster.push(name); save(); }
-    inp.value = ""; renderRoster();
-  };
-  du.querySelector("#rosterIn").onkeydown = (e) => { if (e.key === "Enter") du.querySelector("#rosterAdd").click(); };
-
-  const uKeys = Object.keys(S.users);
-  const uh = mk("h3");
-  uh.textContent = "👥 Registered Users (" + uKeys.length + ")";
-  du.appendChild(uh);
-  if (!uKeys.length) {
-    const em = mk("div", "dash-em");
-    em.textContent = "No users yet";
-    du.appendChild(em);
-  } else
-    uKeys.sort().forEach((name) => {
-      const u = S.users[name], r = mk("div", "user-row");
-      r.innerHTML = "<div><strong>" + esc(name) + '</strong> <span class="dim">' + (u.location || "no location") +
-        '</span></div><div class="dim">' + (u.paypal || "no PayPal") + "</div>";
-      du.appendChild(r);
-    });
 }
 
 let applyCF;

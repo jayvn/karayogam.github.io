@@ -22,7 +22,6 @@ function lbox(src) {
   document.body.appendChild(l);
 }
 
-const canMod = (w) => S.isAdmin || me() === w;
 const myVotes = () => S.users[me()]?.votes ?? [];
 export const iVoted = (id) => myVotes().includes(id);
 
@@ -110,13 +109,13 @@ export function rCard(item, type, listEl) {
     }
 
     const btns = mk("div", "card-btns");
-    if (canMod(item.addedBy) && !item.finalized) {
+    if (!item.finalized) {
       const eb = mk("button", "btn btn-icon");
       eb.textContent = "✏️";
       eb.onclick = () => openEd(item, type, build);
       btns.appendChild(eb);
     }
-    if (canMod(item.addedBy)) {
+    {
       const db = mk("button", "btn btn-icon del");
       db.textContent = "✕";
       db.onclick = async () => {
