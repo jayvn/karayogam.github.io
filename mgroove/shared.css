@@ -90,6 +90,16 @@ header {
   font-weight: 700;
   font-size: 1.05rem;
   color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.logo img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
 }
 
 .hdr-r {
