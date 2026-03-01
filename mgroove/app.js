@@ -57,7 +57,7 @@ function openProf() {
     const newAlias = m.q("#pA").value.trim(), oldAlias = S.profile.alias;
     if (!newAlias) { alert("Please pick your name!"); return; }
     if (oldAlias && newAlias !== oldAlias) {
-      const ok = await cDlg(`Switch from <strong>${esc(oldAlias)}</strong> to <strong>${esc(newAlias)}</strong>?<br><small>All your entries will be reassigned to the new name.</small>`);
+      const ok = await cDlg(`Switch from <strong>${esc(oldAlias)}</strong> to <strong>${esc(newAlias)}</strong>?<br><small>this is a trust based website. original peril use cheyyu. Is this who you really are ?.</small>`);
       if (!ok) return;
     }
     if (newAlias !== oldAlias && nameTaken(newAlias)) {
