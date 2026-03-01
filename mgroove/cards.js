@@ -160,6 +160,53 @@ export function rCard(item, type, listEl) {
         save();
       };
       acts.appendChild(ab);
+
+      if (item.datetime) {
+        const gcb = mk("button", "btn btn-sm");
+        gcb.textContent = "📅 Google";
+        gcb.title = "Add to Google Calendar";
+        gcb.onclick = () => {
+          const start = new Date(item.datetime);
+          const end = new Date(start.getTime() + 90 * 60000);
+          const fmt = (d) => d.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+          const p = new URLSearchParams({
+            action: "TEMPLATE",
+            text: "M-Groove Practice" + (item.location ? " @ " + item.location : ""),
+            dates: fmt(start) + "/" + fmt(end),
+            location: item.location || "",
+            details: "M-Groove dance practice session",
+          });
+          window.open("https://calendar.google.com/calendar/render?" + p, "_blank");
+        };
+        acts.appendChild(gcb);
+
+        const icb = mk("button", "btn btn-sm");
+        icb.textContent = "📥 iCal";
+        icb.title = "Download iCal file";
+        icb.onclick = () => {
+          const start = new Date(item.datetime);
+          const end = new Date(start.getTime() + 90 * 60000);
+          const fmt = (d) => d.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+          const uid = item.id + "@mgroove";
+          const ical = [
+            "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//M-Groove//EN",
+            "BEGIN:VEVENT",
+            "UID:" + uid,
+            "DTSTART:" + fmt(start),
+            "DTEND:" + fmt(end),
+            "SUMMARY:M-Groove Practice" + (item.location ? " @ " + item.location : ""),
+            "LOCATION:" + (item.location || ""),
+            "DESCRIPTION:M-Groove dance practice session",
+            "END:VEVENT", "END:VCALENDAR",
+          ].join("\r\n");
+          const a = mk("a");
+          a.href = URL.createObjectURL(new Blob([ical], { type: "text/calendar" }));
+          a.download = "mgroove-" + start.toISOString().slice(0, 10) + ".ics";
+          a.click(); URL.revokeObjectURL(a.href);
+        };
+        acts.appendChild(icb);
+      }
+
       attDiv = mk("div", "att-list");
       attDiv.textContent = att.size ? "→ " + [...att].join(", ") : "";
     }
