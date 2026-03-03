@@ -134,7 +134,10 @@ function addI(type, data) {
   const item = { id: crypto.randomUUID(), createdAt: Date.now(), addedBy: me(), votes: 0, finalized: false, ...data };
   S[type === "misc" ? "misc" : type + "s"].push(item);
   save();
-  rCard(item, type, $({ song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[type]));
+  const listEl = $({ song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[type]);
+  const tmp = mk("div");
+  rCard(item, type, tmp);
+  listEl.prepend(tmp.firstChild);
 }
 
 // Songs
