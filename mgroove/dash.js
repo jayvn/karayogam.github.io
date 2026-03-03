@@ -20,9 +20,7 @@ export function renderDash() {
   // Pending votes
   const unv = all.filter((i) => !i.finalized && !iVoted(i.id));
   dv.innerHTML = "<h3>🗳️ Pending Votes (" + unv.length + ')</h3><div class="dash-hint">All votes are anonymous — only totals are visible</div>';
-  if (!unv.length)
-    dv.innerHTML += '<div class="dash-em">✅ You\'ve voted on everything!</div>';
-  else {
+  if (unv.length) {
     unv.slice(0, 6).forEach((item) => {
       const d = mk("div", "dash-i");
       const txDiv = mk("div", "tx");
