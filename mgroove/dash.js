@@ -40,9 +40,7 @@ export function renderDash() {
   // RSVP
   const unr = S.slots.filter((s) => !s.finalized && !(s.attendees ?? []).includes(me()));
   dr.innerHTML = "<h3>📅 RSVP Needed (" + unr.length + ")</h3>";
-  if (!unr.length)
-    dr.innerHTML += '<div class="dash-em">✅ All caught up!</div>';
-  else
+  if (unr.length)
     unr.forEach((s) => {
       const d = mk("div", "dash-i");
       const txDiv = mk("div", "tx");
