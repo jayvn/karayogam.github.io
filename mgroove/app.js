@@ -17,10 +17,10 @@ setGo(go);
 // Rename
 function renameUser(oldName, newName) {
   if (S.users[oldName]) { S.users[newName] = { ...S.users[oldName] }; delete S.users[oldName]; }
-  [S.songs, S.costumes, S.slots, S.past].forEach((arr) =>
+  [S.songs, S.costumes, S.slots].forEach((arr) =>
     arr.forEach((item) => { if (item.addedBy === oldName) item.addedBy = newName; })
   );
-  [...S.slots, ...S.past].forEach((s) => {
+  S.slots.forEach((s) => {
     if (!s.attendees) return;
     const i = s.attendees.indexOf(oldName);
     if (i !== -1) s.attendees[i] = newName;

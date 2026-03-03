@@ -1,5 +1,5 @@
 import { $, mk, esc, S, me, updDl } from "/mgroove/shared.js";
-import { IC, iVoted, addMyVote, itemLabel, longFmt, rCard, rPast } from "/mgroove/cards.js";
+import { IC, iVoted, addMyVote, itemLabel, longFmt, rCard } from "/mgroove/cards.js";
 
 export let go;
 export function setGo(fn) { go = fn; }
@@ -87,11 +87,10 @@ let applyCF;
 export function setApplyCF(fn) { applyCF = fn; }
 
 export function fullRender() {
-  ["songL", "cosL", "slL", "pastL", "miscL"].forEach((id) => ($(id).innerHTML = ""));
+  ["songL", "cosL", "slL", "miscL"].forEach((id) => ($(id).innerHTML = ""));
   S.songs.forEach((s) => rCard(s, "song", $("songL")));
   S.costumes.forEach((c) => rCard(c, "costume", $("cosL")));
   S.slots.forEach((s) => rCard(s, "slot", $("slL")));
-  S.past.forEach((p) => rPast(p));
   S.misc.forEach((m) => rCard(m, "misc", $("miscL")));
   applyCF();
   renderDash();

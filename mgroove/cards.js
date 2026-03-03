@@ -235,29 +235,12 @@ export function rCard(item, type, listEl) {
             payer: item.payer || "Group Fund",
             attendees: [...(item.attendees ?? [])],
           });
-        if (type !== "slot") {
-          const a = S[type === "misc" ? "misc" : type + "s"], i = a.findIndex((x) => x.id === item.id);
-          if (i !== -1) a.splice(i, 1);
-          S.past.push({ ...item, type, archivedAt: Date.now() });
-          save(); card.remove(); return;
-        }
+
       }
       save(); build();
     };
     acts.appendChild(fb);
 
-    if (type === "slot" && item.finalized) {
-      const arb = mk("button", "btn btn-sm");
-      arb.textContent = "🕰️ Archive";
-      arb.onclick = async () => {
-        if (!(await cDlg("Archive?"))) return;
-        const i = S.slots.findIndex((x) => x.id === item.id);
-        if (i !== -1) S.slots.splice(i, 1);
-        S.past.push({ ...item, type: "slot", archivedAt: Date.now() });
-        save(); card.remove();
-      };
-      acts.appendChild(arb);
-    }
     card.appendChild(acts);
     if (attDiv) card.appendChild(attDiv);
   }
@@ -265,12 +248,4 @@ export function rCard(item, type, listEl) {
   listEl.appendChild(card);
 }
 
-export function rPast(item) {
-  const ic = IC[item.type] || "📌", card = mk("div", "card final");
-  const txt = item.type === "slot"
-    ? ic + " " + (item.datetime ? shortFmt.format(new Date(item.datetime)) : "") + (item.location ? " · " + esc(item.location) : "")
-    : ic + " " + esc(item.text || "");
-  card.innerHTML = '<div class="card-top"><div class="card-body">' + txt +
-    '<div class="card-meta dim">Archived ' + new Date(item.archivedAt).toLocaleDateString() + "</div></div></div>";
-  $("pastL").appendChild(card);
-}
+
