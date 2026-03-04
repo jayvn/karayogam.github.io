@@ -6,7 +6,7 @@
     <title>M-Groove Organizer</title>
     <meta
       name="description"
-      content="Dance group organizer — songs, costumes, slots"
+      content="Dance group organizer — songs, costumes, schedule"
     />
     <meta name="theme-color" content="#f0c040" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -56,12 +56,11 @@
         <button data-v="home" class="active">🏠 Home</button>
         <button data-v="songs">🎵 Songs</button>
         <button data-v="costumes">👗 Costumes</button>
-        <button data-v="slots">📅 Slots</button>
+        <button data-v="schedule">📅 Schedule</button>
         <button data-v="misc">🗳️ Misc</button>
       </nav>
       <main id="vHome">
-        <div class="dash-s" id="dashVotes"></div>
-        <div class="dash-s" id="dashRsvp"></div>
+        <div class="dash-s" id="dashUpcoming"></div>
         <div class="dash-s" id="dashRecent"></div>
 
       </main>
@@ -109,28 +108,9 @@
           No costume ideas yet
         </div>
       </main>
-      <main id="vSlots" class="hidden">
-        <div class="irow">
-          <input type="datetime-local" id="slDt" />
-          <input id="slLoc" placeholder="📍 Location…" />
-        </div>
-        <div class="irow">
-          <input
-            type="number"
-            id="slCost"
-            placeholder="€ Cost"
-            min="0"
-            step="0.01"
-            class="w-fix"
-          />
-          <input id="slPayer" placeholder="Paid by…" list="userDl" />
-          <button class="btn btn-add" id="addSl">＋ Slot</button>
-        </div>
-        <div id="slL"></div>
-        <div id="slE" class="empty">
-          <div class="icon">📅</div>
-          No slots yet
-        </div>
+
+      <main id="vSchedule" class="hidden">
+        <div id="schedFull"></div>
       </main>
       <main id="vMisc" class="hidden">
         <div class="irow">

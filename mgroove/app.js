@@ -1,6 +1,8 @@
 import { $, mk, esc, S, save, me, modal, cDlg, initFirebase, syncU, updDl, display, nameTaken } from "/mgroove/shared.js";
 import { rCard } from "/mgroove/cards.js";
-import { TAB, renderDash, fullRender, setGo, setApplyCF } from "/mgroove/dash.js";
+import { TAB, renderDash, fullRender, setGo, setApplyCF, setRenderSched } from "/mgroove/dash.js";
+import { renderUpcoming, renderSchedule } from "/mgroove/schedule.js";
+setRenderSched(renderUpcoming);
 
 // Nav
 const views = {};
@@ -9,7 +11,8 @@ function go(k) {
   Object.values(views).forEach((v) => v.classList.add("hidden"));
   views[k].classList.remove("hidden");
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.v === k));
-  if (k === "home") renderDash();
+  if (k === "home") { renderUpcoming(); renderDash(); }
+  if (k === "schedule") renderSchedule();
 }
 document.querySelectorAll("#nav button").forEach((b) => (b.onclick = () => go(b.dataset.v)));
 setGo(go);
@@ -17,14 +20,9 @@ setGo(go);
 // Rename
 function renameUser(oldName, newName) {
   if (S.users[oldName]) { S.users[newName] = { ...S.users[oldName] }; delete S.users[oldName]; }
-  [S.songs, S.costumes, S.slots].forEach((arr) =>
+  [S.songs, S.costumes].forEach((arr) =>
     arr.forEach((item) => { if (item.addedBy === oldName) item.addedBy = newName; })
   );
-  S.slots.forEach((s) => {
-    if (!s.attendees) return;
-    const i = s.attendees.indexOf(oldName);
-    if (i !== -1) s.attendees[i] = newName;
-  });
   S.expenses.forEach((e) => {
     if (e.payer === oldName) e.payer = newName;
     if (!e.attendees) return;
@@ -134,7 +132,7 @@ function addI(type, data) {
   const k = type === "misc" ? "misc" : type + "s";
   S[k].push(item);
   save(k);
-  const listEl = $({ song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[type]);
+  const listEl = $({ song: "songL", costume: "cosL", misc: "miscL" }[type]);
   const tmp = mk("div");
   rCard(item, type, tmp);
   listEl.prepend(tmp.firstChild);
@@ -194,19 +192,6 @@ document.querySelectorAll("#cosTabs .tab").forEach((b) => {
   };
 });
 setApplyCF(applyCF);
-
-// Slots
-const doSlot = () => {
-  const dt = $("slDt").value, loc = $("slLoc").value.trim();
-  if (!dt && !loc) return;
-  addI("slot", { datetime: dt, location: loc, cost: parseFloat($("slCost").value) || 0, payer: $("slPayer").value.trim(), attendees: [] });
-  $("slDt").value = $("slLoc").value = $("slCost").value = $("slPayer").value = "";
-};
-$("addSl").onclick = doSlot;
-[$("slLoc"), $("slPayer")].forEach((el) => (el.onkeydown = (e) => { if (e.key === "Enter") doSlot(); }));
-const now = new Date();
-now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
-$("slDt").value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
 // Misc
 const doMisc = () => { const v = $("miscIn").value.trim(); if (!v) return; addI("misc", { text: v }); $("miscIn").value = ""; };

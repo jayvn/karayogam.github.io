@@ -101,6 +101,81 @@
   &:has(.prev:not([hidden])) .clr { display: block; }
 }
 
+/* Schedule */
+.sched-banner {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--gold) 15%, var(--surface)), color-mix(in oklch, var(--pink) 10%, var(--surface)));
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.8rem;
+  text-align: center;
+}
+.sched-banner-title { font-size: 1.3rem; font-weight: 700; color: var(--gold); margin-bottom: 0.3rem; }
+.sched-banner-date { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
+.sched-banner-loc { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 0.3rem; }
+.sched-banner-note { font-size: 0.82rem; color: var(--text-dim); font-style: italic; }
+
+.sched-addr {
+  background: var(--surface);
+  border-left: 3px solid var(--gold);
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  color: var(--text-dim);
+  & strong { color: var(--text); }
+}
+
+.sched-month { margin-bottom: 0.8rem; }
+.sched-month-title {
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--pink);
+  margin-bottom: 0.3rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.sched-default-time {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  font-family: "Outfit", sans-serif;
+}
+.sched-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.86rem;
+  border-radius: 6px;
+  &:nth-child(even) { background: var(--surface); }
+}
+.sched-day { font-weight: 500; }
+.sched-time { color: var(--text-dim); font-size: 0.8rem; }
+
+.sched-upcoming {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--green, #4ade80) 12%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in oklch, var(--green, #4ade80) 40%, transparent);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.8rem;
+}
+.sched-upcoming-label { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.2rem; & strong { color: var(--gold); } }
+.sched-upcoming-date { font-size: 1.2rem; font-weight: 700; }
+.sched-upcoming-time { font-size: 0.95rem; margin-top: 0.15rem; }
+.sched-upcoming-loc { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.15rem; }
+.sched-upcoming-btns { margin-top: 0.5rem; }
+
+.sched-hint { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.6rem; font-style: italic; }
+.sched-hdr { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; & h3 { margin: 0; } }
+.sched-banner-cal { margin-top: 0.5rem; }
+.sched-cal { display: inline-flex; gap: 0.25rem; }
+.sched-cal-btn { padding: 0.2rem 0.45rem !important; font-size: 0.78rem !important; text-decoration: none; }
+
+.sched-past { opacity: 0.4; }
+.sched-next { background: color-mix(in oklch, var(--gold) 8%, transparent) !important; border-left: 3px solid var(--gold); }
+
 /* Dashboard */
 .dash-s { margin-bottom: 1.4rem; }
 .dash-s h3 {

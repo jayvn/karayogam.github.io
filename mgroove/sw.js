@@ -1,4 +1,4 @@
-const CACHE_NAME = "mgroove-v4";
+const CACHE_NAME = "mgroove-v5";
 const urlsToCache = [
   "/mgroove/",
   "/mgroove/index.html",
@@ -8,6 +8,7 @@ const urlsToCache = [
   "/mgroove/app.js",
   "/mgroove/cards.js",
   "/mgroove/dash.js",
+  "/mgroove/schedule.js",
   "/mgroove/icon-192.png",
   "/mgroove/icon-512.png",
   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap",
