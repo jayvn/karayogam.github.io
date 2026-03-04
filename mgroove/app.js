@@ -130,7 +130,7 @@ if (!S.profile.alias) {
 
 // Add item
 function addI(type, data) {
-  const item = { id: crypto.randomUUID(), createdAt: Date.now(), addedBy: me(), votes: 0, ...data };
+  const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2), createdAt: Date.now(), addedBy: me(), votes: 0, ...data };
   const k = type === "misc" ? "misc" : type + "s";
   S[k].push(item);
   save(k);
