@@ -1,0 +1,27 @@
+name: Backup Firestore
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 3am UTC
+  workflow_dispatch: # manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and commit Firestore data
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        run: |
+          mkdir -p backups
+          DATE=$(date +%Y-%m-%d)
+          # Fetch mgroove document via REST API
+          curl -s "https://firestore.googleapis.com/v1/projects/rendercode-d73da/databases/(default)/documents/mgroove/v1?key=${FIREBASE_API_KEY}" \
+            | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin), indent=2))" \
+            > backups/mgroove-${DATE}.json
+          # Keep last 30 backups
+          ls -t backups/mgroove-*.json | tail -n +31 | xargs -r rm
+          git config user.name "backup-bot"
+          git config user.email "bot@karayogam.de"
+          git add backups/
+          git diff --cached --quiet || git commit -m "backup: mgroove ${DATE}" && git push

@@ -58,11 +58,21 @@ export const S = {
 export const saveLocal = () =>
   localStorage.setItem(LOCAL_KEY, JSON.stringify({ profile: S.profile }));
 let fbReady = false;
+let lastSnap = {};
 export const saveShared = (...keys) => {
   if (!fbReady) return;
   const data = {};
-  (keys.length ? keys : SHARED_KEYS).forEach((k) => (data[k] = S[k]));
-  setDoc(docRef, data, { merge: true });
+  (keys.length ? keys : SHARED_KEYS).forEach((k) => {
+    const remote = lastSnap[k];
+    const local = S[k];
+    // Never overwrite non-empty remote data with empty local data
+    if (Array.isArray(remote) && remote.length > 0 && Array.isArray(local) && local.length === 0) {
+      console.warn("saveShared: blocked empty write for", k);
+      return;
+    }
+    data[k] = local;
+  });
+  if (Object.keys(data).length) setDoc(docRef, data, { merge: true });
 };
 export const save = (...keys) => {
   saveLocal();
@@ -139,6 +149,7 @@ export async function initFirebase(onSnap) {
       SHARED_KEYS.forEach((k) => {
         if (data[k] !== undefined) S[k] = data[k];
       });
+      lastSnap = { ...data };
     }
     S.users ??= {};
     S.expenses ??= [];

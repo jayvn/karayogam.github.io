@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><title>Update Roster</title></head>
+<body>
+<pre id="log">Updating roster...</pre>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDGrq3qdR3pqHc0dQMXnE20c2wcLOINN-8",
+  authDomain: "rendercode-d73da.firebaseapp.com",
+  projectId: "rendercode-d73da",
+  storageBucket: "rendercode-d73da.firebasestorage.app",
+  messagingSenderId: "798989930424",
+  appId: "1:798989930424:web:7f324e5153cabc5d90494d",
+});
+
+const roster = [
+  "Abi", "Abin Jacob", "Akhil Antony", "Ananthu", "Arya",
+  "Athira Kannan", "Athira Neuperlach", "Ayana", "Benson",
+  "Evangela", "Gopika", "Govind", "Jay Nair", "John Doncy",
+  "Lakshmi Unnithan", "Mishma", "NancyB", "Nimmy Munich",
+  "Nimya Unnikrishnan", "Rijul", "Sumesh", "Treesa"
+];
+
+const db = getFirestore(app);
+await setDoc(doc(db, "mgroove", "v1"), { roster }, { merge: true });
+document.getElementById("log").textContent = "✅ Roster updated!\n\n" + roster.join("\n");
+</script>
+</body>
+</html>
