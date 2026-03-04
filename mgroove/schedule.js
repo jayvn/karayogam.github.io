@@ -109,7 +109,7 @@ export function renderUpcoming() {
     '<div class="sched-upcoming-label">⏭️ Next Practice · <strong>' + label + '</strong></div>' +
     '<div class="sched-upcoming-date">' + fmtDayLong(next.date) + '</div>' +
     '<div class="sched-upcoming-time">🕐 ' + fmtTime(next.start) + ' – ' + fmtTime(next.end) + '</div>' +
-    '<div class="sched-upcoming-loc">📍 ' + LOC + '</div>';
+    '<div class="sched-upcoming-loc">📍 <a href="' + LOC_URL + '" target="_blank">' + LOC + '</a></div>';
   const btns = mk("div", "sched-upcoming-btns");
   btns.append(calBtns("M-Groove Practice", next.date, next.start, next.end, LOC));
   up.append(btns);
