@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // M-Groove: single document with array fields
+    match /mgroove/v1 {
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['songs', 'costumes', 'slots', 'expenses', 'users', 'misc', 'roster'])
+        // Prevent wiping non-empty arrays with empty ones
+        && (!('songs' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.songs is list)
+        && (!('costumes' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.costumes is list)
+        && (!('slots' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.slots is list)
+        && (!('expenses' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.expenses is list)
+        && (!('misc' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.misc is list)
+        && (!('roster' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.roster is list)
+        && (!('users' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.users is map);
+      allow create: if false; // document already exists
+      allow delete: if false;
+    }
+
+    // ChoreoMarker
+    match /choreo/{sessionId} {
+      allow read, write: if true;
+    }
+
+    // Trip Planner
+    match /artifacts/trip-planner-v1/{docId} {
+      allow read, write: if true;
+    }
+
+    // Group Expenses
+    match /artifacts/group-expenses-v1/{docId} {
+      allow read, write: if true;
+    }
+
+    // Secret Santa
+    match /artifacts/secret-santa-v1/{docId} {
+      allow read, write: if true;
+    }
+
+    // Polls
+    match /polls-v1/{roomId} {
+      allow read, write: if true;
+    }
+  }
+}
