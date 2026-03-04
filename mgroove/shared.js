@@ -57,7 +57,9 @@ export const S = {
 
 export const saveLocal = () =>
   localStorage.setItem(LOCAL_KEY, JSON.stringify({ profile: S.profile }));
+let fbReady = false;
 export const saveShared = () => {
+  if (!fbReady) return;
   const data = {};
   SHARED_KEYS.forEach((k) => (data[k] = S[k]));
   setDoc(docRef, data, { merge: true });
@@ -140,6 +142,7 @@ export async function initFirebase(onSnap) {
     }
     S.users ??= {};
     S.expenses ??= [];
+    fbReady = true;
     onSnap();
   });
 }

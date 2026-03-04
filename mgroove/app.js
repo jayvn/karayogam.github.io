@@ -126,7 +126,6 @@ function showNameGate() {
 if (!S.profile.alias) {
   $("nav").style.pointerEvents = "none";
   $("nav").style.opacity = "0.3";
-  showNameGate();
 }
 
 // Add item
@@ -221,6 +220,7 @@ await initFirebase(() => {
   syncU();
   const gate = document.querySelector(".name-gate");
   if (gate) { gate.remove(); showNameGate(); }
+  else if (!me()) { showNameGate(); }
   else { fullRender(); $("hAlias").textContent = display(); }
 });
 
