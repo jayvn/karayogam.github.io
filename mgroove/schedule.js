@@ -1,6 +1,7 @@
 import { $, mk } from "/mgroove/shared.js";
 
 const LOC = "Grasmeierstraße 23, 80805 München";
+const LOC_URL = "https://www.google.com/maps/dir/48.1281231,11.5706678/Grasmeierstra%C3%9Fe+23,+80805+M%C3%BCnchen/";
 const SCHEDULE = [
   { month: "March", sessions: [
     { date: "2026-03-07", day: "Sat", start: "09:45", end: "14:00" },
