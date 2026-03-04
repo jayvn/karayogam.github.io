@@ -58,15 +58,15 @@ export const S = {
 export const saveLocal = () =>
   localStorage.setItem(LOCAL_KEY, JSON.stringify({ profile: S.profile }));
 let fbReady = false;
-export const saveShared = () => {
+export const saveShared = (...keys) => {
   if (!fbReady) return;
   const data = {};
-  SHARED_KEYS.forEach((k) => (data[k] = S[k]));
+  (keys.length ? keys : SHARED_KEYS).forEach((k) => (data[k] = S[k]));
   setDoc(docRef, data, { merge: true });
 };
-export const save = () => {
+export const save = (...keys) => {
   saveLocal();
-  saveShared();
+  saveShared(...keys);
 };
 export const me = () => S.profile.alias;
 export const display = () => S.profile.nickname || me();

@@ -1,6 +1,7 @@
 import { $, mk, esc, S, save, me, modal, cDlg } from "/mgroove/shared.js";
 
 export const IC = { song: "🎶", costume: "👗", slot: "📅", misc: "🗳️" };
+const typeKey = (t) => t === "misc" ? "misc" : t + "s";
 
 const shortFmt = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
 export const longFmt = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -72,19 +73,19 @@ export function openEd(item, type, cb) {
       item.cost = parseFloat(m.q("#eCo").value) || 0;
       item.payer = m.q("#ePa").value.trim();
     }
-    save(); m.close(); cb();
+    save(typeKey(type)); m.close(); cb();
   };
 }
 
 export function rCard(item, type, listEl) {
-  const card = mk("div", "card card-" + type + (item.finalized ? " final" : ""));
+  const card = mk("div", "card card-" + type);
   card.dataset.id = item.id;
   if (type === "costume") card.dataset.gender = item.gender || "unisex";
 
   function build() {
     card.innerHTML = "";
     if (type === "costume") card.dataset.gender = item.gender || "unisex";
-    card.className = "card card-" + type + (item.finalized ? " final" : "");
+    card.className = "card card-" + type;
     const ic = IC[type], link = xLink(item.text || "");
 
     let tH = "";
@@ -116,7 +117,7 @@ export function rCard(item, type, listEl) {
     }
 
     const btns = mk("div", "card-btns");
-    if (!item.finalized) {
+    {
       const eb = mk("button", "btn btn-icon");
       eb.textContent = "✏️";
       eb.onclick = () => openEd(item, type, build);
@@ -127,18 +128,18 @@ export function rCard(item, type, listEl) {
       db.textContent = "✕";
       db.onclick = async () => {
         if (!(await cDlg("Delete this item?"))) return;
-        const a = S[type === "misc" ? "misc" : type + "s"], i = a.findIndex((x) => x.id === item.id);
+        const k = typeKey(type), a = S[k], i = a.findIndex((x) => x.id === item.id);
         if (i !== -1) a.splice(i, 1);
         const ei = S.expenses.findIndex((e) => e.sourceId === item.id);
         if (ei !== -1) S.expenses.splice(ei, 1);
-        card.remove(); save();
+        card.remove(); save(k, "expenses");
       };
       btns.appendChild(db);
     }
     top.appendChild(bd); top.appendChild(btns); card.appendChild(top);
 
     const acts = mk("div", "card-actions");
-    if (!item.finalized) {
+    {
       const vb = mk("button", "btn btn-sm btn-vote" + (iVoted(item.id) ? " voted" : ""));
       vb.textContent = "👍 " + (item.votes || 0);
       vb.onclick = () => {
@@ -146,7 +147,7 @@ export function rCard(item, type, listEl) {
         else { item.votes = (item.votes || 0) + 1; addMyVote(item.id); }
         vb.textContent = "👍 " + item.votes;
         vb.classList.toggle("voted", iVoted(item.id));
-        save();
+        save(typeKey(type), "users");
       };
       acts.appendChild(vb);
     }
@@ -156,7 +157,6 @@ export function rCard(item, type, listEl) {
       const att = new Set(item.attendees ?? []);
       const ab = mk("button", "btn btn-sm btn-attend" + (att.has(me()) ? " going" : ""));
       ab.textContent = "🙋 Going (" + att.size + ")";
-      ab.disabled = !!item.finalized;
       ab.onclick = () => {
         const n = me();
         att.has(n) ? att.delete(n) : att.add(n);
@@ -164,7 +164,7 @@ export function rCard(item, type, listEl) {
         ab.textContent = "🙋 Going (" + att.size + ")";
         ab.classList.toggle("going", att.has(n));
         attDiv.textContent = att.size ? "→ " + [...att].join(", ") : "";
-        save();
+        save("slots");
       };
       acts.appendChild(ab);
 
@@ -217,29 +217,6 @@ export function rCard(item, type, listEl) {
       attDiv = mk("div", "att-list");
       attDiv.textContent = att.size ? "→ " + [...att].join(", ") : "";
     }
-
-    const fb = mk("button", "btn btn-sm btn-final" + (item.finalized ? " finalized" : ""));
-    fb.textContent = item.finalized ? "⏪ Undo" : "🎯 Finalize";
-    fb.onclick = () => {
-      if (item.finalized) {
-        item.finalized = false;
-        const ei = S.expenses.findIndex((e) => e.sourceId === item.id);
-        if (ei !== -1) S.expenses.splice(ei, 1);
-      } else {
-        item.finalized = true;
-        if (type === "slot" && item.cost > 0 && !S.expenses.find((e) => e.sourceId === item.id))
-          S.expenses.push({
-            sourceId: item.id,
-            title: (item.location || "Session") + (item.datetime ? " " + new Date(item.datetime).toLocaleDateString() : ""),
-            cost: +item.cost,
-            payer: item.payer || "Group Fund",
-            attendees: [...(item.attendees ?? [])],
-          });
-
-      }
-      save(); build();
-    };
-    acts.appendChild(fb);
 
     card.appendChild(acts);
     if (attDiv) card.appendChild(attDiv);

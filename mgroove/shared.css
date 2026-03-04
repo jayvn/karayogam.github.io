@@ -245,13 +245,6 @@ select { cursor: pointer; }
   &.going { background: var(--teal); color: var(--bg); }
 }
 
-.btn-final {
-  border-color: color-mix(in oklch, var(--pink) 50%, transparent);
-  color: var(--pink);
-
-  &.finalized { background: var(--teal); color: var(--bg); border-color: var(--teal); }
-}
-
 /* Chips */
 .chips {
   display: flex;
@@ -370,11 +363,7 @@ dialog.mo[open] {
   &.card-slot  { border-left-color: var(--gold); }
   &.card-misc  { border-left-color: var(--unisex); }
 
-  &.final {
-    border-left-color: var(--teal);
-    background: linear-gradient(135deg, var(--surface), oklch(0.78 0.14 170 / 0.04));
-    box-shadow: var(--glow-teal);
-  }
+
 }
 
 .card-top {

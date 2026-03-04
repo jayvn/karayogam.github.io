@@ -1,4 +1,4 @@
-import { $, mk, esc, S, me, updDl } from "/mgroove/shared.js";
+import { $, mk, esc, S, save, me, updDl } from "/mgroove/shared.js";
 import { IC, iVoted, addMyVote, itemLabel, longFmt, rCard } from "/mgroove/cards.js";
 
 export let go;
@@ -18,7 +18,7 @@ export function renderDash() {
   ];
 
   // Pending votes
-  const unv = all.filter((i) => !i.finalized && !iVoted(i.id));
+  const unv = all.filter((i) => !iVoted(i.id));
   dv.innerHTML = "<h3>🗳️ Pending Votes (" + unv.length + ')</h3><div class="dash-hint">All votes are anonymous — only totals are visible</div>';
   if (unv.length) {
     unv.slice(0, 6).forEach((item) => {
@@ -27,7 +27,7 @@ export function renderDash() {
       txDiv.innerHTML = esc(itemLabel(item).slice(0, 50)) + "<br><small>" + IC[item._t] + " · " + (item.votes || 0) + " votes</small>";
       const vb = mk("button", "btn btn-sm btn-vote");
       vb.textContent = "👍";
-      vb.onclick = (e) => { e.stopPropagation(); item.votes = (item.votes || 0) + 1; addMyVote(item.id); save(); renderDash(); };
+      vb.onclick = (e) => { e.stopPropagation(); item.votes = (item.votes || 0) + 1; addMyVote(item.id); save(item._t === "misc" ? "misc" : item._t + "s", "users"); renderDash(); };
       d.appendChild(mk("span", "ic")).textContent = IC[item._t];
       d.appendChild(txDiv);
       d.appendChild(vb);
@@ -38,7 +38,7 @@ export function renderDash() {
   }
 
   // RSVP
-  const unr = S.slots.filter((s) => !s.finalized && !(s.attendees ?? []).includes(me()));
+  const unr = S.slots.filter((s) => !(s.attendees ?? []).includes(me()));
   dr.innerHTML = "<h3>📅 RSVP Needed (" + unr.length + ")</h3>";
   if (unr.length)
     unr.forEach((s) => {
@@ -48,7 +48,7 @@ export function renderDash() {
         (s.location ? " · " + esc(s.location) : "") + "<br><small>" + (s.attendees ?? []).length + " going</small>";
       const ab = mk("button", "btn btn-sm btn-attend");
       ab.textContent = "🙋";
-      ab.onclick = (e) => { e.stopPropagation(); s.attendees ??= []; if (!s.attendees.includes(me())) s.attendees.push(me()); save(); renderDash(); };
+      ab.onclick = (e) => { e.stopPropagation(); s.attendees ??= []; if (!s.attendees.includes(me())) s.attendees.push(me()); save("slots"); renderDash(); };
       d.appendChild(mk("span", "ic")).textContent = "📅";
       d.appendChild(txDiv); d.appendChild(ab);
       d.onclick = () => go("slots");
@@ -73,10 +73,10 @@ export function renderDash() {
   // Nav dots
   document.querySelectorAll("#nav button .bdot").forEach((d) => d.remove());
 
-  if (S.songs.some((s) => !s.finalized && !iVoted(s.id))) document.querySelector('[data-v="songs"]').appendChild(mk("span", "bdot"));
-  if (S.costumes.some((c) => !c.finalized && !iVoted(c.id))) document.querySelector('[data-v="costumes"]').appendChild(mk("span", "bdot"));
-  if (S.slots.some((s) => !s.finalized && (!iVoted(s.id) || !(s.attendees ?? []).includes(me())))) document.querySelector('[data-v="slots"]').appendChild(mk("span", "bdot"));
-  if (S.misc.some((m) => !m.finalized && !iVoted(m.id))) document.querySelector('[data-v="misc"]').appendChild(mk("span", "bdot"));
+  if (S.songs.some((s) => !iVoted(s.id))) document.querySelector('[data-v="songs"]').appendChild(mk("span", "bdot"));
+  if (S.costumes.some((c) => !iVoted(c.id))) document.querySelector('[data-v="costumes"]').appendChild(mk("span", "bdot"));
+  if (S.slots.some((s) => !iVoted(s.id) || !(s.attendees ?? []).includes(me()))) document.querySelector('[data-v="slots"]').appendChild(mk("span", "bdot"));
+  if (S.misc.some((m) => !iVoted(m.id))) document.querySelector('[data-v="misc"]').appendChild(mk("span", "bdot"));
 
 }
 

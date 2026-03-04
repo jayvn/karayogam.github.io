@@ -68,8 +68,8 @@ function openProf() {
     }
     S.profile.alias = newAlias;
     S.profile.nickname = m.q("#pN").value.trim();
-    if (oldAlias && oldAlias !== newAlias) renameUser(oldAlias, newAlias);
-    syncU(); save();
+    if (oldAlias && oldAlias !== newAlias) { renameUser(oldAlias, newAlias); syncU(); save(); }
+    else { syncU(); save("users"); }
     $("hAlias").textContent = display();
     updDl(); m.close(); fullRender();
   };
@@ -112,8 +112,8 @@ function showNameGate() {
     }
     const oldAlias = S.profile.alias;
     S.profile.alias = name;
-    if (oldAlias && oldAlias !== name) renameUser(oldAlias, name);
-    syncU(); save();
+    if (oldAlias && oldAlias !== name) { renameUser(oldAlias, name); syncU(); save(); }
+    else { syncU(); save("users"); }
     $("hAlias").textContent = display();
     updDl(); gate.remove();
     $("nav").style.pointerEvents = $("nav").style.opacity = "";
@@ -130,9 +130,10 @@ if (!S.profile.alias) {
 
 // Add item
 function addI(type, data) {
-  const item = { id: crypto.randomUUID(), createdAt: Date.now(), addedBy: me(), votes: 0, finalized: false, ...data };
-  S[type === "misc" ? "misc" : type + "s"].push(item);
-  save();
+  const item = { id: crypto.randomUUID(), createdAt: Date.now(), addedBy: me(), votes: 0, ...data };
+  const k = type === "misc" ? "misc" : type + "s";
+  S[k].push(item);
+  save(k);
   const listEl = $({ song: "songL", costume: "cosL", slot: "slL", misc: "miscL" }[type]);
   const tmp = mk("div");
   rCard(item, type, tmp);

@@ -125,7 +125,7 @@
           payer,
           attendees: [...expSplit],
         });
-        save();
+        save("expenses");
         $("exDesc").value = "";
         $("exAmt").value = "";
         $("exPayer").value = "";
@@ -178,8 +178,9 @@
           db.textContent = "✕";
           db.onclick = async () => {
             if (!(await cDlg("Delete this expense?"))) return;
-            S.expenses.splice(idx, 1);
-            save();
+            const i = S.expenses.findIndex((x) => x.sourceId === e.sourceId);
+            if (i !== -1) S.expenses.splice(i, 1);
+            save("expenses");
             renderFin();
           };
           d.appendChild(db);
