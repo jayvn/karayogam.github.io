@@ -1,8 +1,6 @@
 name: Backup Firestore
 on:
-  schedule:
-    - cron: '0 3 * * *' # daily at 3am UTC
-  workflow_dispatch: # manual trigger
+  workflow_dispatch: # manual trigger only
 
 jobs:
   backup:
